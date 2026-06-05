@@ -1,0 +1,217 @@
+/* Reset cơ bản và thiết lập font mặc định */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Thiết lập nền và màu chữ cho body */
+body {
+    background: #f4f6f9;
+    color: #333;
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+/* Thiết kế sidebar cố định bên trái */
+.sidebar {
+    width: 250px;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: linear-gradient(to bottom, #2c3e50, #34495e);
+    padding-top: 20px;
+    color: white;
+    transition: all 0.3s ease;
+    border-top-right-radius: 25px;
+}
+
+/* Tiêu đề trong sidebar */
+.sidebar h3 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 20px;
+    transition: transform 0.3s ease;
+}
+
+.sidebar h3:hover {
+    transform: scale(1.1);
+}
+
+/* Liên kết trong sidebar */
+.sidebar a {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    opacity: 0.9;
+}
+
+.sidebar a i {
+    margin-right: 10px;
+}
+
+.sidebar a:hover {
+    opacity: 1;
+    background-color: #34495e;
+    padding-left: 25px;
+}
+
+.sidebar a.active {
+    background-color: #3498db;
+    font-weight: bold;
+    transform: scale(1.02);
+}
+
+/* Nội dung chính (bên phải sidebar) */
+.content {
+    margin-left: 250px;
+    padding: 20px;
+    min-height: 100vh;
+    background: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: margin-left 0.3s ease;
+}
+
+/* Tiêu đề chính */
+h1 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    text-align: center;
+    font-size: 24px;
+}
+
+/* Form nhập liệu */
+form {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #ecf0f1;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Label trong form */
+label {
+    display: block;
+    margin-bottom: 5px;
+    color: #34495e;
+    font-weight: bold;
+}
+
+/* Input và select trong form */
+input[type="text"], select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+input[type="text"]:focus, select:focus {
+    border-color: #3498db;
+    outline: none;
+}
+
+/* Nút submit và liên kết dạng nút */
+input[type="submit"], a.button {
+    background-color: #3498db;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    margin-right: 10px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+input[type="submit"]:hover, a.button:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+}
+
+/* Thông báo lỗi */
+.error {
+    color: #e74c3c;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+/* Bảng danh sách */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #2c3e50;
+    color: white;
+}
+
+td {
+    background-color: #fff;
+}
+
+/* Hiệu ứng hover cho hàng trong bảng */
+tr:hover {
+    background-color: #f5f6fa;
+}
+
+/* Cảnh báo (warning) */
+.warning {
+    color: #e67e22;
+    font-weight: bold;
+}
+
+/* Phân trang */
+.pagination {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.pagination a {
+    padding: 8px 12px;
+    margin: 0 5px;
+    text-decoration: none;
+    color: #3498db;
+    border: 1px solid #3498db;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.pagination a:hover {
+    background-color: #3498db;
+    color: white;
+}
+
+.pagination a.active {
+    background-color: #2980b9;
+    color: white;
+}
+
+/* Animation cho nội dung */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.content {
+    animation: fadeIn 0.5s ease-in;
+}

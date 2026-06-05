@@ -1,0 +1,28 @@
+@{
+    ViewData["Title"] = "Truy cập bị từ chối";
+}
+<style>
+    .denied-section { padding:80px 0; background:linear-gradient(135deg,#0f172a,#1e293b); min-height:80vh; display:flex; align-items:center; }
+    .denied-card { background:rgba(239,68,68,.08); border:1px solid rgba(239,68,68,.3); border-radius:24px; padding:50px 40px; text-align:center; color:#fff; max-width:500px; margin:0 auto; }
+    .denied-icon { font-size:4rem; margin-bottom:20px; }
+    .denied-card h1 { color:#f87171; font-size:1.8rem; font-weight:800; margin-bottom:10px; }
+    .denied-card p { color:#94a3b8; margin-bottom:30px; line-height:1.6; }
+    .btn-home { display:inline-block; padding:12px 28px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border-radius:25px; text-decoration:none; font-weight:700; transition:all .3s; margin:0 8px; }
+    .btn-home:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(236,96,144,.4); color:#fff; }
+    .btn-back { display:inline-block; padding:12px 28px; background:transparent; border:2px solid #ec6090; color:#ec6090; border-radius:25px; text-decoration:none; font-weight:700; transition:all .2s; margin:0 8px; }
+    .btn-back:hover { background:rgba(236,96,144,.1); color:#ec6090; }
+</style>
+
+<section class="denied-section">
+    <div class="container">
+        <div class="denied-card">
+            <div class="denied-icon">🔒</div>
+            <h1>Truy cập bị từ chối</h1>
+            <p>Bạn không có quyền truy cập trang này. Vui lòng liên hệ với quản trị viên nếu bạn nghĩ đây là sự nhầm lẫn.</p>
+            <div>
+                <a asp-controller="Home" asp-action="Index" class="btn-home">🏠 Về trang chủ</a>
+                <a href="javascript:history.back()" class="btn-back">← Quay lại</a>
+            </div>
+        </div>
+    </div>
+</section>

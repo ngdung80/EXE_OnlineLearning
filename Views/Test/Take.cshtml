@@ -1,0 +1,152 @@
+@model POT_System_ASPNET.Controllers.TakeTestViewModel
+@{
+    ViewData["Title"] = "Làm bài kiểm tra: " + Model?.Test?.TestName;
+    Layout = null; // Full-screen test mode
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>@ViewData["Title"]</title>
+    <link href="/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:linear-gradient(135deg,#0f172a,#1e293b); font-family:'Inter',sans-serif; color:#e2e8f0; min-height:100vh; }
+        .test-header { background:rgba(255,255,255,.05); border-bottom:1px solid rgba(255,255,255,.08); padding:16px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+        .test-title { font-size:1.1rem; font-weight:700; color:#ec6090; }
+        .timer-box { display:flex; align-items:center; gap:8px; background:rgba(236,96,144,.15); padding:8px 20px; border-radius:25px; border:1px solid rgba(236,96,144,.3); }
+        .timer { font-size:1.3rem; font-weight:800; color:#ec6090; font-variant-numeric:tabular-nums; }
+        .timer.urgent { color:#ef4444; animation:pulse 1s infinite; }
+        @@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.5;} }
+        .test-body { max-width:860px; margin:0 auto; padding:30px 20px; }
+        .progress-bar-wrap { background:rgba(255,255,255,.08); border-radius:10px; height:8px; margin-bottom:30px; }
+        .progress-bar-fill { height:100%; background:linear-gradient(135deg,#ec6090,#e75485); border-radius:10px; transition:width .3s ease; }
+        .question-card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:28px; margin-bottom:24px; transition:border-color .3s; }
+        .question-card:hover { border-color:rgba(236,96,144,.3); }
+        .q-num { color:#ec6090; font-size:.85rem; font-weight:700; margin-bottom:8px; letter-spacing:.5px; }
+        .q-content { font-size:1rem; font-weight:500; line-height:1.6; color:#e2e8f0; margin-bottom:20px; }
+        .options { display:flex; flex-direction:column; gap:10px; }
+        .option-label { display:flex; align-items:center; gap:12px; padding:12px 16px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:10px; cursor:pointer; transition:all .2s; }
+        .option-label:hover { background:rgba(236,96,144,.1); border-color:rgba(236,96,144,.3); }
+        .option-label input[type="radio"] { display:none; }
+        .option-label input[type="radio"]:checked + .option-dot { background:#ec6090; }
+        .option-label:has(input:checked) { background:rgba(236,96,144,.15); border-color:#ec6090; }
+        .option-dot { width:18px; height:18px; border-radius:50%; border:2px solid rgba(255,255,255,.3); flex-shrink:0; transition:all .2s; }
+        .option-text { font-size:.95rem; color:#e2e8f0; }
+        .submit-wrap { text-align:center; margin-top:30px; }
+        .btn-submit { padding:16px 50px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border:none; border-radius:30px; font-size:1.1rem; font-weight:700; cursor:pointer; transition:all .3s; }
+        .btn-submit:hover { transform:translateY(-3px); box-shadow:0 12px 30px rgba(236,96,144,.4); }
+        .q-nav { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:30px; }
+        .q-dot { width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); color:#e2e8f0; font-size:.8rem; font-weight:600; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .2s; }
+        .q-dot.answered { background:rgba(16,185,129,.2); border-color:#10b981; color:#10b981; }
+        .q-dot.current { background:rgba(236,96,144,.3); border-color:#ec6090; color:#ec6090; }
+    </style>
+</head>
+<body>
+    <div class="test-header">
+        <div class="test-title">📝 @Model?.Test?.TestName</div>
+        <div class="timer-box">
+            <i class="fas fa-clock"></i>
+            <span class="timer" id="timer">@Model?.Test?.Duration:00</span>
+        </div>
+    </div>
+
+    <div class="test-body">
+        <!-- Question nav dots -->
+        <div class="q-nav" id="qNav">
+            @if (Model?.Test?.TestQuestions != null)
+            {
+                int n = 1;
+                foreach (var tq in Model.Test.TestQuestions)
+                {
+                    <div class="q-dot" id="dot-@n" onclick="scrollToQ(@n)">@n</div>
+                    n++;
+                }
+            }
+        </div>
+
+        <!-- Progress bar -->
+        <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
+        </div>
+
+        <form id="testForm" asp-action="Submit" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="attemptId" value="@Model?.AttemptId">
+
+            @if (Model?.Test?.TestQuestions != null)
+            {
+                int qIdx = 1;
+                foreach (var tq in Model.Test.TestQuestions)
+                {
+                    var q = tq.Question;
+                    var options = q?.Answer?.Split(',').Select(o => o.Trim()).Where(o => !string.IsNullOrEmpty(o)).ToList() ?? new List<string>();
+                    <div class="question-card" id="q-@qIdx">
+                        <div class="q-num">CÂU HỎI @qIdx / @Model.Test.TestQuestions.Count</div>
+                        <div class="q-content">@q?.QuestionContent</div>
+                        <div class="options">
+                            @foreach (var opt in options)
+                            {
+                                <label class="option-label" onclick="markAnswered(@qIdx)">
+                                    <input type="radio" name="q_@q!.QuestionId" value="@opt">
+                                    <div class="option-dot"></div>
+                                    <span class="option-text">@opt</span>
+                                </label>
+                            }
+                        </div>
+                    </div>
+                    qIdx++;
+                }
+            }
+
+            <div class="submit-wrap">
+                <button type="button" class="btn-submit" onclick="submitTest()">✅ Nộp bài</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const totalTime = @(Model?.Test?.Duration ?? 60) * 60;
+        let remaining = totalTime;
+        const timerEl = document.getElementById('timer');
+        const totalQ = @(Model?.Test?.TestQuestions?.Count ?? 0);
+        let answeredCount = 0;
+
+        const t = setInterval(() => {
+            remaining--;
+            const m = Math.floor(remaining / 60).toString().padStart(2, '0');
+            const s = (remaining % 60).toString().padStart(2, '0');
+            timerEl.textContent = m + ':' + s;
+            if (remaining <= 300) timerEl.classList.add('urgent');
+            if (remaining <= 0) { clearInterval(t); submitTest(); }
+        }, 1000);
+
+        function markAnswered(n) {
+            const dot = document.getElementById('dot-' + n);
+            if (!dot.classList.contains('answered')) {
+                dot.classList.add('answered');
+                answeredCount++;
+                document.getElementById('progressBar').style.width = (answeredCount / totalQ * 100) + '%';
+            }
+        }
+
+        function scrollToQ(n) {
+            document.getElementById('q-' + n).scrollIntoView({ behavior:'smooth', block:'center' });
+        }
+
+        function submitTest() {
+            const unanswered = totalQ - answeredCount;
+            if (unanswered > 0 && !confirm(`Bạn còn ${unanswered} câu chưa trả lời. Bạn có chắc chắn muốn nộp bài không?`)) return;
+            clearInterval(t);
+            document.getElementById('testForm').submit();
+        }
+
+        window.addEventListener('beforeunload', e => {
+            if (remaining > 0) { e.preventDefault(); e.returnValue = ''; }
+        });
+    </script>
+</body>
+</html>

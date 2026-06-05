@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>@ViewData["Title"] - PLO Learning</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="~/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="~/assets/css/fontawesome.css">
+    <link rel="stylesheet" href="~/assets/css/templatemo-cyborg-gaming.css">
+    <link rel="stylesheet" href="~/assets/css/owl.css">
+    <link rel="stylesheet" href="~/assets/css/animate.css">
+    <link rel="stylesheet" href="https://unpkg.com/swiper@7/swiper-bundle.min.css"/>
+    <style>
+        .main-nav .nav { display:flex; justify-content:flex-start; align-items:center; list-style:none; padding:0; margin:0; gap:25px; }
+        .main-nav .nav li { position:relative; }
+        .main-nav .nav li a { color:#2a0040 !important; text-decoration:none; font-size:16px; display:flex; align-items:center; transition: all .3s; }
+        .background-header .main-nav .nav li a { color:#2a0040 !important; }
+        .main-nav .nav li a:hover, .main-nav .nav li a.active { color:#e75485 !important; }
+        .background-header .main-nav .nav li a:hover, .background-header .main-nav .nav li a.active { color:#e75485 !important; }
+        .main-nav .nav .profile-link img { width:30px; height:30px; border-radius:50%; margin-left:8px; }
+        .dropdown { display:none; position:absolute; top:100%; left:0; min-width:220px; z-index:1000; text-align:center; padding:12px; }
+        .nav li:hover .dropdown { display:block; }
+        .dropdown a { display:inline-block; margin:6px; padding:8px 20px; text-decoration:none; font-size:14px; font-weight:600; border-radius:999px; background-color:#ff66b2; color:black; transition:all .3s ease; box-shadow:0 3px 6px rgba(0,0,0,.1); }
+        .dropdown a:hover { background-color:#e60073; transform:translateY(-2px); box-shadow:0 5px 10px rgba(0,0,0,.2); }
+        .toast-msg { position:fixed; top:20px; right:20px; z-index:9999; padding:12px 24px; border-radius:8px; font-weight:600; animation:slideIn .4s ease; }
+        .toast-success { background:linear-gradient(135deg,#10b981,#059669); color:#fff; }
+        .toast-error { background:linear-gradient(135deg,#ef4444,#dc2626); color:#fff; }
+        .main-nav .logo { display:flex !important; align-items:center; gap:10px; border-right:none !important; flex-basis:auto !important; margin-right:4% !important; text-decoration:none; }
+        .main-nav .logo img { width:45px !important; height:45px !important; object-fit:contain; }
+        .logo-text { font-family:'Inter',sans-serif; font-weight:900; font-size:26px; color:#e75485 !important; transition:color .3s; text-transform:uppercase; letter-spacing:1px; }
+        .background-header .logo-text { color:#e75485 !important; }
+        @@keyframes slideIn { from { opacity:0; transform:translateX(50px); } to { opacity:1; transform:translateX(0); } }
+    </style>
+    @RenderSection("Styles", required: false)
+</head>
+<body>
+    <header class="header-area header-sticky">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <nav class="main-nav">
+                        <a asp-controller="Home" asp-action="Index" class="logo">
+                            <img src="~/assets/images/logo.png" asp-append-version="true" alt="PLO Logo">
+                            <span class="logo-text">PLO</span>
+                        </a>
+                        <div class="search-input">
+                            <form id="search" action="#">
+                                <input type="text" placeholder="Tìm kiếm bài học..." id="searchText" name="searchKeyword"/>
+                                <i class="fa fa-search"></i>
+                            </form>
+                        </div>
+                        <ul class="nav">
+                            <li><a asp-controller="Home" asp-action="Index" class="active">Trang chủ</a></li>
+                            <li><a href="/Grade">Khối lớp</a></li>
+
+                            @if (!User.Identity!.IsAuthenticated || User.IsInRole("Parent"))
+                            {
+                                <li><a asp-controller="Package" asp-action="List">Gói học</a></li>
+                            }
+
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <li><a href="/User">Quản lý người dùng</a></li>
+                                <li><a href="/Package">Quản lý gói học</a></li>
+                                <li><a href="/QuestionReport">Báo cáo câu hỏi</a></li>
+                            }
+
+                            @if (User.IsInRole("Content Manager") || User.IsInRole("Content Approver"))
+                            {
+                                <li><a href="/QuestionReport">Báo cáo câu hỏi</a></li>
+                                <li>
+                                    <a href="#">Ngân hàng câu hỏi</a>
+                                    <div class="dropdown">
+                                        <a href="/Question" style="color:#f6f6f6!important;">Danh sách câu hỏi</a>
+                                        <a href="/Question/Create" style="color:#f6f6f6!important;">Thêm câu hỏi</a>
+                                    </div>
+                                </li>
+                            }
+
+                            @if (User.Identity.IsAuthenticated)
+                            {
+                                @if (User.IsInRole("Parent"))
+                                {
+                                    <li>
+                                        <a href="#">Ví: @Context.Session.GetString("WalletBalance") đ</a>
+                                        <div class="dropdown">
+                                            <a asp-controller="Wallet" asp-action="Index" style="color:#f6f6f6!important;">Ví của tôi</a>
+                                            <a asp-controller="Parent" asp-action="LinkedStudents" style="color:#f6f6f6!important;">Học sinh liên kết</a>
+                                        </div>
+                                    </li>
+                                }
+                                @if (User.IsInRole("Student"))
+                                {
+                                    <li>
+                                        <a href="#">Công cụ AI</a>
+                                        <div class="dropdown">
+                                            <a asp-controller="AI" asp-action="GeneratePractice" style="color:#f6f6f6!important;">Tự tạo đề luyện tập</a>
+                                            <a asp-controller="AI" asp-action="Chat" style="color:#f6f6f6!important;">Trợ lý AI</a>
+                                        </div>
+                                    </li>
+                                    <li><a asp-controller="Test" asp-action="History">Lịch sử làm bài</a></li>
+                                }
+                                <li class="profile-link">
+                                    <a asp-controller="Account" asp-action="Profile">
+                                        @User.FindFirst("FullName")?.Value
+                                        <img src="@(User.FindFirst("Image")?.Value ?? "/assets/images/profile-header.jpg")" alt="Profile">
+                                    </a>
+                                    <div class="dropdown">
+                                        <a asp-controller="Account" asp-action="Profile" style="color:#f6f6f6!important;">Hồ sơ</a>
+                                        <a asp-controller="Account" asp-action="ChangePassword" style="color:#f6f6f6!important;">Đổi mật khẩu</a>
+                                        <a asp-controller="Account" asp-action="Logout" style="color:#f6f6f6!important;">Đăng xuất</a>
+                                    </div>
+                                </li>
+                            }
+                            else
+                            {
+                                <li>
+                                    <a asp-controller="Account" asp-action="Login"
+                                       style="display:inline-block;background-color:#e75485;color:white;padding:10px 20px;border-radius:25px;text-decoration:none;font-weight:500;">
+                                        Đăng ký / Đăng nhập
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                        <a class="menu-trigger"><span>Menu</span></a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    @* Toast notifications *@
+    @if (TempData["Success"] != null)
+    {
+        <div class="toast-msg toast-success" id="toastMsg">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="toast-msg toast-error" id="toastMsg">@TempData["Error"]</div>
+    }
+
+    <main>
+        @RenderBody()
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <div class="under-footer" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+                        <p>Bản quyền &copy; @DateTime.Now.Year Nền tảng học tập PLO. Bảo lưu mọi quyền.</p>
+                        <a href="/Account/LoginAdmin" style="color:#475569;font-size:.75rem;text-decoration:none;">🛡️ Trang Admin</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/vendor/jquery/jquery.min.js"></script>
+    <script src="~/vendor/bootstrap/js/bootstrap.min.js"></script>
+    <script src="~/assets/js/owl-carousel.js"></script>
+    <script src="~/assets/js/animation.js"></script>
+    <script src="~/assets/js/imagesloaded.js"></script>
+    <script src="~/assets/js/custom.js"></script>
+    <script>
+        // Auto-hide toast
+        document.addEventListener('DOMContentLoaded', function () {
+            const toast = document.getElementById('toastMsg');
+            if (toast) setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity .5s'; setTimeout(() => toast.remove(), 500); }, 3500);
+        });
+    </script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

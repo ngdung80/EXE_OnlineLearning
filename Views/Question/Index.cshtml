@@ -1,0 +1,159 @@
+@model List<POT_System_ASPNET.Data.Entities.Question>
+@{
+    ViewData["Title"] = "Ngân hàng câu hỏi";
+    var lessons = ViewBag.Lessons as List<POT_System_ASPNET.Data.Entities.Lesson> ?? new List<POT_System_ASPNET.Data.Entities.Lesson>();
+    var filter = ViewBag.Filter;
+    var currentPage = ViewBag.CurrentPage as int? ?? 1;
+    var totalPages = ViewBag.TotalPages as int? ?? 1;
+
+    string getSearch() => filter?.GetType().GetProperty("search")?.GetValue(filter, null) as string ?? "";
+    int? getLessonId() => filter?.GetType().GetProperty("lessonId")?.GetValue(filter, null) as int?;
+    string getLevel() => filter?.GetType().GetProperty("level")?.GetValue(filter, null) as string ?? "";
+    string getStatus() => filter?.GetType().GetProperty("status")?.GetValue(filter, null) as string ?? "";
+}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+    .admin-section { padding:80px 0; background:linear-gradient(135deg,#0f172a,#1e293b); min-height:80vh; color:#fff; }
+    .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; }
+    .page-title { font-size:2rem; font-weight:800; color:#ec6090; }
+    .btn-add { padding:10px 24px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border-radius:25px; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:8px; border:none; transition:all .2s; }
+    .btn-add:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(236,96,144,.3); color:#fff; }
+    
+    .filter-card { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); border-radius:20px; padding:24px; margin-bottom:30px; }
+    .form-control, .form-select { background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); color:#fff; border-radius:10px; padding:10px 15px; font-size:.9rem; }
+    .form-control:focus, .form-select:focus { border-color:#ec6090; outline:none; background:rgba(255,255,255,.12); color:#fff; }
+    .form-select option { background:#1e293b; }
+    
+    .question-card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:20px; padding:25px; margin-bottom:20px; transition:all .2s; }
+    .question-card:hover { border-color:rgba(236,96,144,.3); }
+    .q-header { display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid rgba(255,255,255,.06); padding-bottom:12px; margin-bottom:15px; flex-wrap:wrap; gap:10px; }
+    .q-meta { font-size:.82rem; color:#94a3b8; }
+    .badge-level { padding:4px 10px; border-radius:8px; font-size:.78rem; font-weight:600; }
+    .level-Remember { background:rgba(59,130,246,.15); color:#60a5fa; border:1px solid rgba(59,130,246,.3); }
+    .level-Understand { background:rgba(245,158,11,.15); color:#f59e0b; border:1px solid rgba(245,158,11,.3); }
+    .level-Apply { background:rgba(16,185,129,.15); color:#10b981; border:1px solid rgba(16,185,129,.3); }
+    
+    .q-content { font-size:1.02rem; font-weight:600; margin-bottom:15px; }
+    .options-grid { display:grid; grid-template-columns:1fr; gap:10px; margin-bottom:20px; }
+    @@media (min-width: 576px) {
+        .options-grid { grid-template-columns:1fr 1fr; }
+    }
+    .opt-box { padding:12px 16px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06); border-radius:10px; font-size:.88rem; display:flex; align-items:center; gap:8px; }
+    .opt-correct { border-color:rgba(16,185,129,.3); background:rgba(16,185,129,.05); color:#34d399; }
+    
+    .action-row { display:flex; justify-content:flex-end; gap:10px; }
+    .btn-edit { color:#60a5fa; background:rgba(96,165,250,.1); border:1px solid rgba(96,165,250,.2); padding:6px 14px; border-radius:8px; font-size:.85rem; text-decoration:none; display:inline-flex; align-items:center; gap:4px; transition:all .2s; }
+    .btn-edit:hover { background:rgba(96,165,250,.2); color:#60a5fa; }
+    .btn-delete { color:#f87171; background:rgba(248,113,113,.1); border:1px solid rgba(248,113,113,.2); padding:6px 14px; border-radius:8px; font-size:.85rem; cursor:pointer; display:inline-flex; align-items:center; gap:4px; transition:all .2s; border:none; }
+    .btn-delete:hover { background:rgba(248,113,113,.2); color:#f87171; }
+    
+    .btn-search { padding:10px 24px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border-radius:10px; border:none; font-weight:600; cursor:pointer; }
+</style>
+
+<section class="admin-section">
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title"><i class="fas fa-database"></i> Ngân hàng câu hỏi</h1>
+            <a asp-action="Create" asp-route-lessonId="@getLessonId()" class="btn-add">
+                <i class="fas fa-plus"></i> Thêm câu hỏi
+            </a>
+        </div>
+
+        <!-- Filters Form -->
+        <div class="filter-card">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <input type="text" name="search" class="form-control" placeholder="Tìm nội dung câu hỏi..." value="@getSearch()" />
+                </div>
+                <div class="col-md-3">
+                    <select name="lessonId" class="form-select">
+                        <option value="">-- Tất cả bài học --</option>
+                        @foreach (var l in lessons)
+                        {
+                            <option value="@l.LessonId" selected="@(l.LessonId == getLessonId())">@l.LessonName</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="level" class="form-select">
+                        <option value="">-- Tất cả độ khó --</option>
+                        <option value="Remember" selected="@(getLevel() == "Remember")">Nhận biết</option>
+                        <option value="Understand" selected="@(getLevel() == "Understand")">Thông hiểu</option>
+                        <option value="Apply" selected="@(getLevel() == "Apply")">Vận dụng</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="status" class="form-select">
+                        <option value="">-- Tất cả trạng thái --</option>
+                        <option value="Active" selected="@(getStatus() == "Active")">Hoạt động</option>
+                        <option value="Inactive" selected="@(getStatus() == "Inactive")">Ngừng hoạt động</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-grid">
+                    <button type="submit" class="btn-search"><i class="fas fa-filter"></i> Lọc dữ liệu</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Question List -->
+        @if (Model != null && Model.Any())
+        {
+            foreach (var q in Model)
+            {
+                string vnLevel = q.Level == "Remember" ? "Nhận biết" : q.Level == "Understand" ? "Thông hiểu" : "Vận dụng";
+                <div class="question-card">
+                    <div class="q-header">
+                        <div class="q-meta">
+                            <strong>Câu hỏi #@q.QuestionId</strong> &bull; Bài học: <strong>@q.Lesson?.LessonName</strong>
+                        </div>
+                        <span class="badge-level level-@q.Level">@vnLevel</span>
+                    </div>
+
+                    <div class="q-content">@q.QuestionContent</div>
+
+                    <div class="options-grid">
+                        @{
+                            var opts = q.Answer?.Split(',').Select(o => o.Trim()).ToArray() ?? new string[0];
+                            foreach (var opt in opts)
+                            {
+                                bool isCorrect = opt.Equals(q.CorrectAnswer, StringComparison.OrdinalIgnoreCase);
+                                <div class="opt-box @(isCorrect ? "opt-correct" : "")">
+                                    <span>@(isCorrect ? "🟢" : "⚪")</span> @opt
+                                </div>
+                            }
+                        }
+                    </div>
+
+                    <div class="action-row">
+                        <a asp-action="Edit" asp-route-id="@q.QuestionId" class="btn-edit">
+                            <i class="fas fa-edit"></i> Sửa
+                        </a>
+                        <form asp-action="Delete" asp-route-id="@q.QuestionId" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa câu hỏi này không?');" style="display:inline;">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn-delete">
+                                <i class="fas fa-trash-alt"></i> Xóa
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+
+            <!-- Pagination -->
+            if (totalPages > 1)
+            {
+                <div class="d-flex justify-content-center gap-2 mt-4">
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        <a asp-action="Index" asp-route-search="@getSearch()" asp-route-lessonId="@getLessonId()" asp-route-level="@getLevel()" asp-route-status="@getStatus()" asp-route-page="@i" class="btn-search @(i == currentPage ? "active" : "")" style="padding:6px 14px; text-decoration:none;">@i</a>
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <div class="text-center py-5" style="background:rgba(255,255,255,.03); border-radius:20px; border:1px dashed rgba(255,255,255,.1);">
+                <p style="color:#94a3b8; font-size:1.1rem; margin:0;">Không tìm thấy câu hỏi nào phù hợp với bộ lọc.</p>
+            </div>
+        }
+    </div>
+</section>

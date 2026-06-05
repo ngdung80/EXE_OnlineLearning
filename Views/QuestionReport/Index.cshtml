@@ -1,0 +1,188 @@
+@model List<POT_System_ASPNET.Data.Entities.QuestionReport>
+@{
+    ViewData["Title"] = "Báo cáo câu hỏi lỗi";
+    var selectedStatus = ViewBag.SelectedStatus as string;
+    var currentPage = ViewBag.CurrentPage as int? ?? 1;
+    var totalPages = ViewBag.TotalPages as int? ?? 1;
+}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+    .admin-section { padding:80px 0; background:linear-gradient(135deg,#0f172a,#1e293b); min-height:80vh; color:#fff; }
+    .page-title { color:#ec6090; font-weight:800; margin-bottom:20px; display:flex; align-items:center; gap:10px; }
+    .filter-bar { display:flex; gap:12px; margin-bottom:30px; flex-wrap:wrap; }
+    .filter-btn { padding:10px 24px; border-radius:20px; text-decoration:none; color:#cbd5e1; border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.05); font-weight:600; font-size:.9rem; transition:all .2s; }
+    .filter-btn:hover { background:rgba(255,255,255,.1); color:#fff; }
+    .filter-btn.active { background:#ec6090; border-color:#ec6090; color:#fff; }
+    
+    .report-card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:20px; padding:30px; margin-bottom:25px; transition:all .3s; }
+    .report-card:hover { border-color:rgba(236,96,144,.3); }
+    .report-header { display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,.08); padding-bottom:15px; margin-bottom:20px; flex-wrap:wrap; gap:10px; }
+    .report-meta { font-size:.85rem; color:#94a3b8; }
+    .badge-pending { background:rgba(234,179,8,.15); color:#eab308; border:1px solid rgba(234,179,8,.3); padding:4px 12px; border-radius:12px; font-size:.8rem; font-weight:600; }
+    .badge-reviewed { background:rgba(96,165,250,.15); color:#60a5fa; border:1px solid rgba(96,165,250,.3); padding:4px 12px; border-radius:12px; font-size:.8rem; font-weight:600; }
+    .badge-resolved { background:rgba(16,185,129,.15); color:#10b981; border:1px solid rgba(16,185,129,.3); padding:4px 12px; border-radius:12px; font-size:.8rem; font-weight:600; }
+    
+    .reason-box { background:rgba(239,68,68,.05); border-left:4px solid #ef4444; padding:15px; border-radius:4px; margin-bottom:20px; font-size:.92rem; }
+    
+    .question-box { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:20px; margin-bottom:20px; }
+    .question-content { font-weight:600; font-size:1rem; margin-bottom:12px; }
+    .option-list { list-style:none; padding-left:0; margin-bottom:0; font-size:.9rem; }
+    .option-item { padding:8px 12px; background:rgba(255,255,255,.02); border:1px solid rgba(255,255,255,.05); border-radius:8px; margin-bottom:6px; }
+    .option-correct { border-color:rgba(16,185,129,.3); background:rgba(16,185,129,.05); color:#34d399; }
+    
+    .action-panel { display:flex; gap:12px; flex-wrap:wrap; }
+    .btn-action { padding:8px 18px; border-radius:15px; font-size:.85rem; font-weight:600; text-decoration:none; cursor:pointer; display:inline-flex; align-items:center; gap:6px; border:none; transition:all .2s; }
+    .btn-review { background:rgba(96,165,250,.15); color:#60a5fa; border:1px solid rgba(96,165,250,.2); }
+    .btn-review:hover { background:rgba(96,165,250,.25); }
+    .btn-fix { background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; }
+    .btn-fix:hover { transform:translateY(-1px); box-shadow:0 6px 15px rgba(236,96,144,.3); }
+    
+    .form-control, .form-select { background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); color:#fff; border-radius:10px; padding:10px 15px; width:100%; font-size:.9rem; }
+    .form-control:focus { border-color:#ec6090; outline:none; }
+    
+    .panel-form { background:rgba(255,255,255,.02); border:1px solid rgba(255,255,255,.05); padding:20px; border-radius:12px; margin-top:15px; display:none; }
+</style>
+
+<section class="admin-section">
+    <div class="container">
+        <h1 class="page-title"><i class="fas fa-exclamation-triangle"></i> Báo cáo câu hỏi lỗi</h1>
+        <p style="color:#94a3b8; margin-bottom:30px;">Xem xét và khắc phục các câu hỏi bị học sinh báo lỗi do lỗi chính tả, sai đáp án hoặc công thức tính toán.</p>
+
+        <!-- Filters -->
+        <div class="filter-bar">
+            <a asp-action="Index" asp-route-status="" class="filter-btn @(string.IsNullOrEmpty(selectedStatus) ? "active" : "")">Tất cả báo cáo</a>
+            <a asp-action="Index" asp-route-status="Pending" class="filter-btn @(selectedStatus == "Pending" ? "active" : "")">Chờ xử lý</a>
+            <a asp-action="Index" asp-route-status="Reviewed" class="filter-btn @(selectedStatus == "Reviewed" ? "active" : "")">Đã xem xét</a>
+            <a asp-action="Index" asp-route-status="Resolved" class="filter-btn @(selectedStatus == "Resolved" ? "active" : "")">Đã khắc phục</a>
+        </div>
+
+        @if (Model != null && Model.Any())
+        {
+            foreach (var r in Model)
+            {
+                string statusText = r.Status == "Pending" ? "Chờ xử lý" : r.Status == "Reviewed" ? "Đã xem xét" : "Đã khắc phục";
+                string badgeClass = r.Status == "Pending" ? "badge-pending" : r.Status == "Reviewed" ? "badge-reviewed" : "badge-resolved";
+                <div class="report-card">
+                    <div class="report-header">
+                        <div class="report-meta">
+                            <strong>Báo cáo #@r.ReportId</strong> &bull; Người báo cáo: <strong>@r.Reporter?.FullName</strong> vào lúc @(r.CreatedAt.HasValue ? r.CreatedAt.Value.ToString("dd/MM/yyyy HH:mm") : "N/A")
+                        </div>
+                        <span class="@badgeClass">● @statusText</span>
+                    </div>
+
+                    <div class="reason-box">
+                        <strong>Lý do lỗi:</strong> @r.Reason
+                    </div>
+
+                    <div class="question-box">
+                        <div class="question-content">
+                            @r.Question?.QuestionContent
+                        </div>
+                        <ul class="option-list">
+                            @{
+                                var opts = r.Question?.Answer?.Split(',').Select(o => o.Trim()).ToArray() ?? new string[0];
+                                foreach (var opt in opts)
+                                {
+                                    bool isCorrect = opt.Equals(r.Question?.CorrectAnswer, StringComparison.OrdinalIgnoreCase);
+                                    <li class="option-item @(isCorrect ? "option-correct" : "")">
+                                        @if (isCorrect) { <span><i class="fas fa-check-circle"></i> </span> }
+                                        @opt
+                                    </li>
+                                }
+                            }
+                        </ul>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(r.ReviewNote))
+                    {
+                        <div style="background:rgba(255,255,255,.02); padding:15px; border-radius:8px; margin-bottom:20px; border:1px dashed rgba(255,255,255,.1); font-size:.9rem;">
+                            <strong>Ghi chú phản hồi:</strong> @r.ReviewNote
+                        </div>
+                    }
+
+                    @if (r.Status != "Resolved")
+                    {
+                        <div class="action-panel">
+                            <button type="button" class="btn-action btn-review" onclick="toggleForm('reviewForm-@r.ReportId')">
+                                <i class="fas fa-eye"></i> Đánh dấu đã xem
+                            </button>
+                            <button type="button" class="btn-action btn-fix" onclick="toggleForm('fixForm-@r.ReportId')">
+                                <i class="fas fa-wrench"></i> Sửa đề & Đóng báo cáo
+                            </button>
+                        </div>
+
+                        <!-- Review Form -->
+                        <div class="panel-form" id="reviewForm-@r.ReportId">
+                            <form asp-action="Review" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@r.ReportId" />
+                                <input type="hidden" name="status" value="Reviewed" />
+                                <div class="mb-3">
+                                    <label class="form-label">Ghi chú phản hồi</label>
+                                    <textarea name="reviewNote" class="form-control" rows="2" placeholder="Ví dụ: Báo cáo chính xác, đang kiểm tra để sửa lại..."></textarea>
+                                </div>
+                                <button type="submit" class="btn-action btn-review">Lưu phản hồi</button>
+                            </form>
+                        </div>
+
+                        <!-- Fix Form -->
+                        <div class="panel-form" id="fixForm-@r.ReportId">
+                            <form asp-action="EditQuestion" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="reportId" value="@r.ReportId" />
+                                <input type="hidden" name="questionId" value="@r.QuestionId" />
+                                <div class="mb-3">
+                                    <label class="form-label">Nội dung câu hỏi</label>
+                                    <textarea name="questionContent" class="form-control" rows="3" required>@r.Question?.QuestionContent</textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Các lựa chọn (Ngăn cách bằng dấu phẩy)</label>
+                                    <input type="text" name="answer" class="form-control" value="@r.Question?.Answer" required />
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Nội dung đáp án đúng</label>
+                                    <input type="text" name="correctAnswer" class="form-control" value="@r.Question?.CorrectAnswer" required />
+                                </div>
+                                <button type="submit" class="btn-action btn-fix">💾 Lưu câu hỏi & Giải quyết báo cáo</button>
+                            </form>
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- Pagination -->
+            if (totalPages > 1)
+            {
+                <div class="d-flex justify-content-center gap-2 mt-4">
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        <a asp-action="Index" asp-route-status="@selectedStatus" asp-route-page="@i" class="filter-btn @(i == currentPage ? "active" : "")" style="padding:6px 14px;">@i</a>
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <div class="text-center py-5" style="background:rgba(255,255,255,.03); border-radius:20px; border:1px dashed rgba(255,255,255,.1);">
+                <div style="font-size:3rem; margin-bottom:15px; opacity:.5;">🎉</div>
+                <p style="color:#94a3b8; font-size:1.1rem;">Không tìm thấy báo cáo nào cho trạng thái "@(selectedStatus ?? "Tất cả")". Tuyệt vời!</p>
+            </div>
+        }
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        function toggleForm(formId) {
+            const form = document.getElementById(formId);
+            const isVisible = form.style.display === 'block';
+            
+            // Close all forms inside this parent card context or page
+            document.querySelectorAll('.panel-form').forEach(f => f.style.display = 'none');
+            
+            if (!isVisible) {
+                form.style.display = 'block';
+            }
+        }
+    </script>
+}

@@ -1,0 +1,87 @@
+@model List<POT_System_ASPNET.Data.Entities.Chapter>
+@{
+    ViewData["Title"] = "Chương học";
+    var subject = ViewBag.Subject as POT_System_ASPNET.Data.Entities.Subject;
+}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+    .ch-section { padding:80px 0; background:linear-gradient(135deg,#0f172a,#1e293b); min-height:80vh; }
+    .breadcrumb-bar { display:flex; align-items:center; gap:8px; color:#64748b; font-size:.9rem; margin-bottom:20px; flex-wrap:wrap; }
+    .breadcrumb-bar a { color:#ec6090; text-decoration:none; }
+    .section-hd { display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; }
+    .section-hd h2 { color:#ec6090; font-weight:700; margin:0; }
+    .btn-add { display:inline-flex; align-items:center; gap:8px; padding:10px 22px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border-radius:25px; text-decoration:none; font-weight:600; font-size:.88rem; transition:all .3s; border:none; cursor:pointer; }
+    .btn-add:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(236,96,144,.4); color:#fff; }
+    .ch-list { display:flex; flex-direction:column; gap:12px; }
+    .ch-item { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.09); border-radius:14px; padding:20px 24px; display:flex; align-items:center; gap:20px; transition:all .3s; }
+    .ch-item:hover { border-color:rgba(236,96,144,.3); background:rgba(255,255,255,.07); }
+    .ch-num { width:46px; height:46px; background:linear-gradient(135deg,rgba(236,96,144,.3),rgba(231,84,133,.15)); border-radius:12px; display:flex; align-items:center; justify-content:center; color:#ec6090; font-weight:800; font-size:1.1rem; flex-shrink:0; }
+    .ch-info { flex:1; }
+    .ch-name { color:#e2e8f0; font-weight:600; font-size:.98rem; margin-bottom:4px; }
+    .ch-desc { color:#64748b; font-size:.83rem; }
+    .ch-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+    .badge-active { display:inline-block; padding:3px 10px; background:rgba(16,185,129,.2); color:#10b981; border-radius:12px; font-size:.74rem; font-weight:600; }
+    .badge-inactive { display:inline-block; padding:3px 10px; background:rgba(239,68,68,.2); color:#ef4444; border-radius:12px; font-size:.74rem; font-weight:600; }
+    .btn-lessons { padding:7px 14px; background:rgba(236,96,144,.15); color:#ec6090; border-radius:15px; text-decoration:none; font-size:.82rem; font-weight:600; }
+    .btn-lessons:hover { background:rgba(236,96,144,.3); color:#ec6090; }
+    .btn-sm-action { padding:5px 12px; border-radius:12px; font-size:.76rem; font-weight:600; border:none; cursor:pointer; transition:all .2s; text-decoration:none; }
+    .btn-edit-sm { background:rgba(59,130,246,.2); color:#60a5fa; }
+    .btn-del-sm { background:rgba(239,68,68,.2); color:#f87171; }
+    .empty-state { text-align:center; padding:60px; color:#64748b; }
+</style>
+
+<section class="ch-section">
+    <div class="container">
+        <div class="breadcrumb-bar">
+            <a asp-controller="Grade" asp-action="Index">Khối lớp</a>
+            <span>›</span>
+            <a asp-controller="Subject" asp-action="Index" asp-route-gradeId="@subject?.GradeId">@subject?.Grade?.GradeName</a>
+            <span>›</span>
+            <span style="color:#e2e8f0;">@subject?.SubjectName</span>
+        </div>
+        <div class="section-hd">
+            <h2>📑 @(subject?.SubjectName ?? "Chương học")</h2>
+            @if (User.IsInRole("Admin") || User.IsInRole("Content Manager"))
+            {
+                <a asp-action="Create" asp-route-subjectId="@subject?.SubjectId" class="btn-add"><i class="fas fa-plus"></i> Thêm chương học</a>
+            }
+        </div>
+
+        @if (Model != null && Model.Any())
+        {
+            <div class="ch-list">
+                @{ int n = 1; }
+                @foreach (var ch in Model)
+                {
+                    <div class="ch-item">
+                        <div class="ch-num">@n++</div>
+                        <div class="ch-info">
+                            <div class="ch-name">@ch.ChapterName</div>
+                            <div class="ch-desc">@(ch.Description ?? "Không có mô tả")</div>
+                        </div>
+                        <div class="ch-actions">
+                            @if (ch.Status == "Active") { <span class="badge-active">Hoạt động</span> }
+                            else { <span class="badge-inactive">@(ch.Status == "Inactive" ? "Không hoạt động" : ch.Status)</span> }
+                            <a asp-controller="Lesson" asp-action="Index" asp-route-chapterId="@ch.ChapterId" class="btn-lessons">Bài học →</a>
+                            @if (User.IsInRole("Admin") || User.IsInRole("Content Manager"))
+                            {
+                                <a asp-action="Edit" asp-route-id="@ch.ChapterId" class="btn-sm-action btn-edit-sm">✏️</a>
+                                <form asp-action="Delete" asp-route-id="@ch.ChapterId" method="post" style="display:inline" onsubmit="return confirm('Xóa chương học này?')">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn-sm-action btn-del-sm">🗑️</button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <div style="font-size:3rem;margin-bottom:15px;">📂</div>
+                <p>Không tìm thấy chương học nào cho môn học này.</p>
+            </div>
+        }
+    </div>
+</section>

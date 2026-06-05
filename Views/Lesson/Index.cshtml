@@ -1,0 +1,102 @@
+@model List<POT_System_ASPNET.Data.Entities.Lesson>
+@{
+    ViewData["Title"] = "Bài học";
+    var chapter = ViewBag.Chapter as POT_System_ASPNET.Data.Entities.Chapter;
+}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+    .lesson-section { padding:80px 0; background:linear-gradient(135deg,#0f172a,#1e293b); min-height:80vh; }
+    .breadcrumb-bar { display:flex; align-items:center; gap:8px; color:#64748b; font-size:.88rem; margin-bottom:20px; flex-wrap:wrap; }
+    .breadcrumb-bar a { color:#ec6090; text-decoration:none; }
+    .section-hd { display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; }
+    .section-hd h2 { color:#ec6090; font-weight:700; margin:0; }
+    .btn-add { display:inline-flex; align-items:center; gap:8px; padding:10px 22px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border-radius:25px; text-decoration:none; font-weight:600; font-size:.88rem; transition:all .3s; }
+    .btn-add:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(236,96,144,.4); color:#fff; }
+    .lesson-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:18px; }
+    .lesson-card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.09); border-radius:14px; padding:22px; transition:all .3s; display:flex; flex-direction:column; }
+    .lesson-card:hover { transform:translateY(-4px); border-color:rgba(236,96,144,.3); box-shadow:0 12px 28px rgba(0,0,0,.25); }
+    .lesson-icon { font-size:2rem; margin-bottom:12px; }
+    .lesson-name { color:#e2e8f0; font-weight:700; font-size:.98rem; margin-bottom:6px; }
+    .lesson-content { color:#64748b; font-size:.82rem; margin-bottom:16px; flex:1; overflow:hidden; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; line-height:1.5; }
+    .lesson-footer { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+    .badge { display:inline-block; padding:3px 10px; border-radius:12px; font-size:.74rem; font-weight:600; }
+    .badge-active { background:rgba(16,185,129,.2); color:#10b981; }
+    .badge-pending { background:rgba(234,179,8,.2); color:#eab308; }
+    .badge-inactive { background:rgba(239,68,68,.2); color:#ef4444; }
+    .btn-read { padding:7px 14px; background:rgba(236,96,144,.15); color:#ec6090; border-radius:15px; text-decoration:none; font-size:.82rem; font-weight:600; }
+    .btn-read:hover { background:rgba(236,96,144,.3); color:#ec6090; }
+    .admin-btns { display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; }
+    .btn-sm-action { padding:5px 11px; border-radius:10px; font-size:.75rem; font-weight:600; border:none; cursor:pointer; transition:all .2s; text-decoration:none; }
+    .btn-edit-sm { background:rgba(59,130,246,.2); color:#60a5fa; }
+    .btn-del-sm { background:rgba(239,68,68,.2); color:#f87171; }
+    .btn-approve-sm { background:rgba(16,185,129,.2); color:#10b981; }
+    .empty-state { text-align:center; padding:60px; color:#64748b; }
+</style>
+
+<section class="lesson-section">
+    <div class="container">
+        <div class="breadcrumb-bar">
+            <a asp-controller="Grade" asp-action="Index">Khối lớp</a>
+            <span>›</span>
+            <a asp-controller="Subject" asp-action="Index" asp-route-gradeId="@chapter?.Subject?.GradeId">@chapter?.Subject?.Grade?.GradeName</a>
+            <span>›</span>
+            <a asp-controller="Chapter" asp-action="Index" asp-route-subjectId="@chapter?.SubjectId">@chapter?.Subject?.SubjectName</a>
+            <span>›</span>
+            <span style="color:#e2e8f0;">@chapter?.ChapterName</span>
+        </div>
+        <div class="section-hd">
+            <h2>📝 @(chapter?.ChapterName ?? "Bài học")</h2>
+            @if (User.IsInRole("Admin") || User.IsInRole("Content Manager"))
+            {
+                <a asp-action="Create" asp-route-chapterId="@chapter?.ChapterId" class="btn-add"><i class="fas fa-plus"></i> Thêm bài học</a>
+            }
+        </div>
+
+        @if (Model != null && Model.Any())
+        {
+            <div class="lesson-grid">
+                @{ var icons = new[] { "📖", "🎯", "💡", "🔬", "🧮", "📐", "🌍", "🎨" }; int li = 0; }
+                @foreach (var l in Model)
+                {
+                    <div class="lesson-card">
+                        <div class="lesson-icon">@icons[li++ % icons.Length]</div>
+                        <div class="lesson-name">@l.LessonName</div>
+                        <div class="lesson-content">@(l.ContentText ?? "Chưa có mô tả tóm tắt nội dung bài học.")</div>
+                        <div class="lesson-footer">
+                            @{
+                                string badgeClass = l.Status == "Active" ? "badge-active" : l.Status == "Pending" ? "badge-pending" : "badge-inactive";
+                                string statusText = l.Status == "Active" ? "Hoạt động" : l.Status == "Pending" ? "Chờ duyệt" : "Không hoạt động";
+                            }
+                            <span class="badge @badgeClass">@statusText</span>
+                            <a asp-action="Detail" asp-route-id="@l.LessonId" class="btn-read">Xem chi tiết →</a>
+                        </div>
+                        @if (User.IsInRole("Admin") || User.IsInRole("Content Manager"))
+                        {
+                            <div class="admin-btns">
+                                <a asp-action="Edit" asp-route-id="@l.LessonId" class="btn-sm-action btn-edit-sm">✏️ Sửa</a>
+                                @if (User.IsInRole("Admin") && l.Status == "Pending")
+                                {
+                                    <form asp-action="Approve" asp-route-id="@l.LessonId" method="post" style="display:inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn-sm-action btn-approve-sm">✅ Duyệt</button>
+                                    </form>
+                                }
+                                <form asp-action="Delete" asp-route-id="@l.LessonId" method="post" style="display:inline" onsubmit="return confirm('Xóa bài học này?')">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn-sm-action btn-del-sm">🗑️ Xóa</button>
+                                </form>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <div style="font-size:3rem;margin-bottom:15px;">📄</div>
+                <p>Chưa có bài học nào trong chương này.</p>
+            </div>
+        }
+    </div>
+</section>

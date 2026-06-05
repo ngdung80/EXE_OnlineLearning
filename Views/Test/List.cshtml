@@ -1,0 +1,95 @@
+@model List<POT_System_ASPNET.Data.Entities.Test>
+@{
+    ViewData["Title"] = "Đề kiểm tra & Luyện tập";
+}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+    .list-section { padding:80px 0; background:linear-gradient(135deg,#0f172a,#1e293b); min-height:80vh; }
+    .section-hd { display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; }
+    .section-hd h2 { color:#ec6090; font-weight:700; margin:0; }
+    .filters { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:16px; margin-bottom:24px; display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+    .filter-select { background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); color:#e2e8f0; border-radius:8px; padding:8px 12px; font-size:.88rem; }
+    .filter-select option { background:#1e293b; }
+    .btn-filter { padding:8px 20px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border:none; border-radius:8px; cursor:pointer; font-size:.88rem; font-weight:600; }
+    .test-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:20px; }
+    .test-card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:24px; color:#fff; transition:all .3s; }
+    .test-card:hover { transform:translateY(-5px); border-color:rgba(236,96,144,.4); box-shadow:0 16px 30px rgba(0,0,0,.3); }
+    .test-type { display:inline-block; padding:3px 12px; border-radius:15px; font-size:.75rem; font-weight:700; margin-bottom:10px; }
+    .type-test { background:rgba(59,130,246,.2); color:#60a5fa; }
+    .type-practice { background:rgba(16,185,129,.2); color:#10b981; }
+    .test-name { font-size:1rem; font-weight:700; color:#e2e8f0; margin-bottom:8px; }
+    .test-meta { color:#94a3b8; font-size:.83rem; margin-bottom:16px; }
+    .test-meta span { margin-right:12px; }
+    .btn-take { display:block; text-align:center; padding:10px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border-radius:20px; text-decoration:none; font-weight:700; font-size:.88rem; transition:all .3s; }
+    .btn-take:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(236,96,144,.4); color:#fff; }
+    .empty-state { text-align:center; padding:60px; color:#64748b; }
+    .pager { display:flex; justify-content:center; gap:8px; margin-top:30px; }
+    .pager a { padding:8px 14px; background:rgba(255,255,255,.06); color:#e2e8f0; border-radius:8px; text-decoration:none; }
+    .pager a.active { background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; }
+</style>
+
+<section class="list-section">
+    <div class="container">
+        <div class="section-hd">
+            <h2>📝 Đề kiểm tra & Luyện tập</h2>
+            <a asp-action="History" style="color:#94a3b8;text-decoration:none;font-size:.9rem;">📊 Lịch sử làm bài →</a>
+        </div>
+
+        <!-- Filter -->
+        <form method="get" class="filters">
+            <select name="subjectId" class="filter-select">
+                <option value="">Tất cả môn học</option>
+                @if (ViewBag.Subjects != null)
+                {
+                    foreach (var s in ViewBag.Subjects)
+                    {
+                        <option value="@s.SubjectId">@s.SubjectName</option>
+                    }
+                }
+            </select>
+            <select name="type" class="filter-select">
+                <option value="">Tất cả loại</option>
+                <option value="Test">Đề kiểm tra</option>
+                <option value="Practice">Luyện tập</option>
+            </select>
+            <button type="submit" class="btn-filter">🔍 Lọc</button>
+        </form>
+
+        @if (Model != null && Model.Any())
+        {
+            <div class="test-grid">
+                @foreach (var t in Model)
+                {
+                    <div class="test-card">
+                        <span class="test-type @(t.Types == "Test" ? "type-test" : "type-practice")">
+                            @(t.Types == "Test" ? "📋 Đề kiểm tra" : "🎯 Luyện tập")
+                        </span>
+                        <div class="test-name">@t.TestName</div>
+                        <div class="test-meta">
+                            <span>⏱️ @t.Duration phút</span>
+                            <span>📚 @t.Subject?.SubjectName</span>
+                        </div>
+                        <a asp-action="Take" asp-route-id="@t.TestId" class="btn-take">Bắt đầu →</a>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="empty-state">
+                <div style="font-size:3rem;margin-bottom:15px;">📭</div>
+                <p>Không có đề kiểm tra hoặc bài luyện tập nào phù hợp với lựa chọn.</p>
+            </div>
+        }
+
+        @if (ViewBag.TotalPages > 1)
+        {
+            <div class="pager">
+                @for (int p = 1; p <= (int)ViewBag.TotalPages; p++)
+                {
+                    <a asp-action="List" asp-route-page="@p" class="@(p == (int)ViewBag.CurrentPage ? "active" : "")">@p</a>
+                }
+            </div>
+        }
+    </div>
+</section>

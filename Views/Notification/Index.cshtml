@@ -1,0 +1,71 @@
+@model List<POT_System_ASPNET.Data.Entities.Notification>
+@{
+    ViewData["Title"] = "Thông báo";
+}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+    .notif-section { padding:80px 0; background:linear-gradient(135deg,#0f172a,#1e293b); min-height:80vh; }
+    .section-hd { display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; }
+    .section-hd h2 { color:#ec6090; font-weight:700; margin:0; }
+    .mark-all { padding:8px 18px; background:transparent; border:1px solid rgba(255,255,255,.2); color:#94a3b8; border-radius:20px; font-size:.82rem; cursor:pointer; transition:all .2s; }
+    .mark-all:hover { border-color:#ec6090; color:#ec6090; }
+    .notif-list { display:flex; flex-direction:column; gap:10px; }
+    .notif-item { display:flex; gap:14px; align-items:flex-start; padding:18px 20px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07); border-radius:14px; transition:all .2s; cursor:pointer; }
+    .notif-item.unread { background:rgba(236,96,144,.06); border-color:rgba(236,96,144,.2); }
+    .notif-item:hover { background:rgba(255,255,255,.07); }
+    .notif-dot { width:10px; height:10px; border-radius:50%; background:#ec6090; flex-shrink:0; margin-top:5px; }
+    .notif-dot.read { background:rgba(255,255,255,.2); }
+    .notif-body { flex:1; }
+    .notif-msg { color:#e2e8f0; font-size:.92rem; margin-bottom:4px; }
+    .notif-time { color:#64748b; font-size:.78rem; }
+    .notif-item.unread .notif-msg { font-weight:600; }
+    .empty-state { text-align:center; padding:60px; color:#64748b; }
+    .unread-count { display:inline-block; padding:2px 10px; background:rgba(236,96,144,.2); color:#ec6090; border-radius:15px; font-size:.78rem; font-weight:700; margin-left:10px; }
+</style>
+
+<section class="notif-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="section-hd">
+                    <h2>🔔 Thông báo
+                        @if (ViewBag.UnreadCount > 0) { <span class="unread-count">@ViewBag.UnreadCount mới</span> }
+                    </h2>
+                    @if (Model != null && Model.Any())
+                    {
+                        <form asp-action="MarkAllRead" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="mark-all">✓ Đánh dấu tất cả đã đọc</button>
+                        </form>
+                    }
+                </div>
+
+                @if (Model != null && Model.Any())
+                {
+                    <div class="notif-list">
+                        @foreach (var n in Model)
+                        {
+                            <form asp-action="MarkRead" asp-route-id="@n.NotificationId" method="post" style="display:contents">
+                                @Html.AntiForgeryToken()
+                                <div class="notif-item @(!n.IsRead ? "unread" : "")" onclick="this.closest('form').submit()">
+                                    <div class="notif-dot @(n.IsRead ? "read" : "")"></div>
+                                    <div class="notif-body">
+                                        <div class="notif-msg">@n.Message</div>
+                                        <div class="notif-time">@n.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</div>
+                                    </div>
+                                </div>
+                            </form>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <div style="font-size:3rem;margin-bottom:15px;">🔕</div>
+                        <p>Chưa có thông báo nào.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>

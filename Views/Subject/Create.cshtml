@@ -1,0 +1,66 @@
+@model POT_System_ASPNET.Data.Entities.Subject
+@{
+    ViewData["Title"] = "Thêm môn học";
+}
+<style>
+    .form-section { padding:80px 0; background:linear-gradient(135deg,#0f172a,#1e293b); min-height:80vh; }
+    .form-card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:20px; padding:40px; color:#fff; }
+    .form-card h2 { color:#ec6090; font-weight:700; margin-bottom:30px; }
+    .form-label { color:#94a3b8; font-size:.9rem; }
+    .form-control, .form-select { background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); color:#fff; border-radius:10px; padding:12px 15px; width:100%; }
+    .form-control:focus, .form-select:focus { border-color:#ec6090; background:rgba(255,255,255,.12); outline:none; color:#fff; box-shadow:0 0 0 3px rgba(236,96,144,.2); }
+    .form-control::placeholder { color:#64748b; }
+    .form-select option { background:#1e293b; }
+    .btn-save { padding:12px 30px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border:none; border-radius:25px; font-weight:600; cursor:pointer; }
+    .btn-cancel { display:inline-block; padding:12px 30px; background:transparent; color:#ec6090; border:2px solid #ec6090; border-radius:25px; text-decoration:none; font-weight:600; }
+</style>
+<section class="form-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="form-card">
+                    <h2>Thêm môn học mới</h2>
+                    <form asp-action="Create" method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <div class="mb-3">
+                            <label class="form-label">Khối lớp *</label>
+                            <select name="GradeId" class="form-select" required>
+                                <option value="">-- Chọn khối lớp --</option>
+                                @if (ViewBag.Grades != null)
+                                {
+                                    foreach (var grade in (List<POT_System_ASPNET.Data.Entities.Grade>)ViewBag.Grades)
+                                    {
+                                        <option value="@grade.GradeId">@grade.GradeName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tên môn học *</label>
+                            <input type="text" name="SubjectName" class="form-control" placeholder="Ví dụ: Toán học" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Mô tả</label>
+                            <textarea name="Description" class="form-control" rows="3" placeholder="Mô tả ngắn gọn về môn học"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Hình ảnh môn học</label>
+                            <input type="file" name="imageFile" class="form-control" accept="image/*">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">Trạng thái</label>
+                            <select name="Status" class="form-select">
+                                <option value="Active">Hoạt động</option>
+                                <option value="Inactive">Không hoạt động</option>
+                            </select>
+                        </div>
+                        <div class="d-flex gap-3">
+                            <button type="submit" class="btn-save">💾 Lưu</button>
+                            <a asp-action="Index" class="btn-cancel">← Hủy</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

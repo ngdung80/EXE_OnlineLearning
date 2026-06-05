@@ -1,0 +1,133 @@
+@model List<POT_System_ASPNET.Data.Entities.TestAttempt>
+@{
+    var student = ViewBag.Student as POT_System_ASPNET.Data.Entities.User;
+    var packages = ViewBag.Packages as List<POT_System_ASPNET.Data.Entities.StudentPackage> ?? new List<POT_System_ASPNET.Data.Entities.StudentPackage>();
+    ViewData["Title"] = $"Tiến trình học tập - {student?.FullName ?? "Học sinh"}";
+}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+    .progress-section { padding:80px 0; background:linear-gradient(135deg,#0f172a,#1e293b); min-height:80vh; color:#fff; }
+    .page-title { color:#ec6090; font-weight:800; margin-bottom:30px; display:flex; align-items:center; gap:10px; }
+    .student-info-card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:20px; padding:30px; margin-bottom:30px; display:flex; align-items:center; gap:25px; flex-wrap:wrap; }
+    .student-avatar { width:90px; height:90px; border-radius:50%; border:3px solid #ec6090; object-fit:cover; }
+    .student-meta h3 { margin:0 0 6px; font-weight:700; color:#fff; }
+    .student-meta p { margin:0 0 6px; color:#94a3b8; font-size:.9rem; }
+    .grid-container { display:grid; grid-template-columns:1fr; gap:30px; }
+    @@media (min-width: 992px) {
+        .grid-container { grid-template-columns:1fr 2fr; }
+    }
+    .panel-card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:20px; padding:30px; height:100%; }
+    .panel-card h4 { color:#ec6090; margin-bottom:20px; font-weight:700; border-bottom:1px solid rgba(255,255,255,.08); padding-bottom:10px; }
+    .package-item { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:15px; margin-bottom:12px; }
+    .package-name { font-weight:700; color:#fff; font-size:.95rem; }
+    .package-meta { font-size:.8rem; color:#94a3b8; margin-top:4px; }
+    .subject-tag { display:inline-block; padding:2px 8px; background:rgba(96,165,250,.15); color:#60a5fa; border:1px solid rgba(96,165,250,.2); border-radius:8px; font-size:.78rem; font-weight:600; margin-top:8px; margin-right:4px; }
+    .table-responsive { width:100%; overflow-x:auto; }
+    .table { color:#fff; width:100%; border-collapse:collapse; margin-top:10px; }
+    .table th { color:#94a3b8; font-weight:600; font-size:.88rem; padding:12px; border-bottom:2px solid rgba(255,255,255,.08); text-align:left; }
+    .table td { padding:12px; border-bottom:1px solid rgba(255,255,255,.05); vertical-align:middle; font-size:.9rem; }
+    .score-badge { display:inline-block; padding:4px 10px; border-radius:10px; font-weight:700; font-size:.82rem; }
+    .score-high { background:rgba(16,185,129,.15); color:#10b981; border:1px solid rgba(16,185,129,.3); }
+    .score-mid { background:rgba(245,158,11,.15); color:#f59e0b; border:1px solid rgba(245,158,11,.3); }
+    .score-low { background:rgba(239,68,68,.15); color:#ef4444; border:1px solid rgba(239,68,68,.3); }
+    .back-btn { display:inline-flex; align-items:center; gap:6px; padding:10px 22px; background:transparent; border:2px solid #ec6090; color:#ec6090; border-radius:25px; text-decoration:none; font-weight:600; font-size:.88rem; transition:all .2s; margin-bottom:25px; }
+    .back-btn:hover { background:rgba(236,96,144,.1); color:#ec6090; }
+</style>
+
+<section class="progress-section">
+    <div class="container">
+        <a asp-action="LinkedStudents" class="back-btn">← Quay lại danh sách học sinh</a>
+        
+        <h1 class="page-title">📊 Tóm tắt tiến trình học tập</h1>
+
+        <div class="student-info-card">
+            <img src="@(student?.Image ?? "/assets/images/profile-header.jpg")" class="student-avatar" alt="@student?.FullName" onerror="this.src='/assets/images/profile-header.jpg'">
+            <div class="student-meta">
+                <h3>@student?.FullName</h3>
+                <p><i class="far fa-envelope"></i> @student?.Email</p>
+                <p><i class="fas fa-school"></i> Khối lớp: @(student?.Grade?.GradeName ?? "Chưa phân khối lớp")</p>
+                <p><i class="far fa-clock"></i> Năm sinh: @(student?.Dob?.Year.ToString() ?? "N/A")</p>
+            </div>
+        </div>
+
+        <div class="grid-container">
+            <!-- Left panel: Active Packages -->
+            <div class="panel-card">
+                <h4>📦 Gói học tập đã mua</h4>
+                @if (packages.Any())
+                {
+                    foreach (var sp in packages)
+                    {
+                        <div class="package-item">
+                            <div class="package-name">@sp.Package.PackageName</div>
+                            <div class="package-meta">
+                                <span>📅 Thời hạn: @sp.Package.Duration tháng</span><br>
+                                <span>⏳ Kết thúc: @(sp.EndDate.HasValue ? sp.EndDate.Value.ToString("dd/MM/yyyy") : "N/A")</span>
+                            </div>
+                            @if (sp.Subject != null)
+                            {
+                                <span class="subject-tag">@sp.Subject.SubjectName</span>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p style="color:#64748b; font-size:.9rem;">Chưa có gói học tập hoạt động cho học sinh này.</p>
+                }
+            </div>
+
+            <!-- Right panel: Practice Tests & Attempts -->
+            <div class="panel-card">
+                <h4>📝 Lịch sử làm bài & Điểm số</h4>
+                @if (Model != null && Model.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Tên đề kiểm tra</th>
+                                    <th>Điểm số</th>
+                                    <th>Ngày làm</th>
+                                    <th>Thời gian làm bài</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var attempt in Model)
+                                {
+                                    var timeSpent = (attempt.EndTime.HasValue && attempt.StartTime.HasValue) 
+                                        ? (attempt.EndTime.Value - attempt.StartTime.Value).ToString(@"mm\:ss")
+                                        : "Đang làm bài";
+                                    var score = attempt.Score ?? 0.0;
+                                    var scoreClass = score >= 8.0 ? "score-high" : score >= 5.0 ? "score-mid" : "score-low";
+
+                                    <tr>
+                                        <td style="font-weight:600;">@attempt.Test.TestName</td>
+                                        <td>
+                                            @if (attempt.Score.HasValue)
+                                            {
+                                                <span class="score-badge @scoreClass">@attempt.Score.Value.ToString("0.0") / 10</span>
+                                            }
+                                            else
+                                            {
+                                                <span style="color:#94a3b8;">Đang làm bài</span>
+                                            }
+                                        </td>
+                                        <td style="color:#94a3b8;">@(attempt.StartTime?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
+                                        <td>@timeSpent</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <p style="color:#64748b; font-size:1rem;">Học sinh này chưa thực hiện bài kiểm tra nào.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>

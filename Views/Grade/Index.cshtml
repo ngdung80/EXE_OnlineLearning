@@ -1,0 +1,88 @@
+@model List<POT_System_ASPNET.Data.Entities.Grade>
+@{
+    ViewData["Title"] = "Quản lý khối lớp";
+}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+    .mgmt-section { padding:80px 0; background:linear-gradient(135deg,#0f172a,#1e293b); min-height:80vh; }
+    .mgmt-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; }
+    .mgmt-header h2 { color:#ec6090; font-weight:700; margin:0; }
+    .btn-add { display:inline-flex; align-items:center; gap:8px; padding:10px 24px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border-radius:25px; text-decoration:none; font-weight:600; transition:all .3s; }
+    .btn-add:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(236,96,144,.4); color:#fff; }
+    .table-card { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:16px; overflow:hidden; }
+    .table { color:#e2e8f0; margin:0; }
+    .table thead th { background:rgba(236,96,144,.15); color:#ec6090; font-weight:600; border:none; padding:16px; }
+    .table tbody tr { border-bottom:1px solid rgba(255,255,255,.05); transition:background .2s; }
+    .table tbody tr:hover { background:rgba(255,255,255,.05); }
+    .table tbody td { padding:14px 16px; border:none; vertical-align:middle; }
+    .badge-active { display:inline-block; padding:4px 12px; background:rgba(16,185,129,.2); color:#10b981; border-radius:20px; font-size:.8rem; font-weight:600; }
+    .badge-inactive { display:inline-block; padding:4px 12px; background:rgba(239,68,68,.2); color:#ef4444; border-radius:20px; font-size:.8rem; font-weight:600; }
+    .btn-sm-action { padding:6px 14px; border-radius:15px; font-size:.8rem; font-weight:600; border:none; cursor:pointer; transition:all .2s; }
+    .btn-edit-sm { background:rgba(59,130,246,.2); color:#60a5fa; }
+    .btn-edit-sm:hover { background:rgba(59,130,246,.4); }
+    .btn-del-sm { background:rgba(239,68,68,.2); color:#f87171; }
+    .btn-del-sm:hover { background:rgba(239,68,68,.4); }
+    .alert-success { background:rgba(16,185,129,.15); border:1px solid #10b981; color:#10b981; border-radius:10px; padding:12px 20px; }
+</style>
+
+<section class="mgmt-section">
+    <div class="container">
+        @if (TempData["Success"] != null) { <div class="alert-success mb-3">@TempData["Success"]</div> }
+        <div class="mgmt-header">
+            <h2>📚 Quản lý khối lớp</h2>
+            @if (User.IsInRole("Admin"))
+            {
+                <a asp-action="Create" class="btn-add"><i class="fas fa-plus"></i> Thêm khối lớp</a>
+            }
+        </div>
+        <div class="table-card">
+            <table class="table table-borderless">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Tên khối lớp</th>
+                        <th>Mô tả</th>
+                        <th>Trạng thái</th>
+                        <th>Môn học</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        int i = 1;
+                        foreach (var g in Model)
+                        {
+                            <tr>
+                                <td style="color:#64748b;">@i++</td>
+                                <td style="font-weight:600;">@g.GradeName</td>
+                                <td style="color:#94a3b8;">@(g.Description ?? "—")</td>
+                                <td>
+                                    @if (g.Status == "Active") { <span class="badge-active">Hoạt động</span> }
+                                    else { <span class="badge-inactive">@(g.Status == "Inactive" ? "Không hoạt động" : (g.Status ?? "—"))</span> }
+                                </td>
+                                <td>
+                                    <a href="/Subject?gradeId=@g.GradeId" style="color:#60a5fa;text-decoration:none;font-size:.85rem;">Xem môn học →</a>
+                                </td>
+                                <td>
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                        <a asp-action="Edit" asp-route-id="@g.GradeId" class="btn-sm-action btn-edit-sm me-1">✏️ Sửa</a>
+                                        <form asp-action="Delete" asp-route-id="@g.GradeId" method="post" style="display:inline" onsubmit="return confirm('Xóa khối lớp này?')">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn-sm-action btn-del-sm">🗑️ Xóa</button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="6" class="text-center" style="color:#64748b;padding:40px;">Không tìm thấy khối lớp nào.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>

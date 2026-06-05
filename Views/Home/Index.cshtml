@@ -1,0 +1,208 @@
+@{
+    ViewData["Title"] = "PLO - Online Learning Platform";
+}
+@using POT_System_ASPNET.Data.Entities
+@model object
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+    .grade-item, .package-item { background-color:#e0e7ff; padding:25px; border-radius:15px; margin-bottom:30px; box-shadow:0 4px 12px rgba(0,0,0,.1); transition:all .3s ease; display:flex; flex-direction:column; justify-content:space-between; min-height:180px; }
+    .grade-item:hover, .package-item:hover { transform:translateY(-5px); background-color:#ffe4e6; }
+    .package-item { background:linear-gradient(145deg,#f0f4ff,#e0e7ff); border-left:4px solid #10b981; }
+    .package-item:hover { background:linear-gradient(145deg,#d1fae5,#a7f3d0); }
+    .hero-banner { background:linear-gradient(135deg,#1a0533,#4a0080); padding:100px 0 60px; text-align:center; color:#fff; }
+    .hero-banner h1 { font-size:3rem; font-weight:800; color:#ec6090; text-shadow:0 0 20px rgba(236,96,144,.5); }
+    .hero-banner p { font-size:1.2rem; color:#ccc; max-width:600px; margin:0 auto 30px; }
+    .hero-btn { display:inline-block; padding:14px 40px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border-radius:30px; text-decoration:none; font-weight:700; font-size:1.1rem; transition:all .3s ease; }
+    .hero-btn:hover { transform:translateY(-3px); box-shadow:0 10px 30px rgba(236,96,144,.4); color:#fff; }
+    .section-title { font-size:2rem; font-weight:700; color:#ec6090; margin-bottom:10px; }
+    .section-sub { color:#888; margin-bottom:40px; }
+    .grade-name { font-size:1.1rem; font-weight:700; color:#2a0040; }
+    .view-btn { display:inline-block; padding:8px 20px; background:#e75485; color:#fff; border-radius:20px; text-decoration:none; font-size:.85rem; font-weight:600; transition:all .3s; }
+    .view-btn:hover { background:#d43f6f; color:#fff; transform:translateY(-2px); }
+    .price-tag { font-size:1.5rem; font-weight:800; color:#10b981; }
+    .pkg-name { font-size:1.1rem; font-weight:700; color:#2a0040; }
+    .stats-section { background:linear-gradient(135deg,#1a0533,#4a0080); padding:60px 0; color:#fff; text-align:center; }
+    .stat-num { font-size:2.5rem; font-weight:800; color:#ec6090; }
+    .stat-lbl { color:#ccc; font-size:.9rem; }
+    .features-section { padding:80px 0; background:#f8f9ff; }
+    .feature-card { background:#fff; padding:30px; border-radius:15px; text-align:center; box-shadow:0 4px 15px rgba(0,0,0,.06); transition:all .3s; height:100%; }
+    .feature-card:hover { transform:translateY(-5px); box-shadow:0 8px 25px rgba(0,0,0,.12); }
+    .feature-icon { font-size:2.5rem; margin-bottom:15px; }
+    .cta-section { background:linear-gradient(135deg,#ec6090,#e75485); padding:80px 0; text-align:center; color:#fff; }
+</style>
+
+<!-- Hero Section -->
+<section class="hero-banner">
+    <div class="container">
+        <h1>🎮 Personalized Learning Online</h1>
+        <p>Nền tảng học tập trực tuyến hiện đại với AI thông minh. Học theo lộ trình cá nhân hóa, luyện đề không giới hạn.</p>
+        @if (!User.Identity!.IsAuthenticated)
+        {
+            <a asp-controller="Account" asp-action="Register" class="hero-btn me-3">Bắt đầu ngay</a>
+            <a asp-controller="Account" asp-action="Login" class="hero-btn" style="background:transparent;border:2px solid #ec6090;">Đăng nhập</a>
+        }
+        else
+        {
+            <a asp-controller="Test" asp-action="List" class="hero-btn">Luyện đề ngay</a>
+        }
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stat-num">1000+</div>
+                <div class="stat-lbl">Câu hỏi luyện tập</div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-num">50+</div>
+                <div class="stat-lbl">Bài học chất lượng</div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-num">AI</div>
+                <div class="stat-lbl">Tạo đề thông minh</div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-num">24/7</div>
+                <div class="stat-lbl">Học mọi lúc mọi nơi</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Grades Section -->
+<section style="padding:80px 0;background:#fff;">
+    <div class="container">
+        <h2 class="section-title text-center">📚 Khối lớp</h2>
+        <p class="section-sub text-center">Chọn khối lớp phù hợp với bạn</p>
+        <div class="row">
+            @if (ViewBag.Grades != null)
+            {
+                foreach (Grade grade in ViewBag.Grades)
+                {
+                    <div class="col-md-4">
+                        <div class="grade-item">
+                            <div>
+                                <div class="grade-name">@grade.GradeName</div>
+                                <p style="color:#666;font-size:.9rem;">@grade.Description</p>
+                            </div>
+                            <a asp-controller="Subject" asp-action="Index" asp-route-gradeId="@grade.GradeId" class="view-btn mt-2">Xem môn học →</a>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12 text-center"><p class="text-muted">Đang tải khối lớp...</p></div>
+            }
+        </div>
+        <div class="text-center mt-3">
+            <a asp-controller="Grade" asp-action="Index" class="view-btn">Xem tất cả →</a>
+        </div>
+    </div>
+</section>
+
+<!-- Packages Section -->
+<section style="padding:80px 0;background:#f8f9ff;">
+    <div class="container">
+        <h2 class="section-title text-center">💎 Gói học tập</h2>
+        <p class="section-sub text-center">Chọn gói học phù hợp với nhu cầu</p>
+        <div class="row justify-content-center">
+            @if (ViewBag.Packages != null)
+            {
+                foreach (Package pkg in ViewBag.Packages)
+                {
+                    <div class="col-md-4">
+                        <div class="package-item">
+                            <div>
+                                <div class="pkg-name">@pkg.PackageName</div>
+                                <p style="color:#666;font-size:.9rem;">@pkg.Description</p>
+                                <p class="price-tag">@pkg.Price.ToString("N0") VNĐ <small style="font-size:.9rem;color:#888;">/ @pkg.Duration tháng</small></p>
+                            </div>
+                            <a asp-controller="Package" asp-action="Purchase" asp-route-packageId="@pkg.PackageId" class="view-btn mt-2" style="background:#10b981;">Mua ngay →</a>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+        <div class="text-center mt-3">
+            <a asp-controller="Package" asp-action="List" class="view-btn" style="background:#10b981;">Xem tất cả gói →</a>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+    <div class="container">
+        <h2 class="section-title text-center">✨ Tính năng nổi bật</h2>
+        <p class="section-sub text-center">Hệ thống học tập toàn diện</p>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h5>AI tạo đề thông minh</h5>
+                    <p style="color:#888;">Gemini AI tự động tạo bộ câu hỏi cá nhân hóa theo trình độ của bạn</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h5>Theo dõi tiến độ học</h5>
+                    <p style="color:#888;">Phụ huynh theo dõi quá trình học của con em theo thời gian thực</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h5>Luyện tập đa dạng</h5>
+                    <p style="color:#888;">Hàng nghìn câu hỏi theo chuẩn Bloom's Taxonomy: Nhận biết, Thông hiểu, Vận dụng</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">💼</div>
+                    <h5>Ví điện tử tiện lợi</h5>
+                    <p style="color:#888;">Phụ huynh nạp tiền và mua gói học cho con dễ dàng qua ví điện tử</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">🔔</div>
+                    <h5>Thông báo tức thì</h5>
+                    <p style="color:#888;">Nhận ngay thông báo về tiến độ, kết quả thi và cập nhật từ hệ thống</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <div class="feature-icon">🏆</div>
+                    <h5>Quản lý chuyên nghiệp</h5>
+                    <p style="color:#888;">Hệ thống phân quyền rõ ràng cho Admin, Giáo viên, Học sinh và Phụ huynh</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+    <div class="container">
+        <h2 style="font-size:2.2rem;font-weight:800;">Bắt đầu hành trình học tập ngay hôm nay! 🚀</h2>
+        <p style="font-size:1.1rem;margin:20px 0 30px;opacity:.9;">Đăng ký miễn phí và trải nghiệm nền tảng học tập thông minh nhất Việt Nam</p>
+        @if (!User.Identity!.IsAuthenticated)
+        {
+            <a asp-controller="Account" asp-action="Register" class="hero-btn" style="background:#fff;color:#e75485;">Đăng ký ngay →</a>
+        }
+        else
+        {
+            <a asp-controller="AI" asp-action="Chat" class="hero-btn" style="background:#fff;color:#e75485;">Chat với AI →</a>
+        }
+    </div>
+</section>
+
+@section Scripts {
+<script src="~/vendor/jquery/jquery.min.js"></script>
+<script src="~/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+}

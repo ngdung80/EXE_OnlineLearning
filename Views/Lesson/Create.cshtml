@@ -1,0 +1,142 @@
+@model POT_System_ASPNET.Data.Entities.Lesson
+@{
+    ViewData["Title"] = "Thêm bài học";
+}
+<style>
+    .form-section { padding:80px 0; background:linear-gradient(135deg,#0f172a,#1e293b); min-height:80vh; }
+    .form-card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:20px; padding:40px; color:#fff; }
+    .form-card h2 { color:#ec6090; font-weight:700; margin-bottom:30px; }
+    .form-label { color:#94a3b8; font-size:.9rem; }
+    .form-control, .form-select { background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); color:#fff; border-radius:10px; padding:12px 15px; width:100%; }
+    .form-control:focus, .form-select:focus { border-color:#ec6090; background:rgba(255,255,255,.12); outline:none; color:#fff; box-shadow:0 0 0 3px rgba(236,96,144,.2); }
+    .form-control::placeholder { color:#64748b; }
+    .form-select option { background:#1e293b; }
+    .btn-save { padding:12px 30px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border:none; border-radius:25px; font-weight:600; cursor:pointer; }
+    .btn-cancel { display:inline-block; padding:12px 30px; background:transparent; color:#ec6090; border:2px solid #ec6090; border-radius:25px; text-decoration:none; font-weight:600; }
+</style>
+<section class="form-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="form-card">
+                    <h2>Thêm bài học mới</h2>
+                    <form asp-action="Create" method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Khối lớp *</label>
+                                <select id="gradeSelect" class="form-select" required>
+                                    <option value="">-- Chọn khối lớp --</option>
+                                    @if (ViewBag.Grades != null)
+                                    {
+                                        foreach (var grade in (List<POT_System_ASPNET.Data.Entities.Grade>)ViewBag.Grades)
+                                        {
+                                            <option value="@grade.GradeId">@grade.GradeName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Môn học *</label>
+                                <select id="subjectSelect" class="form-select" required disabled>
+                                    <option value="">-- Chọn môn học --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Chương học *</label>
+                                <select id="chapterSelect" name="ChapterId" class="form-select" required disabled>
+                                    <option value="">-- Chọn chương học --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Tên bài học *</label>
+                            <input type="text" name="LessonName" class="form-control" placeholder="Ví dụ: Giới thiệu về Đạo hàm" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Nội dung bài học</label>
+                            <textarea name="ContentText" class="form-control" rows="8" placeholder="Nhập nội dung bài học hoặc văn bản tại đây..."></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tài liệu / File bài học (PDF, v.v.)</label>
+                                <input type="file" name="lessonFile" class="form-control">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Ảnh bìa</label>
+                                <input type="file" name="imageFile" class="form-control" accept="image/*">
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-3 mt-4">
+                            <button type="submit" class="btn-save">💾 Lưu bài học</button>
+                            <a asp-action="Index" class="btn-cancel">← Hủy</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        const gradeSelect = document.getElementById('gradeSelect');
+        const subjectSelect = document.getElementById('subjectSelect');
+        const chapterSelect = document.getElementById('chapterSelect');
+
+        gradeSelect.addEventListener('change', async function() {
+            const gradeId = this.value;
+            subjectSelect.innerHTML = '<option value="">-- Chọn môn học --</option>';
+            chapterSelect.innerHTML = '<option value="">-- Chọn chương học --</option>';
+            subjectSelect.disabled = true;
+            chapterSelect.disabled = true;
+
+            if (!gradeId) return;
+
+            try {
+                const response = await fetch(`/Subject/GetByGrade?gradeId=${gradeId}`);
+                if (response.ok) {
+                    const subjects = await response.json();
+                    subjects.forEach(sub => {
+                        const opt = document.createElement('option');
+                        opt.value = sub.subjectId;
+                        opt.textContent = sub.subjectName;
+                        subjectSelect.appendChild(opt);
+                    });
+                    subjectSelect.disabled = false;
+                }
+            } catch (err) {
+                console.error("Error loading subjects:", err);
+            }
+        });
+
+        subjectSelect.addEventListener('change', async function() {
+            const subjectId = this.value;
+            chapterSelect.innerHTML = '<option value="">-- Chọn chương học --</option>';
+            chapterSelect.disabled = true;
+
+            if (!subjectId) return;
+
+            try {
+                const response = await fetch(`/Chapter/GetBySubject?subjectId=${subjectId}`);
+                if (response.ok) {
+                    const chapters = await response.json();
+                    chapters.forEach(ch => {
+                        const opt = document.createElement('option');
+                        opt.value = ch.chapterId;
+                        opt.textContent = ch.chapterName;
+                        chapterSelect.appendChild(opt);
+                    });
+                    chapterSelect.disabled = false;
+                }
+            } catch (err) {
+                console.error("Error loading chapters:", err);
+            }
+        });
+    </script>
+}
