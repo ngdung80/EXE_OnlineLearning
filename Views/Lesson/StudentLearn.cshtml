@@ -1,0 +1,496 @@
+@model POT_System_ASPNET.Data.Entities.Lesson
+@{
+    ViewData["Title"] = $"Học bài: {Model?.LessonName ?? "Bài học"}";
+    Layout = null; // Full-screen học cho trẻ, không dùng layout chính
+    var studentName = User.FindFirst("FullName")?.Value ?? "bạn nhỏ";
+    var firstName = studentName.Split(' ').LastOrDefault() ?? studentName;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Học bài: @(Model?.LessonName ?? "Bài học") - PLO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Nunito',sans-serif; background:linear-gradient(135deg,#fdf4ff,#fce7f3,#ede9fe); min-height:100vh; overflow-x:hidden; }
+
+        /* ===== TOP BAR ===== */
+        .learn-topbar { display:flex; align-items:center; justify-content:space-between; padding:14px 24px; background:#fff; box-shadow:0 2px 12px rgba(0,0,0,.08); position:sticky; top:0; z-index:100; }
+        .topbar-logo { display:flex; align-items:center; gap:8px; text-decoration:none; }
+        .topbar-logo img { width:36px; height:36px; object-fit:contain; }
+        .topbar-logo span { font-size:1.2rem; font-weight:900; color:#e75485; letter-spacing:1px; }
+        .topbar-lesson { font-size:.95rem; font-weight:700; color:#4c1d95; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .topbar-right { display:flex; align-items:center; gap:14px; }
+        .star-count { display:flex; align-items:center; gap:5px; background:linear-gradient(135deg,#fef3c7,#fde68a); border:2px solid #f59e0b; padding:6px 14px; border-radius:999px; font-weight:800; font-size:1rem; color:#92400e; }
+        .btn-exit { background:#f3f4f6; border:none; padding:8px 18px; border-radius:20px; font-family:'Nunito',sans-serif; font-weight:700; color:#6b7280; cursor:pointer; font-size:.9rem; text-decoration:none; transition:all .2s; }
+        .btn-exit:hover { background:#fee2e2; color:#ef4444; }
+
+        /* ===== PROGRESS BAR ===== */
+        .progress-bar-wrap { background:#f3f4f6; height:8px; border-radius:999px; margin:0 24px 0; }
+        .progress-bar-fill { height:100%; border-radius:999px; background:linear-gradient(90deg,#e75485,#ec6090,#a855f7); transition:width .5s ease; }
+
+        /* ===== SCREEN CONTAINER ===== */
+        .screen-wrap { display:none; flex-direction:column; align-items:center; justify-content:center; min-height:calc(100vh - 100px); padding:24px; animation:fadeSlide .4s ease; }
+        .screen-wrap.active { display:flex; }
+        @@keyframes fadeSlide { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
+
+        /* ===== HELLO SCREEN ===== */
+        .hello-mascot { font-size:8rem; margin-bottom:16px; animation:bounce 1s ease infinite alternate; filter:drop-shadow(0 8px 20px rgba(231,84,133,.3)); }
+        @@keyframes bounce { from{transform:translateY(0);} to{transform:translateY(-18px);} }
+        .hello-bubble { background:#fff; border-radius:24px; padding:28px 36px; box-shadow:0 8px 32px rgba(0,0,0,.1); max-width:420px; text-align:center; }
+        .hello-bubble h2 { font-size:1.8rem; font-weight:900; color:#4c1d95; margin-bottom:10px; }
+        .hello-bubble p { font-size:1.1rem; color:#6b7280; font-weight:600; line-height:1.5; }
+        .hello-bubble .student-name { color:#e75485; }
+
+        /* ===== GOAL SCREEN ===== */
+        .goal-card { background:#fff; border-radius:28px; padding:40px 44px; box-shadow:0 8px 32px rgba(0,0,0,.1); max-width:480px; width:100%; text-align:center; border-top:6px solid #e75485; }
+        .goal-card h2 { font-size:1.5rem; font-weight:900; color:#4c1d95; margin-bottom:24px; }
+        .goal-steps { display:flex; flex-direction:column; gap:12px; text-align:left; margin-bottom:28px; }
+        .goal-step { display:flex; align-items:center; gap:14px; background:#fdf4ff; border-radius:14px; padding:14px 18px; }
+        .step-icon { font-size:1.6rem; }
+        .step-text { font-size:1rem; font-weight:700; color:#4c1d95; }
+        .step-sub { font-size:.82rem; color:#9ca3af; margin-top:2px; }
+        .goal-highlight { background:linear-gradient(135deg,#fce7f3,#ede9fe); border-radius:18px; padding:16px 24px; margin-bottom:28px; }
+        .goal-highlight .num { font-size:3rem; font-weight:900; color:#e75485; line-height:1; }
+        .goal-highlight .lbl { font-size:1rem; font-weight:700; color:#4c1d95; }
+
+        /* ===== LEARN SCREEN (Flashcard) ===== */
+        .flashcard { background:#fff; border-radius:28px; padding:40px; box-shadow:0 12px 40px rgba(0,0,0,.12); max-width:440px; width:100%; text-align:center; position:relative; }
+        .flashcard-img { width:200px; height:200px; object-fit:contain; border-radius:20px; background:#fdf4ff; margin:0 auto 24px; display:flex; align-items:center; justify-content:center; font-size:7rem; }
+        .word-text { font-size:2.5rem; font-weight:900; color:#4c1d95; margin-bottom:8px; }
+        .word-phonetic { font-size:1.1rem; color:#9ca3af; font-weight:600; margin-bottom:16px; }
+        .word-meaning { font-size:1.2rem; font-weight:700; color:#e75485; margin-bottom:24px; }
+        .btn-listen { background:linear-gradient(135deg,#a855f7,#9333ea); color:#fff; border:none; padding:12px 28px; border-radius:999px; font-family:'Nunito',sans-serif; font-weight:700; font-size:1rem; cursor:pointer; display:inline-flex; align-items:center; gap:8px; transition:all .2s; }
+        .btn-listen:hover { transform:scale(1.04); box-shadow:0 6px 18px rgba(168,85,247,.4); }
+        .word-counter { position:absolute; top:16px; right:20px; background:#fce7f3; color:#e75485; font-weight:800; font-size:.9rem; padding:4px 12px; border-radius:999px; }
+
+        /* ===== PRACTICE SCREEN ===== */
+        .practice-question { font-size:1.3rem; font-weight:800; color:#4c1d95; text-align:center; margin-bottom:32px; max-width:420px; line-height:1.4; }
+        .choice-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; max-width:480px; width:100%; }
+        .choice-btn { background:#fff; border:3px solid #e5e7eb; border-radius:20px; padding:20px 16px; font-family:'Nunito',sans-serif; font-size:1rem; font-weight:700; color:#4c1d95; cursor:pointer; transition:all .25s; display:flex; flex-direction:column; align-items:center; gap:10px; min-height:110px; justify-content:center; }
+        .choice-btn .choice-emoji { font-size:2.4rem; }
+        .choice-btn:hover:not(:disabled) { border-color:#e75485; background:#fdf4ff; transform:translateY(-4px); box-shadow:0 8px 20px rgba(231,84,133,.2); }
+        .choice-btn.correct { border-color:#10b981; background:#d1fae5; color:#065f46; animation:pulse-green .4s ease; }
+        .choice-btn.wrong { border-color:#ef4444; background:#fee2e2; color:#991b1b; animation:shake .4s ease; }
+        @@keyframes pulse-green { 0%,100%{transform:scale(1);} 50%{transform:scale(1.05);} }
+        @@keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-8px);} 75%{transform:translateX(8px);} }
+        .practice-feedback { font-size:1.3rem; font-weight:800; margin-top:20px; min-height:32px; text-align:center; }
+        .feedback-correct { color:#10b981; }
+        .feedback-wrong { color:#ef4444; }
+
+        /* ===== REVIEW SCREEN ===== */
+        .review-list { display:flex; flex-direction:column; gap:12px; max-width:440px; width:100%; }
+        .review-item { background:#fff; border-radius:16px; padding:16px 20px; display:flex; align-items:center; gap:16px; box-shadow:0 4px 12px rgba(0,0,0,.06); border-left:5px solid #f59e0b; }
+        .review-word { font-size:1.2rem; font-weight:900; color:#4c1d95; }
+        .review-meaning { font-size:.9rem; color:#6b7280; font-weight:600; }
+        .review-icon { font-size:1.8rem; }
+
+        /* ===== REWARD SCREEN ===== */
+        .reward-wrap { text-align:center; animation:popIn .5s ease; }
+        @@keyframes popIn { 0%{transform:scale(.5);opacity:0;} 70%{transform:scale(1.1);} 100%{transform:scale(1);opacity:1;} }
+        .reward-stars { font-size:4rem; margin-bottom:16px; animation:starSpin 1.5s ease infinite alternate; }
+        @@keyframes starSpin { from{transform:rotate(-10deg) scale(1);} to{transform:rotate(10deg) scale(1.1);} }
+        .reward-title { font-size:2.2rem; font-weight:900; color:#4c1d95; margin-bottom:8px; }
+        .reward-sub { font-size:1.1rem; color:#6b7280; font-weight:600; margin-bottom:28px; }
+        .reward-badges { display:flex; justify-content:center; gap:16px; margin-bottom:32px; flex-wrap:wrap; }
+        .badge-item { background:#fff; border-radius:16px; padding:16px 20px; box-shadow:0 4px 16px rgba(0,0,0,.08); text-align:center; min-width:100px; }
+        .badge-icon { font-size:2.2rem; }
+        .badge-num { font-size:1.6rem; font-weight:900; color:#e75485; }
+        .badge-lbl { font-size:.78rem; color:#9ca3af; font-weight:600; }
+        .confetti { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:999; }
+
+        /* ===== BUTTONS ===== */
+        .btn-next { background:linear-gradient(135deg,#e75485,#ec6090); color:#fff; border:none; padding:16px 48px; border-radius:999px; font-family:'Nunito',sans-serif; font-size:1.15rem; font-weight:900; cursor:pointer; box-shadow:0 6px 20px rgba(231,84,133,.4); transition:all .2s; display:inline-block; text-decoration:none; }
+        .btn-next:hover { transform:translateY(-3px); box-shadow:0 10px 28px rgba(231,84,133,.5); color:#fff; }
+        .btn-next:disabled { opacity:.6; cursor:not-allowed; transform:none; }
+        .btn-home { background:#fff; color:#e75485; border:2px solid #e75485; padding:13px 36px; border-radius:999px; font-family:'Nunito',sans-serif; font-size:1rem; font-weight:700; cursor:pointer; transition:all .2s; text-decoration:none; display:inline-block; }
+        .btn-home:hover { background:#fdf4ff; color:#e75485; }
+
+        /* ===== SCREEN HEADINGS ===== */
+        .screen-label { font-size:.85rem; font-weight:700; color:#9ca3af; text-transform:uppercase; letter-spacing:1px; margin-bottom:12px; }
+        .screen-title { font-size:1.5rem; font-weight:900; color:#4c1d95; text-align:center; margin-bottom:28px; }
+
+        /* ===== FLOATING STARS ===== */
+        .floating-star { position:fixed; pointer-events:none; font-size:1.8rem; animation:floatUp 1.5s ease forwards; }
+        @@keyframes floatUp { 0%{opacity:1;transform:translateY(0) scale(1);} 100%{opacity:0;transform:translateY(-120px) scale(1.5);} }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="learn-topbar">
+        <a href="/" class="topbar-logo">
+            <img src="/assets/images/logo.png" alt="PLO">
+            <span>PLO</span>
+        </a>
+        <div class="topbar-lesson">@(Model?.LessonName ?? "Bài học")</div>
+        <div class="topbar-right">
+            <div class="star-count" id="starDisplay">⭐ <span id="starCount">0</span></div>
+            <a asp-controller="Lesson" asp-action="Index" asp-route-chapterId="@Model?.ChapterId" class="btn-exit">✕ Thoát</a>
+        </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div style="background:#f3f4f6;height:8px;border-radius:999px;margin:12px 24px;">
+        <div class="progress-bar-fill" id="progressBar" style="width:0%;"></div>
+    </div>
+
+    <!-- ===== SCREEN 0: HELLO ===== -->
+    <div class="screen-wrap active" id="screen-hello">
+        <div class="hello-mascot">🐝</div>
+        <div class="hello-bubble">
+            <h2>Xin chào, <span class="student-name">@firstName</span>! 👋</h2>
+            <p>Hôm nay chúng mình cùng học bài<br><strong style="color:#4c1d95;">@(Model?.LessonName ?? "bài học mới")</strong> nhé!</p>
+            <br>
+            <button class="btn-next" onclick="goToScreen('screen-goal')" id="btn-start">Bắt đầu học! 🚀</button>
+        </div>
+    </div>
+
+    <!-- ===== SCREEN 1: TODAY'S GOAL ===== -->
+    <div class="screen-wrap" id="screen-goal">
+        <div class="screen-label">📋 Mục tiêu hôm nay</div>
+        <div class="goal-card">
+            <h2>🎯 Hôm nay chúng mình sẽ:</h2>
+            <div class="goal-highlight">
+                <div class="num" id="wordCountDisplay">5</div>
+                <div class="lbl">từ vựng mới cần học</div>
+            </div>
+            <div class="goal-steps">
+                <div class="goal-step">
+                    <span class="step-icon">👀</span>
+                    <div>
+                        <div class="step-text">Học từ mới</div>
+                        <div class="step-sub">Nghe + nhìn hình ảnh</div>
+                    </div>
+                </div>
+                <div class="goal-step">
+                    <span class="step-icon">🎯</span>
+                    <div>
+                        <div class="step-text">Luyện tập</div>
+                        <div class="step-sub">Chọn đáp án đúng</div>
+                    </div>
+                </div>
+                <div class="goal-step">
+                    <span class="step-icon">🔁</span>
+                    <div>
+                        <div class="step-text">Ôn lại</div>
+                        <div class="step-sub">Nhớ lâu hơn</div>
+                    </div>
+                </div>
+                <div class="goal-step">
+                    <span class="step-icon">⭐</span>
+                    <div>
+                        <div class="step-text">Nhận phần thưởng</div>
+                        <div class="step-sub">Sao & huy hiệu</div>
+                    </div>
+                </div>
+            </div>
+            <button class="btn-next" onclick="startLearn()" style="width:100%;">Bắt đầu học từ! 👀</button>
+        </div>
+    </div>
+
+    <!-- ===== SCREEN 2: LEARN (Flashcards) ===== -->
+    <div class="screen-wrap" id="screen-learn">
+        <div class="screen-label">👀 Học từ mới</div>
+        <div class="flashcard" id="flashcard">
+            <div class="word-counter" id="wordCounter">1/5</div>
+            <div class="flashcard-img" id="wordEmoji">🍎</div>
+            <div class="word-text" id="wordText">Apple</div>
+            <div class="word-phonetic" id="wordPhonetic">/ˈæp.əl/</div>
+            <div class="word-meaning" id="wordMeaning">🍎 Quả táo</div>
+            <button class="btn-listen" onclick="speakWord()"><i class="fas fa-volume-up"></i> Nghe phát âm</button>
+            <br><br>
+            <button class="btn-next" onclick="nextWord()" id="btn-next-word">Từ tiếp theo →</button>
+        </div>
+    </div>
+
+    <!-- ===== SCREEN 3: PRACTICE ===== -->
+    <div class="screen-wrap" id="screen-practice">
+        <div class="screen-label">🎯 Luyện tập</div>
+        <div class="practice-question" id="practiceQuestion">Đây là từ gì? 🤔</div>
+        <div class="choice-grid" id="choiceGrid"></div>
+        <div class="practice-feedback" id="practiceFeedback"></div>
+        <br>
+        <button class="btn-next" onclick="nextPractice()" id="btn-next-practice" style="display:none;">Tiếp theo →</button>
+    </div>
+
+    <!-- ===== SCREEN 4: REVIEW ===== -->
+    <div class="screen-wrap" id="screen-review">
+        <div class="screen-label">🔁 Ôn lại từ đã học</div>
+        <div class="screen-title">Nhớ lại những từ vừa học!</div>
+        <div class="review-list" id="reviewList"></div>
+        <br>
+        <button class="btn-next" onclick="goToScreen('screen-reward')" style="margin-top:16px;">Xem phần thưởng! ⭐</button>
+    </div>
+
+    <!-- ===== SCREEN 5: REWARD ===== -->
+    <div class="screen-wrap" id="screen-reward">
+        <canvas class="confetti" id="confettiCanvas"></canvas>
+        <div class="reward-wrap">
+            <div class="reward-stars" id="rewardStars">⭐⭐⭐</div>
+            <div class="reward-title">Xuất sắc, @firstName! 🎉</div>
+            <div class="reward-sub" id="rewardMsg">Con đã hoàn thành bài học hôm nay!</div>
+            <div class="reward-badges">
+                <div class="badge-item">
+                    <div class="badge-icon">📚</div>
+                    <div class="badge-num" id="rewardWords">5</div>
+                    <div class="badge-lbl">Từ đã học</div>
+                </div>
+                <div class="badge-item">
+                    <div class="badge-icon">⭐</div>
+                    <div class="badge-num" id="rewardStarCount">0</div>
+                    <div class="badge-lbl">Sao nhận được</div>
+                </div>
+                <div class="badge-item">
+                    <div class="badge-icon">🎯</div>
+                    <div class="badge-num" id="rewardAccuracy">100%</div>
+                    <div class="badge-lbl">Độ chính xác</div>
+                </div>
+            </div>
+            <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+                <a asp-controller="Lesson" asp-action="Index" asp-route-chapterId="@Model?.ChapterId" class="btn-home">← Về danh sách bài</a>
+                <a asp-controller="Home" asp-action="Index" class="btn-next">Về trang chủ 🏠</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== DATA =====
+        // Từ vựng demo - trong thực tế có thể load từ API / nội dung bài
+        const words = [
+            { word: "Apple",  phonetic: "/ˈæp.əl/",  meaning: "Quả táo",    emoji: "🍎" },
+            { word: "Book",   phonetic: "/bʊk/",      meaning: "Quyển sách", emoji: "📚" },
+            { word: "Cat",    phonetic: "/kæt/",       meaning: "Con mèo",   emoji: "🐱" },
+            { word: "Dog",    phonetic: "/dɒɡ/",       meaning: "Con chó",   emoji: "🐶" },
+            { word: "Fish",   phonetic: "/fɪʃ/",       meaning: "Con cá",    emoji: "🐟" }
+        ];
+
+        let currentWordIdx = 0;
+        let currentPracticeIdx = 0;
+        let stars = 0;
+        let correctAnswers = 0;
+        let wrongWords = [];
+        const TOTAL_STEPS = 5; // hello, goal, learn, practice, review, reward
+
+        // ===== NAVIGATION =====
+        function goToScreen(id) {
+            document.querySelectorAll('.screen-wrap').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const screens = ['screen-hello','screen-goal','screen-learn','screen-practice','screen-review','screen-reward'];
+            const activeId = document.querySelector('.screen-wrap.active')?.id;
+            const idx = screens.indexOf(activeId);
+            const pct = Math.round((idx / (screens.length - 1)) * 100);
+            document.getElementById('progressBar').style.width = pct + '%';
+        }
+
+        // ===== LEARN =====
+        function startLearn() {
+            currentWordIdx = 0;
+            document.getElementById('wordCountDisplay').textContent = words.length;
+            showWord();
+            goToScreen('screen-learn');
+        }
+
+        function showWord() {
+            const w = words[currentWordIdx];
+            document.getElementById('wordEmoji').textContent = w.emoji;
+            document.getElementById('wordText').textContent = w.word;
+            document.getElementById('wordPhonetic').textContent = w.phonetic;
+            document.getElementById('wordMeaning').textContent = w.emoji + ' ' + w.meaning;
+            document.getElementById('wordCounter').textContent = (currentWordIdx + 1) + '/' + words.length;
+            const btnNext = document.getElementById('btn-next-word');
+            btnNext.textContent = currentWordIdx < words.length - 1 ? 'Từ tiếp theo →' : 'Bắt đầu luyện tập! 🎯';
+        }
+
+        function nextWord() {
+            currentWordIdx++;
+            if (currentWordIdx < words.length) {
+                showWord();
+            } else {
+                startPractice();
+            }
+        }
+
+        function speakWord() {
+            const w = words[currentWordIdx];
+            if ('speechSynthesis' in window) {
+                const u = new SpeechSynthesisUtterance(w.word);
+                u.lang = 'en-US'; u.rate = 0.8;
+                speechSynthesis.speak(u);
+            }
+        }
+
+        // ===== PRACTICE =====
+        function startPractice() {
+            currentPracticeIdx = 0;
+            correctAnswers = 0;
+            showPractice();
+            goToScreen('screen-practice');
+        }
+
+        function showPractice() {
+            const w = words[currentPracticeIdx];
+            document.getElementById('practiceQuestion').textContent = 'Đây là từ "' + w.word + '" 🤔 - chọn nghĩa đúng:';
+            document.getElementById('practiceFeedback').textContent = '';
+            document.getElementById('btn-next-practice').style.display = 'none';
+
+            // Build 4 choices: 1 correct + 3 random wrong
+            const allWords = [...words];
+            const choices = [w];
+            const others = allWords.filter((_, i) => i !== currentPracticeIdx);
+            for (let i = others.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [others[i], others[j]] = [others[j], others[i]];
+            }
+            choices.push(...others.slice(0, 3));
+            // Shuffle choices
+            for (let i = choices.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [choices[i], choices[j]] = [choices[j], choices[i]];
+            }
+
+            const grid = document.getElementById('choiceGrid');
+            grid.innerHTML = '';
+            choices.forEach(c => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.innerHTML = `<span class="choice-emoji">${c.emoji}</span><span>${c.meaning}</span>`;
+                btn.onclick = () => checkAnswer(btn, c.meaning, w.meaning, w);
+                grid.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(btn, chosen, correct, word) {
+            document.querySelectorAll('.choice-btn').forEach(b => b.disabled = true);
+            if (chosen === correct) {
+                btn.classList.add('correct');
+                document.getElementById('practiceFeedback').innerHTML = '<span class="feedback-correct">✅ Chính xác! Giỏi lắm!</span>';
+                addStar();
+                correctAnswers++;
+            } else {
+                btn.classList.add('wrong');
+                wrongWords.push(word);
+                document.getElementById('practiceFeedback').innerHTML = '<span class="feedback-wrong">❌ Chưa đúng — đáp án là: ' + correct + '</span>';
+                // Highlight correct
+                document.querySelectorAll('.choice-btn').forEach(b => {
+                    if (b.querySelector('span:last-child')?.textContent === correct) b.classList.add('correct');
+                });
+            }
+            const btnNext = document.getElementById('btn-next-practice');
+            btnNext.style.display = 'inline-block';
+        }
+
+        function nextPractice() {
+            currentPracticeIdx++;
+            if (currentPracticeIdx < words.length) {
+                showPractice();
+            } else {
+                showReview();
+            }
+        }
+
+        // ===== REVIEW =====
+        function showReview() {
+            const list = document.getElementById('reviewList');
+            list.innerHTML = '';
+            words.forEach(w => {
+                const item = document.createElement('div');
+                item.className = 'review-item';
+                const isWrong = wrongWords.some(ww => ww.word === w.word);
+                item.style.borderLeftColor = isWrong ? '#ef4444' : '#10b981';
+                item.innerHTML = `
+                    <span class="review-icon">${w.emoji}</span>
+                    <div>
+                        <div class="review-word">${w.word} <span style="font-size:.85rem;font-weight:600;color:#9ca3af;">${w.phonetic}</span></div>
+                        <div class="review-meaning">${w.meaning}</div>
+                    </div>
+                    <span style="margin-left:auto;font-size:1.3rem;">${isWrong ? '🔁' : '✅'}</span>
+                `;
+                list.appendChild(item);
+            });
+            goToScreen('screen-review');
+        }
+
+        // ===== REWARD =====
+        function addStar() {
+            stars++;
+            document.getElementById('starCount').textContent = stars;
+            spawnFloatingStar();
+        }
+
+        function spawnFloatingStar() {
+            const el = document.createElement('div');
+            el.className = 'floating-star';
+            el.textContent = '⭐';
+            el.style.left = (30 + Math.random() * 60) + '%';
+            el.style.top = (60 + Math.random() * 20) + '%';
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 1500);
+        }
+
+        document.getElementById('screen-reward').addEventListener('transitionend', () => {});
+        document.querySelector('.screen-wrap#screen-reward')?.addEventListener('animationend', () => {});
+
+        // Watch when reward screen becomes active
+        const observer = new MutationObserver(() => {
+            if (document.getElementById('screen-reward').classList.contains('active')) {
+                const acc = words.length > 0 ? Math.round((correctAnswers / words.length) * 100) : 100;
+                const starRating = acc >= 80 ? '⭐⭐⭐' : acc >= 60 ? '⭐⭐' : '⭐';
+                document.getElementById('rewardStars').textContent = starRating;
+                document.getElementById('rewardWords').textContent = words.length;
+                document.getElementById('rewardStarCount').textContent = stars;
+                document.getElementById('rewardAccuracy').textContent = acc + '%';
+                document.getElementById('rewardMsg').textContent = acc >= 80 ? 'Con đã hoàn thành bài học xuất sắc! 🌟' : 'Con đã cố gắng rất tốt hôm nay! 💪';
+                launchConfetti();
+            }
+        });
+        observer.observe(document.getElementById('screen-reward'), { attributeFilter: ['class'] });
+
+        function launchConfetti() {
+            const canvas = document.getElementById('confettiCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            const colors = ['#e75485','#f59e0b','#10b981','#a855f7','#3b82f6'];
+            const pieces = Array.from({length:80}, () => ({
+                x: Math.random() * canvas.width,
+                y: -20,
+                r: 4 + Math.random() * 6,
+                c: colors[Math.floor(Math.random() * colors.length)],
+                vx: (Math.random() - .5) * 4,
+                vy: 2 + Math.random() * 4,
+                life: 1
+            }));
+            let frame;
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let alive = false;
+                pieces.forEach(p => {
+                    if (p.life <= 0) return;
+                    alive = true;
+                    p.x += p.vx; p.y += p.vy; p.life -= .005;
+                    ctx.globalAlpha = p.life;
+                    ctx.fillStyle = p.c;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+                ctx.globalAlpha = 1;
+                if (alive) frame = requestAnimationFrame(draw);
+                else ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+            draw();
+            setTimeout(() => cancelAnimationFrame(frame), 4000);
+        }
+
+        // Init
+        updateProgress();
+    </script>
+</body>
+</html>

@@ -89,6 +89,19 @@
                         </div>
                     }
 
+                    @if (User.IsInRole("Student"))
+                    {
+                        <hr class="divider">
+                        <div style="text-align:center;padding:8px 0;">
+                            <a asp-controller="Lesson" asp-action="StudentLearn" asp-route-id="@Model?.LessonId"
+                               style="display:inline-block;padding:16px 48px;background:linear-gradient(135deg,#e75485,#ec6090);color:#fff;border-radius:999px;text-decoration:none;font-weight:800;font-size:1.1rem;font-family:'Nunito',sans-serif;box-shadow:0 8px 24px rgba(231,84,133,.4);transition:all .3s;"
+                               id="btn-start-learn">
+                                🐝 Bắt đầu học bài này!
+                            </a>
+                            <p style="color:#94a3b8;font-size:.82rem;margin-top:10px;">Học theo lộ trình 10 phút có gamification</p>
+                        </div>
+                    }
+
                     <a asp-action="Index" asp-route-chapterId="@Model?.ChapterId" class="back-btn">← Quay lại danh sách bài học</a>
                 </div>
             </div>

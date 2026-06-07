@@ -1,208 +1,632 @@
 @{
-    ViewData["Title"] = "PLO - Online Learning Platform";
+    ViewData["Title"] = "PLO - Học Tiếng Anh cho trẻ lớp 1 & lớp 2 (6–7 tuổi)";
 }
 @using POT_System_ASPNET.Data.Entities
 @model object
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-    .grade-item, .package-item { background-color:#e0e7ff; padding:25px; border-radius:15px; margin-bottom:30px; box-shadow:0 4px 12px rgba(0,0,0,.1); transition:all .3s ease; display:flex; flex-direction:column; justify-content:space-between; min-height:180px; }
-    .grade-item:hover, .package-item:hover { transform:translateY(-5px); background-color:#ffe4e6; }
-    .package-item { background:linear-gradient(145deg,#f0f4ff,#e0e7ff); border-left:4px solid #10b981; }
-    .package-item:hover { background:linear-gradient(145deg,#d1fae5,#a7f3d0); }
-    .hero-banner { background:linear-gradient(135deg,#1a0533,#4a0080); padding:100px 0 60px; text-align:center; color:#fff; }
-    .hero-banner h1 { font-size:3rem; font-weight:800; color:#ec6090; text-shadow:0 0 20px rgba(236,96,144,.5); }
-    .hero-banner p { font-size:1.2rem; color:#ccc; max-width:600px; margin:0 auto 30px; }
-    .hero-btn { display:inline-block; padding:14px 40px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border-radius:30px; text-decoration:none; font-weight:700; font-size:1.1rem; transition:all .3s ease; }
-    .hero-btn:hover { transform:translateY(-3px); box-shadow:0 10px 30px rgba(236,96,144,.4); color:#fff; }
-    .section-title { font-size:2rem; font-weight:700; color:#ec6090; margin-bottom:10px; }
-    .section-sub { color:#888; margin-bottom:40px; }
-    .grade-name { font-size:1.1rem; font-weight:700; color:#2a0040; }
-    .view-btn { display:inline-block; padding:8px 20px; background:#e75485; color:#fff; border-radius:20px; text-decoration:none; font-size:.85rem; font-weight:600; transition:all .3s; }
-    .view-btn:hover { background:#d43f6f; color:#fff; transform:translateY(-2px); }
-    .price-tag { font-size:1.5rem; font-weight:800; color:#10b981; }
-    .pkg-name { font-size:1.1rem; font-weight:700; color:#2a0040; }
-    .stats-section { background:linear-gradient(135deg,#1a0533,#4a0080); padding:60px 0; color:#fff; text-align:center; }
-    .stat-num { font-size:2.5rem; font-weight:800; color:#ec6090; }
-    .stat-lbl { color:#ccc; font-size:.9rem; }
-    .features-section { padding:80px 0; background:#f8f9ff; }
-    .feature-card { background:#fff; padding:30px; border-radius:15px; text-align:center; box-shadow:0 4px 15px rgba(0,0,0,.06); transition:all .3s; height:100%; }
-    .feature-card:hover { transform:translateY(-5px); box-shadow:0 8px 25px rgba(0,0,0,.12); }
-    .feature-icon { font-size:2.5rem; margin-bottom:15px; }
-    .cta-section { background:linear-gradient(135deg,#ec6090,#e75485); padding:80px 0; text-align:center; color:#fff; }
+    body { font-family: 'Inter', sans-serif; }
+
+    /* ===== HERO ===== */
+    .hero-banner {
+        background: linear-gradient(135deg, #fff7ed, #fef3c7, #fdf4ff);
+        padding: 90px 0 80px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    .hero-banner::before {
+        content: '';
+        position: absolute; inset: 0;
+        background:
+            radial-gradient(ellipse at 20% 20%, rgba(251,191,36,.18) 0%, transparent 50%),
+            radial-gradient(ellipse at 80% 80%, rgba(167,139,250,.15) 0%, transparent 50%);
+        pointer-events: none;
+    }
+    /* floating shapes */
+    .hero-shape {
+        position: absolute;
+        border-radius: 50%;
+        opacity: .12;
+        animation: floatShape 6s ease-in-out infinite alternate;
+    }
+    .hero-shape.s1 { width:200px;height:200px;background:#f59e0b;top:-60px;left:-60px; animation-delay:0s; }
+    .hero-shape.s2 { width:140px;height:140px;background:#a855f7;bottom:-30px;right:-30px; animation-delay:2s; }
+    .hero-shape.s3 { width:80px;height:80px;background:#10b981;top:40%;left:5%; animation-delay:1s; }
+    @@keyframes floatShape { from{transform:translateY(0) rotate(0deg);} to{transform:translateY(20px) rotate(15deg);} }
+
+    .hero-tag {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: linear-gradient(135deg, #fef3c7, #fde68a);
+        border: 2px solid #f59e0b;
+        color: #92400e;
+        font-family: 'Nunito', sans-serif;
+        font-size: .9rem; font-weight: 800;
+        padding: 8px 22px; border-radius: 999px;
+        margin-bottom: 24px;
+        position: relative; z-index: 1;
+        box-shadow: 0 4px 12px rgba(245,158,11,.25);
+    }
+    .hero-banner h1 {
+        font-family: 'Nunito', sans-serif;
+        font-size: 2.8rem; font-weight: 900;
+        color: #1e1b4b;
+        line-height: 1.25;
+        max-width: 720px;
+        margin: 0 auto 20px;
+        position: relative; z-index: 1;
+    }
+    .hero-banner h1 .highlight-orange { color: #f59e0b; }
+    .hero-banner h1 .highlight-pink   { color: #e75485; }
+    .hero-banner h1 .highlight-purple { color: #7c3aed; }
+    .hero-sub {
+        font-size: 1.1rem;
+        color: #4b5563;
+        max-width: 560px;
+        margin: 0 auto 36px;
+        position: relative; z-index: 1;
+        line-height: 1.75;
+    }
+    .hero-cta-wrap { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; align-items: center; }
+    .hero-btn {
+        display: inline-block;
+        padding: 16px 44px;
+        background: linear-gradient(135deg, #e75485, #f472b6);
+        color: #fff; border-radius: 999px;
+        text-decoration: none; font-family: 'Nunito', sans-serif;
+        font-weight: 900; font-size: 1.1rem;
+        transition: all .3s ease;
+        box-shadow: 0 8px 24px rgba(231,84,133,.4);
+        position: relative; z-index: 1;
+    }
+    .hero-btn:hover { transform: translateY(-4px); box-shadow: 0 14px 36px rgba(231,84,133,.5); color: #fff; }
+    .hero-btn-outline {
+        display: inline-block;
+        padding: 15px 38px;
+        background: #fff;
+        color: #7c3aed;
+        border: 2.5px solid #7c3aed;
+        border-radius: 999px;
+        text-decoration: none; font-family: 'Nunito', sans-serif;
+        font-weight: 800; font-size: 1rem;
+        transition: all .3s ease;
+    }
+    .hero-btn-outline:hover { background: #7c3aed; color: #fff; }
+
+    /* Hero mascot row */
+    .hero-mascots { display: flex; justify-content: center; gap: 28px; margin-top: 48px; position: relative; z-index: 1; flex-wrap: wrap; }
+    .mascot-item { text-align: center; }
+    .mascot-emoji { font-size: 3rem; display: block; animation: mascotBounce 2s ease-in-out infinite alternate; }
+    .mascot-item:nth-child(2) .mascot-emoji { animation-delay: .4s; }
+    .mascot-item:nth-child(3) .mascot-emoji { animation-delay: .8s; }
+    .mascot-item:nth-child(4) .mascot-emoji { animation-delay: 1.2s; }
+    @@keyframes mascotBounce { from{transform:translateY(0);} to{transform:translateY(-12px);} }
+    .mascot-label { font-family: 'Nunito', sans-serif; font-size: .82rem; font-weight: 800; color: #6b7280; margin-top: 6px; }
+
+    /* Hero stats */
+    .hero-proof {
+        display: flex; justify-content: center; gap: 36px;
+        margin-top: 52px; flex-wrap: wrap;
+        position: relative; z-index: 1;
+    }
+    .proof-item { text-align: center; }
+    .proof-num { font-family: 'Nunito', sans-serif; font-size: 2rem; font-weight: 900; color: #e75485; }
+    .proof-label { font-size: .78rem; color: #9ca3af; margin-top: 3px; font-weight: 600; }
+
+    /* ===== AGE BADGE ===== */
+    .age-section { padding: 60px 0 0; background: #fff; text-align: center; }
+    .age-badge {
+        display: inline-flex; align-items: center; gap: 14px;
+        background: linear-gradient(135deg, #ede9fe, #fdf4ff);
+        border: 2px solid #c4b5fd;
+        border-radius: 20px;
+        padding: 20px 36px;
+        margin: 0 auto;
+    }
+    .age-badge-icon { font-size: 3rem; }
+    .age-badge-text h3 { font-family: 'Nunito', sans-serif; font-size: 1.3rem; font-weight: 900; color: #4c1d95; margin: 0 0 4px; }
+    .age-badge-text p { font-size: .9rem; color: #6b7280; margin: 0; }
+
+    /* ===== WHY ===== */
+    .why-section { padding: 80px 0; background: #fff; }
+    .why-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-top: 48px; }
+    .why-card {
+        background: linear-gradient(135deg, #fffbeb, #fefce8);
+        border: 2px solid #fde68a;
+        border-radius: 20px; padding: 28px 24px;
+        transition: all .3s;
+    }
+    .why-card:hover { transform: translateY(-6px); box-shadow: 0 12px 32px rgba(245,158,11,.2); border-color: #f59e0b; }
+    .why-card:nth-child(2) { background: linear-gradient(135deg, #fdf4ff, #fce7f3); border-color: #f9a8d4; }
+    .why-card:nth-child(2):hover { box-shadow: 0 12px 32px rgba(231,84,133,.2); border-color: #e75485; }
+    .why-card:nth-child(3) { background: linear-gradient(135deg, #f0fdf4, #dcfce7); border-color: #86efac; }
+    .why-card:nth-child(3):hover { box-shadow: 0 12px 32px rgba(16,185,129,.2); border-color: #10b981; }
+    .why-card:nth-child(4) { background: linear-gradient(135deg, #ede9fe, #f5f3ff); border-color: #c4b5fd; }
+    .why-card:nth-child(4):hover { box-shadow: 0 12px 32px rgba(124,58,237,.2); border-color: #7c3aed; }
+    .why-icon { font-size: 2.4rem; margin-bottom: 14px; display: block; }
+    .why-card h4 { font-family: 'Nunito', sans-serif; font-size: 1.05rem; font-weight: 900; color: #1e1b4b; margin-bottom: 10px; }
+    .why-card p { font-size: .88rem; color: #6b7280; line-height: 1.65; margin: 0; }
+
+    /* ===== HOW IT WORKS ===== */
+    .how-section { padding: 80px 0; background: linear-gradient(135deg, #fdf4ff, #fce7f3); }
+    .how-steps { display: flex; justify-content: center; flex-wrap: wrap; gap: 0; margin-top: 48px; }
+    .how-step { flex: 1; min-width: 180px; max-width: 220px; text-align: center; position: relative; padding: 0 12px; }
+    .how-step:not(:last-child)::after { content: '→'; position: absolute; right: -14px; top: 28px; font-size: 1.8rem; color: #e75485; opacity: .6; }
+    .how-circle {
+        width: 70px; height: 70px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #e75485, #ec6090);
+        color: #fff;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.9rem;
+        margin: 0 auto 14px;
+        box-shadow: 0 6px 18px rgba(231,84,133,.35);
+    }
+    .how-step h4 { font-family: 'Nunito', sans-serif; font-size: 1rem; font-weight: 900; color: #1e1b4b; margin-bottom: 8px; }
+    .how-step p { font-size: .82rem; color: #6b7280; line-height: 1.5; }
+
+    /* ===== RESULTS ===== */
+    .results-section { padding: 80px 0; background: #fff; }
+    .result-timeline { display: flex; justify-content: center; flex-wrap: wrap; gap: 0; margin-top: 48px; }
+    .result-step { flex: 1; min-width: 190px; max-width: 230px; text-align: center; position: relative; padding: 0 16px; }
+    .result-step:not(:last-child)::after { content: '→'; position: absolute; right: -14px; top: 28px; font-size: 1.6rem; color: #f59e0b; opacity: .7; }
+    .result-circle {
+        background: linear-gradient(135deg, #f59e0b, #fbbf24);
+        color: #fff;
+        width: 72px; height: 72px;
+        border-radius: 50%;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        font-weight: 900; margin: 0 auto 16px;
+        box-shadow: 0 6px 18px rgba(245,158,11,.4);
+    }
+    .result-circle .days-num { font-family: 'Nunito', sans-serif; font-size: 1.3rem; line-height: 1; }
+    .result-circle .days-lbl { font-size: .6rem; opacity: .9; }
+    .result-step h4 { font-family: 'Nunito', sans-serif; font-size: .95rem; font-weight: 900; color: #1e1b4b; margin-bottom: 8px; }
+    .result-step p { font-size: .82rem; color: #6b7280; line-height: 1.5; }
+
+    /* ===== PARENT BENEFITS ===== */
+    .benefit-section { padding: 80px 0; background: linear-gradient(135deg, #f0fdf4, #dcfce7); }
+    .benefit-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-top: 48px; }
+    .benefit-card { background: #fff; border-radius: 20px; padding: 28px 24px; box-shadow: 0 4px 16px rgba(0,0,0,.06); transition: all .3s; border-left: 5px solid #10b981; }
+    .benefit-card:hover { transform: translateY(-5px); box-shadow: 0 12px 28px rgba(0,0,0,.1); }
+    .benefit-icon { font-size: 2.2rem; margin-bottom: 14px; display: block; }
+    .benefit-card h4 { font-family: 'Nunito', sans-serif; font-size: 1rem; font-weight: 900; color: #1e1b4b; margin-bottom: 10px; }
+    .benefit-card p { font-size: .87rem; color: #6b7280; line-height: 1.65; margin: 0; }
+
+    /* ===== TESTIMONIALS ===== */
+    .trust-section { padding: 80px 0; background: linear-gradient(135deg, #1e1b4b, #312e81); }
+    .trust-card { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12); border-radius: 20px; padding: 28px; transition: all .3s; height: 100%; }
+    .trust-card:hover { background: rgba(255,255,255,.12); transform: translateY(-4px); }
+    .trust-stars { color: #fbbf24; font-size: 1rem; margin-bottom: 12px; }
+    .trust-quote { color: #e2e8f0; font-size: .93rem; line-height: 1.75; font-style: italic; margin-bottom: 18px; }
+    .trust-parent { display: flex; align-items: center; gap: 12px; }
+    .trust-avatar { width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg, #e75485, #f472b6); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
+    .trust-name { font-family: 'Nunito', sans-serif; font-weight: 800; color: #fff; font-size: .9rem; }
+    .trust-desc { color: #94a3b8; font-size: .78rem; margin-top: 2px; }
+
+    /* ===== PACKAGES ===== */
+    .pkg-compare { padding: 80px 0; background: #fff; }
+    .pkg-card-hp { background: #fff; border: 2px solid #e5e7eb; border-radius: 22px; padding: 30px 24px; transition: all .3s; height: 100%; display: flex; flex-direction: column; position: relative; }
+    .pkg-card-hp:hover { border-color: #e75485; box-shadow: 0 14px 36px rgba(231,84,133,.13); transform: translateY(-5px); }
+    .pkg-card-hp.featured-hp { border-color: #e75485; background: linear-gradient(160deg, #fff1f5 0%, #fff 60%); }
+    .featured-badge-hp { position: absolute; top: -14px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #e75485, #ec6090); color: #fff; padding: 5px 22px; border-radius: 999px; font-size: .75rem; font-weight: 700; white-space: nowrap; box-shadow: 0 4px 14px rgba(231,84,133,.4); font-family: 'Nunito', sans-serif; }
+    .pkg-tier { font-size: .78rem; font-weight: 700; color: #9333ea; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+    .pkg-title-hp { font-family: 'Nunito', sans-serif; font-size: 1.25rem; font-weight: 900; color: #1e1b4b; margin-bottom: 4px; }
+    .pkg-price-hp { font-family: 'Nunito', sans-serif; font-size: 2rem; font-weight: 900; color: #e75485; margin: 14px 0 4px; }
+    .pkg-price-hp small { font-size: .88rem; font-weight: 400; color: #6b7280; }
+    .pkg-value { font-size: .83rem; color: #6b7280; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid #f3f4f6; line-height: 1.5; }
+    .pkg-features-hp { list-style: none; padding: 0; margin: 0 0 24px; flex: 1; }
+    .pkg-features-hp li { padding: 8px 0; font-size: .87rem; color: #374151; display: flex; align-items: flex-start; gap: 10px; border-bottom: 1px solid #f9fafb; }
+    .pkg-features-hp li:last-child { border: none; }
+    .feat-check { color: #10b981; font-weight: 900; flex-shrink: 0; margin-top: 1px; }
+    .btn-pkg { display: block; text-align: center; padding: 14px; background: linear-gradient(135deg, #e75485, #ec6090); color: #fff; border-radius: 25px; text-decoration: none; font-family: 'Nunito', sans-serif; font-weight: 900; transition: all .3s; cursor: pointer; width: 100%; font-size: .93rem; border: 2px solid transparent; }
+    .btn-pkg:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(231,84,133,.4); color: #fff; }
+    .btn-pkg.outline { background: transparent; border-color: #e75485; color: #e75485; }
+    .btn-pkg.outline:hover { background: #e75485; color: #fff; }
+
+    /* ===== CTA ===== */
+    .cta-section { background: linear-gradient(135deg, #e75485, #a855f7); padding: 90px 0; text-align: center; color: #fff; position: relative; overflow: hidden; }
+    .cta-section::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 120%, rgba(255,255,255,.15) 0%, transparent 60%); pointer-events: none; }
+    .cta-floating { font-size: 2.5rem; position: absolute; opacity: .18; animation: floatCTA 4s ease-in-out infinite alternate; }
+    .cta-floating.f1 { top: 10%; left: 8%; animation-delay: 0s; }
+    .cta-floating.f2 { top: 20%; right: 10%; animation-delay: 1s; }
+    .cta-floating.f3 { bottom: 15%; left: 15%; animation-delay: 2s; }
+    @@keyframes floatCTA { from{transform:translateY(0) rotate(-5deg);} to{transform:translateY(-15px) rotate(5deg);} }
+
+    /* ===== SECTIONS SHARED ===== */
+    .section-title { font-family: 'Nunito', sans-serif; font-size: 2rem; font-weight: 900; color: #1e1b4b; margin-bottom: 10px; }
+    .section-sub { color: #6b7280; margin-bottom: 10px; font-size: 1rem; line-height: 1.6; }
 </style>
 
-<!-- Hero Section -->
+<!-- ===== HERO ===== -->
 <section class="hero-banner">
-    <div class="container">
-        <h1>🎮 Personalized Learning Online</h1>
-        <p>Nền tảng học tập trực tuyến hiện đại với AI thông minh. Học theo lộ trình cá nhân hóa, luyện đề không giới hạn.</p>
-        @if (!User.Identity!.IsAuthenticated)
-        {
-            <a asp-controller="Account" asp-action="Register" class="hero-btn me-3">Bắt đầu ngay</a>
-            <a asp-controller="Account" asp-action="Login" class="hero-btn" style="background:transparent;border:2px solid #ec6090;">Đăng nhập</a>
-        }
-        else
-        {
-            <a asp-controller="Test" asp-action="List" class="hero-btn">Luyện đề ngay</a>
-        }
-    </div>
-</section>
-
-<!-- Stats Section -->
-<section class="stats-section">
-    <div class="container">
-        <div class="row">
-            <div class="col-md-3">
-                <div class="stat-num">1000+</div>
-                <div class="stat-lbl">Câu hỏi luyện tập</div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-num">50+</div>
-                <div class="stat-lbl">Bài học chất lượng</div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-num">AI</div>
-                <div class="stat-lbl">Tạo đề thông minh</div>
-            </div>
-            <div class="col-md-3">
-                <div class="stat-num">24/7</div>
-                <div class="stat-lbl">Học mọi lúc mọi nơi</div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Grades Section -->
-<section style="padding:80px 0;background:#fff;">
-    <div class="container">
-        <h2 class="section-title text-center">📚 Khối lớp</h2>
-        <p class="section-sub text-center">Chọn khối lớp phù hợp với bạn</p>
-        <div class="row">
-            @if (ViewBag.Grades != null)
+    <div class="hero-shape s1"></div>
+    <div class="hero-shape s2"></div>
+    <div class="hero-shape s3"></div>
+    <div class="container" style="position:relative;z-index:1;">
+        <div class="hero-tag">🎒 Dành riêng cho trẻ Lớp 1 & Lớp 2</div>
+        <h1>
+            Giúp bé <span class="highlight-orange">6–7 tuổi</span><br>
+            yêu thích <span class="highlight-pink">Tiếng Anh</span> từ sớm<br>
+            <span class="highlight-purple">10 phút mỗi ngày</span>
+        </h1>
+        <p class="hero-sub">
+            PLO thiết kế bài học vui như trò chơi — phù hợp hoàn toàn với trẻ lớp 1 & lớp 2.
+            Phụ huynh nhận báo cáo tiến bộ hàng tuần, không cần ngồi kèm con từng phút.
+        </p>
+        <div class="hero-cta-wrap">
+            @if (!User.Identity!.IsAuthenticated)
             {
-                foreach (Grade grade in ViewBag.Grades)
-                {
-                    <div class="col-md-4">
-                        <div class="grade-item">
-                            <div>
-                                <div class="grade-name">@grade.GradeName</div>
-                                <p style="color:#666;font-size:.9rem;">@grade.Description</p>
-                            </div>
-                            <a asp-controller="Subject" asp-action="Index" asp-route-gradeId="@grade.GradeId" class="view-btn mt-2">Xem môn học →</a>
-                        </div>
-                    </div>
-                }
+                <a asp-controller="Account" asp-action="Register" class="hero-btn" id="hero-cta-trial">🎁 Cho con học thử 7 ngày — Miễn phí</a>
+                <a asp-controller="Account" asp-action="Login" class="hero-btn-outline" id="hero-cta-login">Đăng nhập</a>
+            }
+            else if (User.IsInRole("Parent"))
+            {
+                <a asp-controller="Parent" asp-action="LinkedStudents" class="hero-btn">📊 Xem tiến bộ của con →</a>
             }
             else
             {
-                <div class="col-12 text-center"><p class="text-muted">Đang tải khối lớp...</p></div>
+                <a asp-controller="Lesson" asp-action="Index" class="hero-btn">📚 Tiếp tục học ngay</a>
             }
         </div>
-        <div class="text-center mt-3">
-            <a asp-controller="Grade" asp-action="Index" class="view-btn">Xem tất cả →</a>
+
+        <!-- Animated mascots -->
+        <div class="hero-mascots">
+            <div class="mascot-item"><span class="mascot-emoji">🐝</span><div class="mascot-label">Bạn Ong PLO</div></div>
+            <div class="mascot-item"><span class="mascot-emoji">🦋</span><div class="mascot-label">Bạn Bướm</div></div>
+            <div class="mascot-item"><span class="mascot-emoji">🐸</span><div class="mascot-label">Bạn Ếch</div></div>
+            <div class="mascot-item"><span class="mascot-emoji">🐼</span><div class="mascot-label">Bạn Gấu</div></div>
+        </div>
+
+        <!-- Stats -->
+        <div class="hero-proof">
+            <div class="proof-item">
+                <div class="proof-num">500+</div>
+                <div class="proof-label">Phụ huynh tin dùng</div>
+            </div>
+            <div class="proof-item">
+                <div class="proof-num">6–7</div>
+                <div class="proof-label">Tuổi phù hợp nhất</div>
+            </div>
+            <div class="proof-item">
+                <div class="proof-num">10 phút</div>
+                <div class="proof-label">Mỗi buổi học</div>
+            </div>
+            <div class="proof-item">
+                <div class="proof-num">100+</div>
+                <div class="proof-label">Từ vựng / tháng</div>
+            </div>
         </div>
     </div>
 </section>
 
-<!-- Packages Section -->
-<section style="padding:80px 0;background:#f8f9ff;">
+<!-- ===== AGE BADGE ===== -->
+<section class="age-section">
     <div class="container">
-        <h2 class="section-title text-center">💎 Gói học tập</h2>
-        <p class="section-sub text-center">Chọn gói học phù hợp với nhu cầu</p>
-        <div class="row justify-content-center">
-            @if (ViewBag.Packages != null)
-            {
-                foreach (Package pkg in ViewBag.Packages)
-                {
-                    <div class="col-md-4">
-                        <div class="package-item">
-                            <div>
-                                <div class="pkg-name">@pkg.PackageName</div>
-                                <p style="color:#666;font-size:.9rem;">@pkg.Description</p>
-                                <p class="price-tag">@pkg.Price.ToString("N0") VNĐ <small style="font-size:.9rem;color:#888;">/ @pkg.Duration tháng</small></p>
-                            </div>
-                            <a asp-controller="Package" asp-action="Purchase" asp-route-packageId="@pkg.PackageId" class="view-btn mt-2" style="background:#10b981;">Mua ngay →</a>
-                        </div>
-                    </div>
-                }
-            }
-        </div>
-        <div class="text-center mt-3">
-            <a asp-controller="Package" asp-action="List" class="view-btn" style="background:#10b981;">Xem tất cả gói →</a>
+        <div class="age-badge">
+            <span class="age-badge-icon">🎒</span>
+            <div class="age-badge-text">
+                <h3>Thiết kế chuyên biệt cho trẻ 6–7 tuổi (Lớp 1 & Lớp 2)</h3>
+                <p>Nội dung, giao diện và thời lượng bài học được nghiên cứu phù hợp với sự phát triển nhận thức của trẻ Lớp 1 và Lớp 2 tại Việt Nam</p>
+            </div>
         </div>
     </div>
 </section>
 
-<!-- Features Section -->
-<section class="features-section">
+<!-- ===== WHY PLO FOR 6-7 ===== -->
+<section class="why-section">
     <div class="container">
-        <h2 class="section-title text-center">✨ Tính năng nổi bật</h2>
-        <p class="section-sub text-center">Hệ thống học tập toàn diện</p>
+        <h2 class="section-title text-center">🌟 Tại sao PLO phù hợp với trẻ 6–7 tuổi?</h2>
+        <p class="section-sub text-center">Trẻ ở giai đoạn này học ngôn ngữ nhanh nhất — PLO tận dụng đúng "cửa sổ vàng" này</p>
+        <div class="why-grid">
+            <div class="why-card">
+                <span class="why-icon">⏱️</span>
+                <h4>Bài học chỉ 10 phút — vừa sức bé</h4>
+                <p>Trẻ 6-7 tuổi tập trung tối đa 10-15 phút. PLO thiết kế mỗi bài đúng 10 phút: đủ học, đủ vui, không mệt mỏi hay cáu kỉnh.</p>
+            </div>
+            <div class="why-card">
+                <span class="why-icon">🎮</span>
+                <h4>Học như chơi — trẻ tự xin học tiếp</h4>
+                <p>Mascot, sao thưởng, hoạt ảnh vui nhộn khiến bé cảm giác đang chơi game, không phải học. Phụ huynh không cần nhắc mà bé tự nhớ giờ học.</p>
+            </div>
+            <div class="why-card">
+                <span class="why-icon">👁️</span>
+                <h4>Hình ảnh lớn — chữ ít — âm thanh rõ</h4>
+                <p>Bé lớp 1-2 chưa đọc lưu loát. PLO dùng hình ảnh sinh động, âm thanh phát âm chuẩn, chữ cái lớn rõ — phù hợp tuyệt đối với bé mới bắt đầu.</p>
+            </div>
+            <div class="why-card">
+                <span class="why-icon">📱</span>
+                <h4>An toàn — không quảng cáo, không link ngoài</h4>
+                <p>Môi trường học hoàn toàn khép kín, không có quảng cáo hay nội dung không phù hợp. Phụ huynh yên tâm cho bé dùng máy tính bảng một mình.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== HOW IT WORKS ===== -->
+<section class="how-section">
+    <div class="container">
+        <h2 class="section-title text-center">🎯 Một buổi học của bé diễn ra như thế nào?</h2>
+        <p class="section-sub text-center">Mỗi buổi 10 phút, chia thành 5 bước vui — bé làm quen dần với Tiếng Anh mà không hay biết</p>
+        <div class="how-steps">
+            <div class="how-step">
+                <div class="how-circle">🐝</div>
+                <h4>Chào hỏi</h4>
+                <p>Mascot gọi tên bé, tạo không khí vui vẻ để bắt đầu</p>
+            </div>
+            <div class="how-step">
+                <div class="how-circle">👀</div>
+                <h4>Học từ mới</h4>
+                <p>Nghe phát âm, xem hình lớn — nhớ từ qua hình ảnh</p>
+            </div>
+            <div class="how-step">
+                <div class="how-circle">🎯</div>
+                <h4>Luyện tập</h4>
+                <p>Chọn hình đúng — nút lớn, màu sắc vui, bé không sợ sai</p>
+            </div>
+            <div class="how-step">
+                <div class="how-circle">🔁</div>
+                <h4>Ôn lại</h4>
+                <p>Xem lại từ vừa học để nhớ lâu hơn</p>
+            </div>
+            <div class="how-step">
+                <div class="how-circle">⭐</div>
+                <h4>Nhận sao</h4>
+                <p>Được thưởng sao & huy hiệu — bé hào hứng khoe với bố mẹ!</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== RESULTS ===== -->
+<section class="results-section">
+    <div class="container">
+        <h2 class="section-title text-center">📈 Bé tiến bộ ra sao theo từng tuần?</h2>
+        <p class="section-sub text-center">Tiến bộ rõ từng tuần — phụ huynh thấy được ngay qua báo cáo</p>
+        <div class="result-timeline">
+            <div class="result-step">
+                <div class="result-circle"><span class="days-num">7</span><span class="days-lbl">ngày</span></div>
+                <h4>Làm quen & hứng khởi</h4>
+                <p>Bé nhận biết 20–30 từ cơ bản về đồ vật, con vật quen thuộc. Tự xin học không cần nhắc!</p>
+            </div>
+            <div class="result-step">
+                <div class="result-circle"><span class="days-num">14</span><span class="days-lbl">ngày</span></div>
+                <h4>Nghe & nhận diện tốt</h4>
+                <p>Bé bắt đầu nhận ra từ qua âm thanh khi nghe. Hay chỉ vào đồ vật và nói tên Tiếng Anh!</p>
+            </div>
+            <div class="result-step">
+                <div class="result-circle"><span class="days-num">30</span><span class="days-lbl">ngày</span></div>
+                <h4>Tích lũy 100+ từ</h4>
+                <p>Bé thuộc trên 100 từ, bắt đầu nói các cụm đơn giản. Phụ huynh thấy rõ sự thay đổi!</p>
+            </div>
+            <div class="result-step">
+                <div class="result-circle"><span class="days-num">90</span><span class="days-lbl">ngày</span></div>
+                <h4>Tự tin giao tiếp đơn giản</h4>
+                <p>Bé có thể nói những câu Tiếng Anh cơ bản trong sinh hoạt hàng ngày và rất tự hào!</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== PARENT BENEFITS ===== -->
+<section class="benefit-section">
+    <div class="container">
+        <h2 class="section-title text-center">👨‍👩‍👧 Phụ huynh nhận được gì?</h2>
+        <p class="section-sub text-center">Không cần giám sát từng phút — hệ thống tự lo, bạn chỉ cần xem báo cáo</p>
+        <div class="benefit-grid">
+            <div class="benefit-card">
+                <span class="benefit-icon">📊</span>
+                <h4>Báo cáo tiến bộ hàng tuần</h4>
+                <p>Nhận báo cáo chi tiết: bé học bao nhiêu ngày, học bao nhiêu từ mới, điểm mạnh/yếu theo từng kỹ năng nghe và từ vựng.</p>
+            </div>
+            <div class="benefit-card">
+                <span class="benefit-icon">💡</span>
+                <h4>Gợi ý hỗ trợ bé tại nhà</h4>
+                <p>Mỗi tuần hệ thống gợi ý 1-2 việc đơn giản bố mẹ có thể làm để bé ôn lại từ đã học trong cuộc sống hàng ngày.</p>
+            </div>
+            <div class="benefit-card">
+                <span class="benefit-icon">🤖</span>
+                <h4>Lộ trình AI cá nhân hoá</h4>
+                <p>AI phân tích bé đang mạnh/yếu từ loại nào và tự điều chỉnh bài học. Bé học đúng trình độ, không nhàm chán, không quá khó.</p>
+            </div>
+            <div class="benefit-card">
+                <span class="benefit-icon">🛡️</span>
+                <h4>Nội dung chuẩn, an toàn 100%</h4>
+                <p>Toàn bộ nội dung được giáo viên kiểm duyệt trước khi đăng. Phù hợp chương trình lớp 1-2, không có nội dung không phù hợp.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== TESTIMONIALS ===== -->
+<section class="trust-section">
+    <div class="container">
+        <h2 style="font-family:'Nunito',sans-serif;color:#fff;font-weight:900;text-align:center;font-size:2rem;margin-bottom:10px;">💬 Phụ huynh nói gì về PLO?</h2>
+        <p style="color:#94a3b8;text-align:center;margin-bottom:48px;">Trải nghiệm thật từ các gia đình có bé lớp 1 & lớp 2 đang dùng PLO</p>
         <div class="row g-4">
             <div class="col-md-4">
-                <div class="feature-card">
-                    <div class="feature-icon">🤖</div>
-                    <h5>AI tạo đề thông minh</h5>
-                    <p style="color:#888;">Gemini AI tự động tạo bộ câu hỏi cá nhân hóa theo trình độ của bạn</p>
+                <div class="trust-card">
+                    <div class="trust-stars">★★★★★</div>
+                    <div class="trust-quote">"Con tôi 6 tuổi, vừa vào lớp 1. Trước không chịu ngồi học gì cả. Sau 2 tuần dùng PLO, con tự nhắc mẹ cho học bài. Hỏi ra mới biết con thích con ong trong app lắm!"</div>
+                    <div class="trust-parent">
+                        <div class="trust-avatar">👩</div>
+                        <div>
+                            <div class="trust-name">Chị Minh Trang</div>
+                            <div class="trust-desc">Phụ huynh bé lớp 1, TP.HCM</div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="feature-card">
-                    <div class="feature-icon">📊</div>
-                    <h5>Theo dõi tiến độ học</h5>
-                    <p style="color:#888;">Phụ huynh theo dõi quá trình học của con em theo thời gian thực</p>
+                <div class="trust-card">
+                    <div class="trust-stars">★★★★★</div>
+                    <div class="trust-quote">"Báo cáo tuần rất rõ ràng. Tôi biết con đang cần ôn từ gì và hệ thống còn gợi ý cách ôn ở nhà. Bé lớp 2 nhà tôi giờ hay chỉ vào đồ vật và nói tên Tiếng Anh!"</div>
+                    <div class="trust-parent">
+                        <div class="trust-avatar">👨</div>
+                        <div>
+                            <div class="trust-name">Anh Đức Hùng</div>
+                            <div class="trust-desc">Phụ huynh bé lớp 2, Hà Nội</div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="feature-card">
-                    <div class="feature-icon">🎯</div>
-                    <h5>Luyện tập đa dạng</h5>
-                    <p style="color:#888;">Hàng nghìn câu hỏi theo chuẩn Bloom's Taxonomy: Nhận biết, Thông hiểu, Vận dụng</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="feature-card">
-                    <div class="feature-icon">💼</div>
-                    <h5>Ví điện tử tiện lợi</h5>
-                    <p style="color:#888;">Phụ huynh nạp tiền và mua gói học cho con dễ dàng qua ví điện tử</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="feature-card">
-                    <div class="feature-icon">🔔</div>
-                    <h5>Thông báo tức thì</h5>
-                    <p style="color:#888;">Nhận ngay thông báo về tiến độ, kết quả thi và cập nhật từ hệ thống</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="feature-card">
-                    <div class="feature-icon">🏆</div>
-                    <h5>Quản lý chuyên nghiệp</h5>
-                    <p style="color:#888;">Hệ thống phân quyền rõ ràng cho Admin, Giáo viên, Học sinh và Phụ huynh</p>
+                <div class="trust-card">
+                    <div class="trust-stars">★★★★★</div>
+                    <div class="trust-quote">"10 phút học mà hiệu quả hơn cả tiếng học ép buộc. Con bé 7 tuổi nhà tôi mỗi lần được sao là hét lên gọi mẹ khoe. Rất vui và nhẹ nhõm khi thấy con thích học!"</div>
+                    <div class="trust-parent">
+                        <div class="trust-avatar">👩</div>
+                        <div>
+                            <div class="trust-name">Chị Bảo Châu</div>
+                            <div class="trust-desc">Phụ huynh bé lớp 1, Đà Nẵng</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- CTA Section -->
-<section class="cta-section">
+<!-- ===== PACKAGE COMPARE ===== -->
+<section class="pkg-compare">
     <div class="container">
-        <h2 style="font-size:2.2rem;font-weight:800;">Bắt đầu hành trình học tập ngay hôm nay! 🚀</h2>
-        <p style="font-size:1.1rem;margin:20px 0 30px;opacity:.9;">Đăng ký miễn phí và trải nghiệm nền tảng học tập thông minh nhất Việt Nam</p>
+        <h2 class="section-title text-center">💎 Chọn gói phù hợp cho bé</h2>
+        <p class="section-sub text-center">Bắt đầu miễn phí 7 ngày — nâng cấp bất cứ lúc nào, không ràng buộc</p>
+        <div class="row g-4 justify-content-center">
+            <!-- Free Trial -->
+            <div class="col-md-3 col-sm-6">
+                <div class="pkg-card-hp">
+                    <div class="pkg-tier">🎁 Dùng thử</div>
+                    <div class="pkg-title-hp">Free Trial</div>
+                    <div class="pkg-price-hp">0đ <small>/ 7 ngày</small></div>
+                    <div class="pkg-value">Trải nghiệm không rủi ro — không cần thẻ tín dụng</div>
+                    <ul class="pkg-features-hp">
+                        <li><span class="feat-check">✓</span> 5 bài học mẫu đầy đủ</li>
+                        <li><span class="feat-check">✓</span> Báo cáo mẫu cho phụ huynh</li>
+                        <li><span class="feat-check">✓</span> Mascot & phần thưởng sao</li>
+                        <li><span class="feat-check">✓</span> Phù hợp trẻ lớp 1 & lớp 2</li>
+                    </ul>
+                    @if (!User.Identity!.IsAuthenticated)
+                    {
+                        <a asp-controller="Account" asp-action="Register" class="btn-pkg outline" id="pkg-free-btn">Bắt đầu miễn phí</a>
+                    }
+                    else if (User.IsInRole("Parent"))
+                    {
+                        <a asp-controller="Package" asp-action="List" class="btn-pkg outline">Xem gói</a>
+                    }
+                </div>
+            </div>
+            <!-- Basic -->
+            <div class="col-md-3 col-sm-6">
+                <div class="pkg-card-hp">
+                    <div class="pkg-tier">📚 Nền tảng</div>
+                    <div class="pkg-title-hp">Basic</div>
+                    <div class="pkg-price-hp">149.000đ <small>/ tháng</small></div>
+                    <div class="pkg-value">Bé học 10 phút/ngày với nền tảng từ vựng lớp 1-2 đầy đủ</div>
+                    <ul class="pkg-features-hp">
+                        <li><span class="feat-check">✓</span> Toàn bộ bài học lớp 1 & lớp 2</li>
+                        <li><span class="feat-check">✓</span> Lộ trình theo trình độ bé</li>
+                        <li><span class="feat-check">✓</span> Báo cáo tiến bộ cơ bản</li>
+                        <li><span class="feat-check">✓</span> Ôn từ thông minh</li>
+                    </ul>
+                    @if (!User.Identity!.IsAuthenticated)
+                    {
+                        <a asp-controller="Account" asp-action="Register" class="btn-pkg outline" id="pkg-basic-btn">Chọn gói này</a>
+                    }
+                    else if (User.IsInRole("Parent"))
+                    {
+                        <a asp-controller="Package" asp-action="List" class="btn-pkg outline">Xem & mua</a>
+                    }
+                </div>
+            </div>
+            <!-- Standard (Featured) -->
+            <div class="col-md-3 col-sm-6">
+                <div class="pkg-card-hp featured-hp">
+                    <div class="featured-badge-hp">⭐ Phổ biến nhất</div>
+                    <div class="pkg-tier" style="color:#e75485;">🚀 Cá nhân hóa</div>
+                    <div class="pkg-title-hp">Standard</div>
+                    <div class="pkg-price-hp">249.000đ <small>/ tháng</small></div>
+                    <div class="pkg-value">AI điều chỉnh lộ trình + báo cáo tuần đầy đủ cho phụ huynh</div>
+                    <ul class="pkg-features-hp">
+                        <li><span class="feat-check">✓</span> Tất cả tính năng Basic</li>
+                        <li><span class="feat-check">✓</span> AI cá nhân hóa bài học cho bé</li>
+                        <li><span class="feat-check">✓</span> Báo cáo tuần chi tiết cho phụ huynh</li>
+                        <li><span class="feat-check">✓</span> Gợi ý học ở nhà hàng tuần</li>
+                        <li><span class="feat-check">✓</span> Tạo đề luyện tập với AI</li>
+                    </ul>
+                    @if (!User.Identity!.IsAuthenticated)
+                    {
+                        <a asp-controller="Account" asp-action="Register" class="btn-pkg" id="pkg-standard-btn">Bắt đầu ngay →</a>
+                    }
+                    else if (User.IsInRole("Parent"))
+                    {
+                        <a asp-controller="Package" asp-action="List" class="btn-pkg">Xem & mua →</a>
+                    }
+                </div>
+            </div>
+            <!-- Premium -->
+            <div class="col-md-3 col-sm-6">
+                <div class="pkg-card-hp">
+                    <div class="pkg-tier">👑 Toàn diện</div>
+                    <div class="pkg-title-hp">Premium</div>
+                    <div class="pkg-price-hp">399.000đ <small>/ tháng</small></div>
+                    <div class="pkg-value">Kèm giáo viên review bài & tư vấn lộ trình hàng tuần</div>
+                    <ul class="pkg-features-hp">
+                        <li><span class="feat-check">✓</span> Tất cả tính năng Standard</li>
+                        <li><span class="feat-check">✓</span> Giáo viên nhận xét bài/tuần</li>
+                        <li><span class="feat-check">✓</span> Tư vấn lộ trình riêng cho bé</li>
+                        <li><span class="feat-check">✓</span> Hỗ trợ phụ huynh ưu tiên 24/7</li>
+                    </ul>
+                    @if (!User.Identity!.IsAuthenticated)
+                    {
+                        <a asp-controller="Account" asp-action="Register" class="btn-pkg outline" id="pkg-premium-btn">Chọn gói này</a>
+                    }
+                    else if (User.IsInRole("Parent"))
+                    {
+                        <a asp-controller="Package" asp-action="List" class="btn-pkg outline">Xem & mua</a>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-4">
+            <a asp-controller="Package" asp-action="List" class="btn-pkg outline" style="width:auto;display:inline-block;padding:12px 32px;">Xem chi tiết tất cả gói →</a>
+        </div>
+    </div>
+</section>
+
+<!-- ===== FINAL CTA ===== -->
+<section class="cta-section">
+    <div class="cta-floating f1">🐝</div>
+    <div class="cta-floating f2">⭐</div>
+    <div class="cta-floating f3">🎨</div>
+    <div class="container" style="position:relative;z-index:1;text-align:center;">
+        <h2 style="font-family:'Nunito',sans-serif;font-size:2.3rem;font-weight:900;margin-bottom:14px;">
+            Cho bé bắt đầu yêu Tiếng Anh ngay hôm nay! 🚀
+        </h2>
+        <p style="font-size:1.05rem;margin:0 auto 36px;opacity:.9;max-width:520px;line-height:1.75;">
+            7 ngày dùng thử miễn phí — không cần thẻ tín dụng.<br>
+            Thiết kế riêng cho trẻ <strong>lớp 1 & lớp 2 (6–7 tuổi)</strong>.
+        </p>
         @if (!User.Identity!.IsAuthenticated)
         {
-            <a asp-controller="Account" asp-action="Register" class="hero-btn" style="background:#fff;color:#e75485;">Đăng ký ngay →</a>
+            <a asp-controller="Account" asp-action="Register" class="hero-btn" id="cta-final-btn" style="font-size:1.1rem;padding:18px 52px;background:linear-gradient(135deg,#fff3,#fff2);border:2px solid rgba(255,255,255,.6);backdrop-filter:blur(8px);">
+                🎁 Cho bé học thử ngay — Miễn phí
+            </a>
+        }
+        else if (User.IsInRole("Parent"))
+        {
+            <a asp-controller="Parent" asp-action="LinkedStudents" class="hero-btn">📊 Xem tiến bộ của bé →</a>
         }
         else
         {
-            <a asp-controller="AI" asp-action="Chat" class="hero-btn" style="background:#fff;color:#e75485;">Chat với AI →</a>
+            <a asp-controller="Lesson" asp-action="Index" class="hero-btn">📚 Tiếp tục học →</a>
         }
     </div>
 </section>
 
 @section Scripts {
-<script src="~/vendor/jquery/jquery.min.js"></script>
-<script src="~/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="~/vendor/jquery/jquery.min.js"></script>
+    <script src="~/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 }

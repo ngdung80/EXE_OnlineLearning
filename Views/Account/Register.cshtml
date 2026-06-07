@@ -1,191 +1,304 @@
 @{
-    ViewData["Title"] = "Đăng ký";
+    ViewData["Title"] = "Đăng ký - PLO Learning";
     Layout = null;
 }
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng ký - PLO Learning</title>
+    <title>Đăng ký - PLO</title>
     <link href="~/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
-        body { background:linear-gradient(135deg,#f9e8e8,#f4d4d4); font-family:'Inter',sans-serif; color:#2a0040; display:flex; flex-direction:column; align-items:center; min-height:100vh; padding:20px; }
-        .header-area { background:#fff; position:fixed; top:0; left:0; width:100%; z-index:1000; padding:10px 0; box-shadow:0 2px 10px rgba(0,0,0,.05); }
-        .main-nav { display:flex; align-items:center; justify-content:space-between; padding:0 20px; }
-        .main-nav .logo img { height:40px; }
-        .main-nav .nav { list-style:none; display:flex; margin:0; padding:0; }
-        .main-nav .nav li { margin-left:25px; }
-        .main-nav .nav li a { color:#e75485; text-decoration:none; font-weight:500; }
-        .register-container { background:url('/assets/images/cosmic-login-bg.jpg') no-repeat center center; background-size:cover; padding:2.5rem; border-radius:20px; box-shadow:0 8px 20px rgba(0,0,0,.1); width:100%; max-width:670px; margin-top:80px; margin-bottom:40px; text-align:center; position:relative; animation:fadeIn .5s ease-in-out; }
-        .register-container::before { content:''; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,.85); border-radius:20px; z-index:1; }
-        .register-content { position:relative; z-index:2; }
-        .register-content img { width:180px; margin-bottom:1rem; }
-        @@keyframes fadeIn { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
-        h2 { color:#2a0040; font-weight:600; font-size:28px; margin-bottom:1.5rem; }
-        .form-group { margin-bottom:1.5rem; text-align:left; }
-        .form-group label { color:#2a0040; font-weight:500; font-size:14px; margin-bottom:.5rem; display:block; }
-        .form-control { background:#fff; border:1px solid #e0e0e0; color:#333; border-radius:10px; padding:12px 15px 12px 45px; width:100%; font-size:14px; transition:all .3s; }
-        .form-control:focus { border-color:#e75485; box-shadow:0 0 8px rgba(231,84,133,.2); outline:none; }
-        .input-group { position:relative; display:flex; align-items:center; }
-        .input-group i { position:absolute; left:15px; top:50%; transform:translateY(-50%); color:#e75485; z-index:3; }
-        .role-options { display:flex; flex-wrap:wrap; gap:15px; margin-bottom:1.5rem; }
-        .role-options label { display:flex; align-items:center; font-size:14px; cursor:pointer; position:relative; padding-left:30px; }
-        .role-options input[type="radio"] { display:none; }
-        .role-options label::before { content:''; position:absolute; left:0; top:50%; transform:translateY(-50%); width:18px; height:18px; border:2px solid #e75485; border-radius:50%; background:#fff; transition:all .3s; }
-        .role-options input[type="radio"]:checked + label::before { background:#e75485; box-shadow:inset 0 0 0 3px #fff; }
-        .verification-group { background:#f9e8e8; padding:15px; border:1px solid #e75485; border-radius:10px; margin-bottom:1.5rem; }
-        .verification-note { color:#2a0040; font-size:12px; margin-top:.5rem; }
-        .btn-primary { background:#e75485; border:none; padding:12px; width:100%; font-weight:500; border-radius:30px; font-size:15px; color:#fff; cursor:pointer; transition:all .3s; }
-        .btn-primary:hover { background:#c63e6b; transform:translateY(-2px); }
-        .btn-send { width:auto; padding:8px 20px; }
-        .btn-link { color:#e75485; text-decoration:none; font-size:14px; font-weight:500; }
-        .error-message { background:#ffe6e6; color:#d43f6f; border:1px solid #d43f6f; padding:10px; border-radius:8px; margin-bottom:15px; font-size:13px; }
-        .success-message { background:#e6f4e6; color:#28a745; border:1px solid #28a745; padding:10px; border-radius:8px; margin-bottom:15px; font-size:13px; }
+        body { font-family:'Inter',sans-serif; background:linear-gradient(135deg,#fdf4ff,#fce7f3,#ede9fe); min-height:100vh; display:flex; flex-direction:column; }
+
+        /* ===== NAVBAR ===== */
+        .reg-nav { background:#fff; box-shadow:0 2px 12px rgba(0,0,0,.07); padding:14px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+        .nav-logo { display:flex; align-items:center; gap:8px; text-decoration:none; }
+        .nav-logo img { width:36px; height:36px; object-fit:contain; }
+        .nav-logo span { font-family:'Nunito',sans-serif; font-weight:900; font-size:1.3rem; color:#e75485; letter-spacing:1px; }
+        .nav-link { color:#6b7280; font-size:.9rem; font-weight:600; text-decoration:none; }
+        .nav-link:hover { color:#e75485; }
+
+        /* ===== PAGE LAYOUT ===== */
+        .page-wrap { flex:1; display:flex; align-items:center; justify-content:center; padding:32px 16px; }
+
+        /* ===== ROLE SELECTOR ===== */
+        .role-selector { background:#fff; border-radius:28px; box-shadow:0 8px 40px rgba(0,0,0,.1); padding:40px; max-width:520px; width:100%; text-align:center; }
+        .role-selector h2 { font-family:'Nunito',sans-serif; font-size:1.8rem; font-weight:900; color:#1e1b4b; margin-bottom:8px; }
+        .role-selector p { color:#6b7280; font-size:.95rem; margin-bottom:28px; }
+        .role-cards { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px; }
+        .role-card { border:3px solid #e5e7eb; border-radius:20px; padding:24px 16px; cursor:pointer; transition:all .25s; text-align:center; background:#fafafa; }
+        .role-card:hover { border-color:#e75485; background:#fdf4ff; transform:translateY(-3px); box-shadow:0 8px 20px rgba(231,84,133,.15); }
+        .role-card.selected { border-color:#e75485; background:linear-gradient(135deg,#fdf4ff,#fce7f3); box-shadow:0 8px 24px rgba(231,84,133,.2); }
+        .role-icon { font-size:2.8rem; margin-bottom:10px; display:block; }
+        .role-label { font-family:'Nunito',sans-serif; font-weight:900; font-size:1.05rem; color:#1e1b4b; display:block; margin-bottom:4px; }
+        .role-desc { font-size:.78rem; color:#9ca3af; font-weight:600; }
+
+        /* ===== FORM ===== */
+        .reg-form { background:#fff; border-radius:28px; box-shadow:0 8px 40px rgba(0,0,0,.1); padding:40px; max-width:520px; width:100%; display:none; }
+        .reg-form h2 { font-family:'Nunito',sans-serif; font-size:1.6rem; font-weight:900; color:#1e1b4b; margin-bottom:6px; }
+        .reg-form .form-sub { color:#6b7280; font-size:.88rem; margin-bottom:24px; }
+        .form-group-r { margin-bottom:18px; }
+        .form-label-r { font-weight:700; font-size:.85rem; color:#374151; display:block; margin-bottom:6px; }
+        .form-input-wrap { position:relative; }
+        .form-input-wrap i { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#9ca3af; font-size:.9rem; }
+        .form-control-r { width:100%; padding:13px 14px 13px 40px; border:2px solid #e5e7eb; border-radius:14px; font-family:'Inter',sans-serif; font-size:.95rem; color:#1e1b4b; transition:all .2s; background:#fff; }
+        .form-control-r:focus { border-color:#e75485; box-shadow:0 0 0 4px rgba(231,84,133,.1); outline:none; }
+        .form-row-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+        .trial-banner { background:linear-gradient(135deg,#fef3c7,#fde68a); border:2px solid #f59e0b; border-radius:16px; padding:14px 18px; margin-bottom:20px; display:flex; align-items:center; gap:12px; }
+        .trial-banner .trial-icon { font-size:1.8rem; flex-shrink:0; }
+        .trial-banner .trial-text { font-size:.85rem; font-weight:700; color:#92400e; }
+        .trial-banner .trial-sub { font-size:.78rem; color:#b45309; margin-top:2px; }
+        .btn-register { width:100%; padding:15px; background:linear-gradient(135deg,#e75485,#ec6090); color:#fff; border:none; border-radius:999px; font-family:'Nunito',sans-serif; font-weight:900; font-size:1.05rem; cursor:pointer; transition:all .2s; box-shadow:0 6px 20px rgba(231,84,133,.35); }
+        .btn-register:hover { transform:translateY(-2px); box-shadow:0 10px 28px rgba(231,84,133,.45); }
+        .form-footer { text-align:center; margin-top:16px; font-size:.88rem; color:#6b7280; }
+        .form-footer a { color:#e75485; font-weight:700; text-decoration:none; }
+        .msg-error { background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; padding:12px 16px; border-radius:12px; margin-bottom:16px; font-size:.88rem; font-weight:600; }
+        .msg-success { background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; padding:12px 16px; border-radius:12px; margin-bottom:16px; font-size:.88rem; font-weight:600; }
+        .section-divider { font-size:.78rem; font-weight:700; color:#9ca3af; text-transform:uppercase; letter-spacing:.5px; margin:16px 0 14px; display:flex; align-items:center; gap:8px; }
+        .section-divider::before, .section-divider::after { content:''; flex:1; height:1px; background:#f3f4f6; }
+        .verif-row { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:end; }
+        .btn-send-code { padding:13px 18px; background:#ede9fe; color:#7c3aed; border:2px solid #ddd6fe; border-radius:14px; font-family:'Inter',sans-serif; font-weight:700; font-size:.85rem; cursor:pointer; white-space:nowrap; transition:all .2s; }
+        .btn-send-code:hover { background:#ddd6fe; }
+        #codeStatus { font-size:.78rem; font-weight:700; color:#10b981; display:block; margin-top:6px; min-height:18px; }
+        .back-to-role { background:none; border:none; color:#9ca3af; font-size:.85rem; cursor:pointer; padding:0; font-family:'Inter',sans-serif; margin-bottom:16px; display:flex; align-items:center; gap:6px; font-weight:600; }
+        .back-to-role:hover { color:#e75485; }
+
+        /* Content Manager hidden */
         #contentManagerFields { display:none; }
     </style>
 </head>
 <body>
-    <header class="header-area">
-        <div class="container">
-            <div class="row">
-                <div class="col-12">
-                    <nav class="main-nav">
-                        <a asp-controller="Home" asp-action="Index" class="logo" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
-                            <img src="~/assets/images/logo.png" asp-append-version="true" alt="PLO Logo" style="height:35px;width:35px;object-fit:contain;">
-                            <span class="logo-text" style="font-family:'Inter',sans-serif;font-weight:900;font-size:22px;color:#e75485;text-transform:uppercase;letter-spacing:1px;">PLO</span>
-                        </a>
-                        <ul class="nav">
-                            <li><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
-                            <li><a asp-controller="Account" asp-action="Login">Đăng nhập</a></li>
-                        </ul>
-                    </nav>
+    <!-- Navbar -->
+    <nav class="reg-nav">
+        <a asp-controller="Home" asp-action="Index" class="nav-logo">
+            <img src="~/assets/images/logo.png" asp-append-version="true" alt="PLO">
+            <span>PLO</span>
+        </a>
+        <div style="display:flex;gap:20px;align-items:center;">
+            <a asp-controller="Home" asp-action="Index" class="nav-link">Trang chủ</a>
+            <a asp-controller="Account" asp-action="Login" class="nav-link" style="color:#e75485;font-weight:700;">Đã có tài khoản?</a>
+        </div>
+    </nav>
+
+    <div class="page-wrap">
+        <!-- STEP 1: Choose Role -->
+        <div class="role-selector" id="roleSelector">
+            <div style="font-size:3.5rem;margin-bottom:12px;">🐝</div>
+            <h2>Chào mừng đến PLO!</h2>
+            <p>Giải pháp học Tiếng Anh cho trẻ <strong>lớp 1 & lớp 2 (6–7 tuổi)</strong></p>
+            <div class="role-cards">
+                <div class="role-card" id="role-card-parent" onclick="selectRole('Parent')">
+                    <span class="role-icon">👨‍👩‍👧</span>
+                    <span class="role-label">Tôi là Phụ huynh</span>
+                    <span class="role-desc">Muốn bé 6–7 tuổi yêu Thích Tiếng Anh</span>
+                </div>
+                <div class="role-card" id="role-card-student" onclick="selectRole('Mentee')">
+                    <span class="role-icon">🧒</span>
+                    <span class="role-label">Tôi là Học sinh</span>
+                    <span class="role-desc">Học sinh Lớp 1 hoặc Lớp 2</span>
                 </div>
             </div>
+            <div style="margin-top:8px;">
+                <button onclick="selectRole('Content Manager')" style="background:none;border:none;color:#9ca3af;font-size:.82rem;cursor:pointer;font-family:'Inter',sans-serif;">Đăng ký với vai trò khác (Giáo viên/Quản lý nội dung)</button>
+            </div>
         </div>
-    </header>
 
-    <div class="register-container">
-        <div class="register-content">
-            @if (ViewBag.Error != null) { <div class="error-message">@ViewBag.Error</div> }
-            @if (ViewBag.Success != null) { <div class="success-message">@ViewBag.Success</div> }
+        <!-- STEP 2: Registration Form -->
+        <div class="reg-form" id="regForm">
+            <button class="back-to-role" onclick="backToRole()">← Đổi vai trò</button>
 
-            <h2>Đăng ký tài khoản</h2>
-            <img src="~/assets/images/logo.png" asp-append-version="true" alt="PLO Logo" style="width:80px;height:80px;object-fit:contain;margin-bottom:1rem;">
+            @if (ViewBag.Error != null) { <div class="msg-error">@ViewBag.Error</div> }
+            @if (ViewBag.Success != null) { <div class="msg-success">@ViewBag.Success</div> }
+
+            <h2 id="formTitle">Tạo tài khoản</h2>
+            <p class="form-sub" id="formSub">Điền thông tin bên dưới để bắt đầu</p>
+
+            <!-- Trial Banner (shown for parents) -->
+            <div class="trial-banner" id="trialBanner" style="display:none;">
+                <span class="trial-icon">🎁</span>
+                <div>
+                    <div class="trial-text">7 ngày học thử MIỄN PHÍ</div>
+                    <div class="trial-sub">Không cần thẻ tín dụng • Hủy bất cứ lúc nào</div>
+                </div>
+            </div>
 
             <form id="registerForm" asp-action="Register" method="post">
                 @Html.AntiForgeryToken()
-                <!-- Role Selection -->
-                <div class="form-group">
-                    <label>Chọn vai trò:</label>
-                    <div class="role-options">
-                        <input type="radio" name="role" value="Mentee" id="role-mentee" onchange="toggleRole('Mentee')" checked>
-                        <label for="role-mentee">Học sinh</label>
-                        <input type="radio" name="role" value="Parent" id="role-parent" onchange="toggleRole('Parent')">
-                        <label for="role-parent">Phụ huynh</label>
-                        <input type="radio" name="role" value="Content Manager" id="role-cm" onchange="toggleRole('Content Manager')">
-                        <label for="role-cm">Quản lý nội dung</label>
+                <input type="hidden" name="role" id="selectedRole" value="Mentee">
+
+                <!-- PARENT FIELDS (simple) -->
+                <div id="parentFields">
+                    <div class="form-group-r">
+                        <label class="form-label-r">📱 Số điện thoại hoặc Email phụ huynh</label>
+                        <div class="form-input-wrap">
+                            <i class="fas fa-phone"></i>
+                            <input type="text" name="phone" class="form-control-r" placeholder="Nhập SĐT hoặc email" id="parentContact">
+                        </div>
                     </div>
-                </div>
-                <!-- Username -->
-                <div class="form-group">
-                    <label>Tên đăng nhập</label>
-                    <div class="input-group">
-                        <i class="fas fa-user"></i>
-                        <input type="text" name="username" id="username" class="form-control" placeholder="6–20 ký tự, chữ/số/dấu gạch dưới" required>
+                    <div class="form-group-r">
+                        <label class="form-label-r">📧 Email (để nhận báo cáo của con)</label>
+                        <div class="form-input-wrap">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" name="email" id="regEmail" class="form-control-r" placeholder="email@example.com">
+                        </div>
                     </div>
-                </div>
-                <!-- Email -->
-                <div class="form-group">
-                    <label>Email</label>
-                    <div class="input-group">
-                        <i class="fas fa-envelope"></i>
-                        <input type="email" name="email" id="regEmail" class="form-control" placeholder="Nhập email" required>
+                    <div class="section-divider">Thông tin tài khoản</div>
+                    <div class="form-group-r">
+                        <label class="form-label-r">👤 Họ và tên phụ huynh</label>
+                        <div class="form-input-wrap">
+                            <i class="fas fa-user"></i>
+                            <input type="text" name="fullName" class="form-control-r" placeholder="Họ và tên của bạn" id="parentName">
+                        </div>
                     </div>
-                </div>
-                <!-- Password -->
-                <div class="form-group">
-                    <label>Mật khẩu</label>
-                    <div class="input-group">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" name="password" id="regPassword" class="form-control" placeholder="Tối thiểu 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt" required>
+                    <div class="section-divider">Thông tin của con</div>
+                    <div class="form-row-2">
+                        <div class="form-group-r">
+                            <label class="form-label-r">🧒 Tên của con</label>
+                            <div class="form-input-wrap">
+                                <i class="fas fa-child"></i>
+                                <input type="text" name="childName" class="form-control-r" placeholder="Tên bé">
+                            </div>
+                        </div>
+                        <div class="form-group-r">
+                            <label class="form-label-r">🎂 Lớp / Tuổi</label>
+                            <div class="form-input-wrap">
+                                <i class="fas fa-graduation-cap"></i>
+                                <input type="text" name="childGrade" class="form-control-r" placeholder="VD: Lớp 1">
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <!-- Confirm Password -->
-                <div class="form-group">
-                    <label>Xác nhận mật khẩu</label>
-                    <div class="input-group">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" name="confirmPassword" id="confirmPassword" class="form-control" placeholder="Nhập lại mật khẩu" required>
-                    </div>
-                </div>
-                <!-- Full Name -->
-                <div class="form-group">
-                    <label>Họ và tên</label>
-                    <div class="input-group">
-                        <i class="fas fa-id-card"></i>
-                        <input type="text" name="fullName" class="form-control" placeholder="Nhập họ và tên" required>
-                    </div>
-                </div>
-                <!-- Phone -->
-                <div class="form-group">
-                    <label>Số điện thoại</label>
-                    <div class="input-group">
-                        <i class="fas fa-phone"></i>
-                        <input type="text" name="phone" class="form-control" placeholder="10 chữ số bắt đầu bằng số 0">
-                    </div>
-                </div>
-                <!-- DOB -->
-                <div class="form-group">
-                    <label>Ngày sinh</label>
-                    <div class="input-group">
-                        <i class="fas fa-calendar-alt"></i>
-                        <input type="date" name="dob" class="form-control" required>
-                    </div>
-                </div>
-                <!-- Specialization (Content Manager only) -->
-                <div class="form-group" id="contentManagerFields">
-                    <label>Chuyên môn</label>
-                    <div class="input-group">
-                        <i class="fas fa-briefcase"></i>
-                        <input type="text" name="specialization" class="form-control" placeholder="Chuyên môn giảng dạy của bạn">
-                    </div>
-                </div>
-                <!-- Verification Code -->
-                <div class="form-group verification-group">
-                    <label>Mã xác thực</label>
-                    <div class="input-group">
-                        <i class="fas fa-key"></i>
-                        <input type="text" name="verificationCode" id="verificationCode" class="form-control" placeholder="Nhập mã 6 chữ số" required>
-                    </div>
-                    <p class="verification-note">Nhập mã xác thực gồm 6 chữ số được gửi đến email của bạn. Hết hạn sau 5 phút.</p>
-                    <button type="button" id="btnSendCode" class="btn btn-primary btn-send mt-2" onclick="sendCode()">Gửi mã</button>
-                    <span id="codeStatus" style="font-size:12px;margin-left:10px;color:#28a745;"></span>
                 </div>
 
-                <button type="submit" id="registerBtn" class="btn btn-primary">Đăng ký</button>
-                <p class="mt-3">Đã có tài khoản? <a asp-action="Login" class="btn-link">Đăng nhập ngay</a></p>
+                <!-- STUDENT / COMMON FIELDS -->
+                <div id="studentFields">
+                    <div class="form-group-r" id="usernameGroup">
+                        <label class="form-label-r">👤 Tên đăng nhập</label>
+                        <div class="form-input-wrap">
+                            <i class="fas fa-user"></i>
+                            <input type="text" name="username" id="username" class="form-control-r" placeholder="6–20 ký tự, chữ/số">
+                        </div>
+                    </div>
+                    <div class="form-group-r" id="emailGroup">
+                        <label class="form-label-r">📧 Email</label>
+                        <div class="form-input-wrap">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" name="email" id="regEmailStudent" class="form-control-r" placeholder="email@example.com">
+                        </div>
+                    </div>
+                    <div class="form-group-r" id="fullNameGroup">
+                        <label class="form-label-r">📛 Họ và tên</label>
+                        <div class="form-input-wrap">
+                            <i class="fas fa-id-card"></i>
+                            <input type="text" name="fullName" class="form-control-r" placeholder="Nhập họ và tên">
+                        </div>
+                    </div>
+                    <div class="form-group-r" id="dobGroup">
+                        <label class="form-label-r">🎂 Ngày sinh</label>
+                        <div class="form-input-wrap">
+                            <i class="fas fa-calendar"></i>
+                            <input type="date" name="dob" class="form-control-r">
+                        </div>
+                    </div>
+                    <!-- Content Manager only -->
+                    <div class="form-group-r" id="contentManagerFields">
+                        <label class="form-label-r">💼 Chuyên môn</label>
+                        <div class="form-input-wrap">
+                            <i class="fas fa-briefcase"></i>
+                            <input type="text" name="specialization" class="form-control-r" placeholder="Chuyên môn giảng dạy">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Password (always shown) -->
+                <div class="section-divider">Mật khẩu</div>
+                <div class="form-row-2">
+                    <div class="form-group-r">
+                        <label class="form-label-r">🔒 Mật khẩu</label>
+                        <div class="form-input-wrap">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" name="password" id="regPassword" class="form-control-r" placeholder="Tối thiểu 8 ký tự" required>
+                        </div>
+                    </div>
+                    <div class="form-group-r">
+                        <label class="form-label-r">🔒 Xác nhận</label>
+                        <div class="form-input-wrap">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" name="confirmPassword" id="confirmPassword" class="form-control-r" placeholder="Nhập lại mật khẩu" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Verification -->
+                <div class="form-group-r" style="background:#fdf4ff;border:2px solid #e9d5ff;border-radius:14px;padding:16px 18px;">
+                    <label class="form-label-r" style="color:#7c3aed;">🔑 Mã xác thực email</label>
+                    <div class="verif-row">
+                        <div class="form-input-wrap">
+                            <i class="fas fa-key" style="color:#7c3aed;"></i>
+                            <input type="text" name="verificationCode" id="verificationCode" class="form-control-r" placeholder="Nhập mã 6 số" required>
+                        </div>
+                        <button type="button" class="btn-send-code" id="btnSendCode" onclick="sendCode()">Gửi mã</button>
+                    </div>
+                    <span id="codeStatus"></span>
+                </div>
+
+                <button type="submit" class="btn-register" id="registerBtn">🚀 Tạo tài khoản</button>
             </form>
+            <div class="form-footer">
+                Đã có tài khoản? <a asp-action="Login">Đăng nhập ngay</a>
+            </div>
         </div>
     </div>
 
     <script>
-        function toggleRole(role) {
-            document.getElementById('contentManagerFields').style.display = (role === 'Content Manager') ? 'block' : 'none';
+        let currentRole = '';
+
+        function selectRole(role) {
+            currentRole = role;
+            document.getElementById('roleSelector').style.display = 'none';
+            document.getElementById('regForm').style.display = 'block';
+            document.getElementById('selectedRole').value = role;
+
+            const isParent = role === 'Parent';
+            const isStudent = role === 'Mentee';
+            const isCM = role === 'Content Manager';
+
+            // Title
+            document.getElementById('formTitle').textContent = isParent ? '👨‍👩‍👧 Tài khoản Phụ huynh' : isStudent ? '🧒 Tài khoản Học sinh' : '📋 Tài khoản Giáo viên';
+            document.getElementById('formSub').textContent = isParent ? '7 ngày thử miễn phí — không cần thẻ tín dụng' : isStudent ? 'Bắt đầu hành trình học Tiếng Anh!' : 'Đăng ký để tạo và quản lý nội dung';
+
+            // Show/hide sections
+            document.getElementById('trialBanner').style.display = isParent ? 'flex' : 'none';
+            document.getElementById('parentFields').style.display = isParent ? 'block' : 'none';
+            document.getElementById('studentFields').style.display = !isParent ? 'block' : 'none';
+            document.getElementById('contentManagerFields').style.display = isCM ? 'block' : 'none';
+
+            // For parent, reuse the email field from parent section
+            const emailInput = document.querySelector('input[name="email"]');
+        }
+
+        function backToRole() {
+            document.getElementById('regForm').style.display = 'none';
+            document.getElementById('roleSelector').style.display = 'block';
         }
 
         async function sendCode() {
-            const email = document.getElementById('regEmail').value;
+            // Use parent email or student email
+            const emailEl = currentRole === 'Parent'
+                ? document.getElementById('regEmail')
+                : document.getElementById('regEmailStudent');
+            const email = emailEl?.value;
+
             if (!email || !/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(email)) {
                 alert('Vui lòng nhập email hợp lệ trước.');
                 return;
             }
             const btn = document.getElementById('btnSendCode');
-            btn.disabled = true;
-            btn.textContent = 'Đang gửi...';
+            btn.disabled = true; btn.textContent = 'Đang gửi...';
             try {
                 const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
                 const res = await fetch('/Account/SendVerificationCode', {
@@ -194,23 +307,21 @@
                     body: JSON.stringify({ email })
                 });
                 const data = await res.json();
+                const status = document.getElementById('codeStatus');
                 if (data.success) {
-                    document.getElementById('codeStatus').textContent = '✓ Đã gửi mã! Vui lòng kiểm tra email.';
+                    status.textContent = '✓ Đã gửi mã! Kiểm tra email của bạn.';
+                    status.style.color = '#10b981';
                     let sec = 60;
                     const timer = setInterval(() => {
                         btn.textContent = `Gửi lại (${--sec}s)`;
                         if (sec <= 0) { clearInterval(timer); btn.disabled = false; btn.textContent = 'Gửi mã'; }
                     }, 1000);
                 } else {
-                    document.getElementById('codeStatus').textContent = '✗ Thất bại: ' + data.message;
-                    document.getElementById('codeStatus').style.color = '#d43f6f';
-                    btn.disabled = false;
-                    btn.textContent = 'Gửi mã';
+                    status.textContent = '✗ ' + (data.message || 'Gửi thất bại');
+                    status.style.color = '#ef4444';
+                    btn.disabled = false; btn.textContent = 'Gửi mã';
                 }
-            } catch (e) {
-                btn.disabled = false; btn.textContent = 'Gửi mã';
-                document.getElementById('codeStatus').textContent = '✗ Lỗi khi gửi mã';
-            }
+            } catch { btn.disabled = false; btn.textContent = 'Gửi mã'; }
         }
     </script>
 </body>
