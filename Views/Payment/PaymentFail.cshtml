@@ -1,0 +1,23 @@
+@{
+    ViewData["Title"] = "Thanh toán thất bại";
+}
+
+<div class="container mt-5 text-center">
+    <div class="card shadow-sm border-0 p-5 mx-auto" style="max-width: 600px; border-radius: 20px; background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.05)); border: 1px solid rgba(239, 68, 68, 0.2) !important;">
+        <i class="fas fa-times-circle text-danger" style="font-size: 5rem; margin-bottom: 20px; color: #ef4444 !important;"></i>
+        <h2 style="color: #ef4444; font-weight: 800; margin-bottom: 20px;">Thanh toán thất bại</h2>
+        
+        <p style="color: #64748b; font-size: 1.1rem; margin-bottom: 30px;">
+            @if (TempData["Error"] != null)
+            {
+                @TempData["Error"]
+            }
+            else
+            {
+                <text>Giao dịch của bạn không thể hoàn tất hoặc đã bị hủy.</text>
+            }
+        </p>
+
+        <a asp-controller="Package" asp-action="List" class="btn btn-danger px-4 py-2" style="border-radius: 25px; font-weight: 600; background: #ef4444; border: none;">Thử lại</a>
+    </div>
+</div>

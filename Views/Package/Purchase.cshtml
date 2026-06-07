@@ -1,0 +1,110 @@
+@{
+    ViewData["Title"] = "Mua gói học tập";
+    var package = ViewBag.Package as POT_System_ASPNET.Data.Entities.Package;
+    var students = ViewBag.Students as List<POT_System_ASPNET.Data.Entities.User>;
+    var grades = ViewBag.Grades as List<POT_System_ASPNET.Data.Entities.Grade>;
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0" style="border-radius: 20px; overflow: hidden;">
+                <div class="card-header text-white text-center py-4" style="background: linear-gradient(135deg, #ec6090, #e75485);">
+                    <h3 class="mb-0" style="font-weight: 800;">Xác nhận mua Gói học tập</h3>
+                </div>
+                <div class="card-body p-5">
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger" style="border-radius: 10px;">@TempData["Error"]</div>
+                    }
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success" style="border-radius: 10px;">@TempData["Success"]</div>
+                    }
+
+                    <div class="mb-4 text-center">
+                        <h4 style="color: #ec6090; font-weight: 700;">@package?.PackageName</h4>
+                        <p class="text-muted">@package?.Description</p>
+                        <h2 style="font-weight: 800; color: #333;">@package?.Price.ToString("N0") VNĐ <span style="font-size: 1rem; color: #999;">/ @package?.Duration tháng</span></h2>
+                    </div>
+
+                    <form id="purchaseForm" method="post">
+                        <input type="hidden" name="packageId" value="@package?.PackageId" />
+                        
+                        <div class="mb-4">
+                            <label class="form-label" style="font-weight: 600;">Chọn học sinh</label>
+                            <select name="studentId" class="form-select" style="border-radius: 10px; padding: 12px;" required>
+                                <option value="">-- Chọn học sinh --</option>
+                                @if (students != null)
+                                {
+                                    foreach (var student in students)
+                                    {
+                                        <option value="@student.UserId">@student.FullName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label" style="font-weight: 600;">Chọn khối lớp</label>
+                            <select name="gradeId" class="form-select" style="border-radius: 10px; padding: 12px;" required>
+                                <option value="">-- Chọn khối lớp --</option>
+                                @if (grades != null)
+                                {
+                                    foreach (var grade in grades)
+                                    {
+                                        <option value="@grade.GradeId">@grade.GradeName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label" style="font-weight: 600;">Phương thức thanh toán</label>
+                            
+                            <div class="form-check custom-radio mb-3 p-3" style="border: 1px solid #ddd; border-radius: 10px;">
+                                <input class="form-check-input ms-1 mt-1" type="radio" name="paymentMethod" id="payWallet" value="wallet" checked>
+                                <label class="form-check-label ms-2 d-flex align-items-center" for="payWallet">
+                                    <i class="fas fa-wallet text-warning fs-4 me-3"></i> 
+                                    <div>
+                                        <div style="font-weight: 600;">Thanh toán bằng Ví nội bộ</div>
+                                        <small class="text-muted">Tiền sẽ được trừ trực tiếp vào số dư ví của bạn</small>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="form-check custom-radio p-3" style="border: 1px solid #ddd; border-radius: 10px;">
+                                <input class="form-check-input ms-1 mt-1" type="radio" name="paymentMethod" id="payVNPay" value="vnpay">
+                                <label class="form-check-label ms-2 d-flex align-items-center" for="payVNPay">
+                                    <i class="fas fa-qrcode text-primary fs-4 me-3"></i>
+                                    <div>
+                                        <div style="font-weight: 600;">Chuyển khoản VietQR</div>
+                                        <small class="text-muted">Quét mã VietQR trên ứng dụng ngân hàng. Tự động xác nhận khi nhận được tiền.</small>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn text-white py-3" style="background: linear-gradient(135deg, #ec6090, #e75485); border-radius: 10px; font-weight: 700; font-size: 1.1rem; border: none;">Xác nhận thanh toán</button>
+                            <a asp-controller="Package" asp-action="List" class="btn btn-light py-2" style="border-radius: 10px; font-weight: 600;">Hủy bỏ</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('purchaseForm').addEventListener('submit', function(e) {
+            var method = document.querySelector('input[name="paymentMethod"]:checked').value;
+            if (method === 'vnpay') {
+                this.action = '/Payment/CreatePaymentUrl';
+            } else {
+                this.action = '/Package/Purchase';
+            }
+        });
+    </script>
+}

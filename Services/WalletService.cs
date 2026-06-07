@@ -79,6 +79,7 @@ public interface ITransactionService
     Task UpdateAsync(Transaction transaction);
     Task<double> GetTotalIncomeAsync();
     Task<List<double>> GetMonthlyIncomeAsync(int year);
+    Task<Transaction?> GetByIdAsync(int transactionId);
 }
 
 public class TransactionService : ITransactionService
@@ -108,6 +109,9 @@ public class TransactionService : ITransactionService
 
     public async Task<Transaction?> GetByIdAsync(int transactionId, int userId)
         => await _db.Transactions.Include(t => t.Package).FirstOrDefaultAsync(t => t.TransactionId == transactionId && t.UserId == userId);
+
+    public async Task<Transaction?> GetByIdAsync(int transactionId)
+        => await _db.Transactions.Include(t => t.Package).FirstOrDefaultAsync(t => t.TransactionId == transactionId);
 
     public async Task<List<Transaction>> GetAllAsync(DateTime? date, double? amount, int page, int pageSize)
     {

@@ -1,0 +1,19 @@
+@{
+    ViewData["Title"] = "Thanh toán thành công";
+}
+
+<div class="container mt-5 text-center">
+    <div class="card shadow-sm border-0 p-5 mx-auto" style="max-width: 600px; border-radius: 20px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.05)); border: 1px solid rgba(16, 185, 129, 0.2) !important;">
+        <i class="fas fa-check-circle text-success" style="font-size: 5rem; margin-bottom: 20px; color: #10b981 !important;"></i>
+        <h2 style="color: #10b981; font-weight: 800; margin-bottom: 20px;">Thanh toán thành công!</h2>
+        
+        <p style="color: #64748b; font-size: 1.1rem; margin-bottom: 30px;">Cảm ơn bạn đã mua khóa học <strong>@ViewBag.PackageName</strong>.</p>
+        
+        <div style="background: rgba(255,255,255,0.8); padding: 20px; border-radius: 15px; margin-bottom: 30px; text-align: left;">
+            <p class="mb-2"><strong>Mã giao dịch VNPay:</strong> @ViewBag.TransactionId</p>
+            <p class="mb-0"><strong>Số tiền:</strong> @Convert.ToDouble(ViewBag.Amount).ToString("N0") VNĐ</p>
+        </div>
+
+        <a asp-controller="Package" asp-action="List" class="btn btn-success px-4 py-2" style="border-radius: 25px; font-weight: 600; background: #10b981; border: none;">Về danh sách Gói học tập</a>
+    </div>
+</div>
