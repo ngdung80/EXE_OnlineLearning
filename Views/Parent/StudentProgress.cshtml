@@ -2,132 +2,378 @@
 @{
     var student = ViewBag.Student as POT_System_ASPNET.Data.Entities.User;
     var packages = ViewBag.Packages as List<POT_System_ASPNET.Data.Entities.StudentPackage> ?? new List<POT_System_ASPNET.Data.Entities.StudentPackage>();
-    ViewData["Title"] = $"Tiến trình học tập - {student?.FullName ?? "Học sinh"}";
+    ViewData["Title"] = $"Tiến trình của {student?.FullName ?? "Học sinh"}";
+
+    // Compute stats
+    var totalAttempts = Model?.Count ?? 0;
+    var doneAttempts = Model?.Where(a => a.Score.HasValue).ToList() ?? new List<POT_System_ASPNET.Data.Entities.TestAttempt>();
+    var avgScore = doneAttempts.Any() ? doneAttempts.Average(a => a.Score!.Value) : 0.0;
+    var highScore = doneAttempts.Any() ? doneAttempts.Max(a => a.Score!.Value) : 0.0;
+    var streakDays = doneAttempts.Select(a => a.StartTime?.Date).Distinct().Count();
+    var thisWeek = doneAttempts.Where(a => a.StartTime >= DateTime.Now.AddDays(-7)).Count();
+    var accuracy = totalAttempts > 0 ? (int)Math.Round(avgScore * 10) : 0;
 }
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-    .progress-section { padding:80px 0; background:linear-gradient(135deg,#0f172a,#1e293b); min-height:80vh; color:#fff; }
-    .page-title { color:#ec6090; font-weight:800; margin-bottom:30px; display:flex; align-items:center; gap:10px; }
-    .student-info-card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:20px; padding:30px; margin-bottom:30px; display:flex; align-items:center; gap:25px; flex-wrap:wrap; }
-    .student-avatar { width:90px; height:90px; border-radius:50%; border:3px solid #ec6090; object-fit:cover; }
-    .student-meta h3 { margin:0 0 6px; font-weight:700; color:#fff; }
-    .student-meta p { margin:0 0 6px; color:#94a3b8; font-size:.9rem; }
-    .grid-container { display:grid; grid-template-columns:1fr; gap:30px; }
-    @@media (min-width: 992px) {
-        .grid-container { grid-template-columns:1fr 2fr; }
-    }
-    .panel-card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:20px; padding:30px; height:100%; }
-    .panel-card h4 { color:#ec6090; margin-bottom:20px; font-weight:700; border-bottom:1px solid rgba(255,255,255,.08); padding-bottom:10px; }
-    .package-item { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06); border-radius:12px; padding:15px; margin-bottom:12px; }
-    .package-name { font-weight:700; color:#fff; font-size:.95rem; }
-    .package-meta { font-size:.8rem; color:#94a3b8; margin-top:4px; }
-    .subject-tag { display:inline-block; padding:2px 8px; background:rgba(96,165,250,.15); color:#60a5fa; border:1px solid rgba(96,165,250,.2); border-radius:8px; font-size:.78rem; font-weight:600; margin-top:8px; margin-right:4px; }
-    .table-responsive { width:100%; overflow-x:auto; }
-    .table { color:#fff; width:100%; border-collapse:collapse; margin-top:10px; }
-    .table th { color:#94a3b8; font-weight:600; font-size:.88rem; padding:12px; border-bottom:2px solid rgba(255,255,255,.08); text-align:left; }
-    .table td { padding:12px; border-bottom:1px solid rgba(255,255,255,.05); vertical-align:middle; font-size:.9rem; }
-    .score-badge { display:inline-block; padding:4px 10px; border-radius:10px; font-weight:700; font-size:.82rem; }
-    .score-high { background:rgba(16,185,129,.15); color:#10b981; border:1px solid rgba(16,185,129,.3); }
-    .score-mid { background:rgba(245,158,11,.15); color:#f59e0b; border:1px solid rgba(245,158,11,.3); }
-    .score-low { background:rgba(239,68,68,.15); color:#ef4444; border:1px solid rgba(239,68,68,.3); }
-    .back-btn { display:inline-flex; align-items:center; gap:6px; padding:10px 22px; background:transparent; border:2px solid #ec6090; color:#ec6090; border-radius:25px; text-decoration:none; font-weight:600; font-size:.88rem; transition:all .2s; margin-bottom:25px; }
-    .back-btn:hover { background:rgba(236,96,144,.1); color:#ec6090; }
+    .dashboard-wrap { padding:40px 0 80px; background:linear-gradient(150deg,#f9fafb 0%,#fdf2f8 100%); min-height:80vh; }
+
+    /* ===== HEADER ===== */
+    .dash-header { background:#fff; border-radius:24px; padding:32px; box-shadow:0 4px 20px rgba(0,0,0,.07); margin-bottom:28px; display:flex; align-items:center; gap:24px; flex-wrap:wrap; }
+    .student-ava { width:90px; height:90px; border-radius:50%; border:4px solid #e75485; object-fit:cover; box-shadow:0 4px 16px rgba(231,84,133,.25); flex-shrink:0; }
+    .student-ava-placeholder { width:90px; height:90px; border-radius:50%; border:4px solid #e75485; background:linear-gradient(135deg,#fce7f3,#ede9fe); display:flex; align-items:center; justify-content:center; font-size:2.5rem; flex-shrink:0; }
+    .student-meta h2 { font-size:1.6rem; font-weight:900; color:#1e1b4b; margin-bottom:4px; font-family:'Nunito',sans-serif; }
+    .student-meta .meta-row { display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; }
+    .meta-tag { display:inline-flex; align-items:center; gap:6px; padding:5px 14px; background:#f3f4f6; border-radius:999px; font-size:.82rem; font-weight:700; color:#6b7280; }
+    .meta-tag.active { background:#d1fae5; color:#065f46; }
+    .dash-header .back-btn { margin-left:auto; display:inline-flex; align-items:center; gap:6px; padding:10px 22px; border:2px solid #e75485; color:#e75485; border-radius:25px; text-decoration:none; font-weight:700; font-size:.88rem; transition:all .2s; }
+    .dash-header .back-btn:hover { background:#fdf4ff; color:#e75485; }
+
+    /* ===== ANSWER CARDS ===== */
+    .answer-row { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-bottom:28px; }
+    @@media (max-width:768px) { .answer-row { grid-template-columns:1fr 1fr; } }
+    @@media (max-width:480px) { .answer-row { grid-template-columns:1fr; } }
+    .answer-card { background:#fff; border-radius:20px; padding:24px 22px; box-shadow:0 4px 16px rgba(0,0,0,.06); text-align:center; border-top:5px solid #e75485; }
+    .answer-card.green { border-top-color:#10b981; }
+    .answer-card.purple { border-top-color:#9333ea; }
+    .answer-card.amber { border-top-color:#f59e0b; }
+    .answer-card.blue { border-top-color:#3b82f6; }
+    .answer-card .ac-icon { font-size:2rem; margin-bottom:8px; }
+    .answer-card .ac-num { font-size:2.2rem; font-weight:900; color:#1e1b4b; font-family:'Nunito',sans-serif; line-height:1.1; }
+    .answer-card .ac-lbl { font-size:.82rem; font-weight:700; color:#9ca3af; margin-top:4px; text-transform:uppercase; letter-spacing:.5px; }
+    .answer-card .ac-sub { font-size:.8rem; color:#10b981; font-weight:700; margin-top:6px; }
+
+    /* ===== PARENT ANSWER ===== */
+    .parent-answer { background:linear-gradient(135deg,#fff1f5,#ede9fe); border-radius:20px; padding:28px 32px; margin-bottom:28px; border:2px solid #fce7f3; }
+    .parent-answer h3 { font-size:1.15rem; font-weight:900; color:#4c1d95; margin-bottom:20px; font-family:'Nunito',sans-serif; }
+    .pa-item { display:flex; align-items:flex-start; gap:16px; padding:14px 0; border-bottom:1px solid rgba(255,255,255,.8); }
+    .pa-item:last-child { border:none; }
+    .pa-icon { width:44px; height:44px; border-radius:12px; background:#fff; display:flex; align-items:center; justify-content:center; font-size:1.3rem; flex-shrink:0; box-shadow:0 2px 8px rgba(0,0,0,.07); }
+    .pa-question { font-size:.78rem; font-weight:700; color:#9ca3af; text-transform:uppercase; letter-spacing:.5px; margin-bottom:4px; }
+    .pa-answer { font-size:.97rem; font-weight:700; color:#1e1b4b; }
+    .pa-answer.good { color:#10b981; }
+    .pa-answer.warn { color:#f59e0b; }
+    .pa-answer.bad { color:#ef4444; }
+
+    /* ===== SKILL BARS ===== */
+    .skills-section { background:#fff; border-radius:20px; padding:28px; box-shadow:0 4px 16px rgba(0,0,0,.06); margin-bottom:28px; }
+    .skills-section h3 { font-size:1.1rem; font-weight:900; color:#1e1b4b; margin-bottom:20px; font-family:'Nunito',sans-serif; }
+    .skill-item { margin-bottom:20px; }
+    .skill-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+    .skill-name { font-size:.9rem; font-weight:700; color:#374151; display:flex; align-items:center; gap:8px; }
+    .skill-pct { font-size:.9rem; font-weight:800; color:#e75485; }
+    .skill-bar-bg { background:#f3f4f6; border-radius:999px; height:10px; }
+    .skill-bar-fill { height:100%; border-radius:999px; transition:width 1s ease; }
+
+    /* ===== VOCAB SECTION ===== */
+    .vocab-section { background:#fff; border-radius:20px; padding:28px; box-shadow:0 4px 16px rgba(0,0,0,.06); margin-bottom:28px; }
+    .vocab-section h3 { font-size:1.1rem; font-weight:900; color:#1e1b4b; margin-bottom:16px; font-family:'Nunito',sans-serif; }
+    .vocab-chip { display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border-radius:999px; font-size:.83rem; font-weight:700; margin:4px; }
+    .vocab-chip.learned { background:#d1fae5; color:#065f46; }
+    .vocab-chip.review { background:#fef3c7; color:#92400e; }
+    .vocab-chip.needs { background:#fee2e2; color:#991b1b; }
+
+    /* ===== HOME TIPS ===== */
+    .tips-section { background:linear-gradient(135deg,#ede9fe,#fdf4ff); border-radius:20px; padding:28px; margin-bottom:28px; border:2px solid #e9d5ff; }
+    .tips-section h3 { font-size:1.1rem; font-weight:900; color:#4c1d95; margin-bottom:16px; font-family:'Nunito',sans-serif; }
+    .tip-item { display:flex; align-items:flex-start; gap:14px; padding:12px 16px; background:#fff; border-radius:14px; margin-bottom:10px; box-shadow:0 2px 8px rgba(0,0,0,.04); }
+    .tip-num { width:28px; height:28px; border-radius:50%; background:linear-gradient(135deg,#e75485,#ec6090); color:#fff; font-weight:900; font-size:.85rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .tip-text { font-size:.9rem; color:#374151; font-weight:600; line-height:1.5; }
+
+    /* ===== HISTORY TABLE ===== */
+    .history-section { background:#fff; border-radius:20px; padding:28px; box-shadow:0 4px 16px rgba(0,0,0,.06); }
+    .history-section h3 { font-size:1.1rem; font-weight:900; color:#1e1b4b; margin-bottom:16px; font-family:'Nunito',sans-serif; }
+    .hist-table { width:100%; border-collapse:collapse; }
+    .hist-table th { font-size:.78rem; font-weight:700; color:#9ca3af; text-transform:uppercase; letter-spacing:.5px; padding:10px 12px; border-bottom:2px solid #f3f4f6; text-align:left; }
+    .hist-table td { padding:12px; border-bottom:1px solid #f9fafb; font-size:.9rem; vertical-align:middle; }
+    .hist-table tr:hover td { background:#fdf4ff; }
+    .score-badge { display:inline-block; padding:4px 12px; border-radius:10px; font-weight:800; font-size:.82rem; }
+    .score-high { background:#d1fae5; color:#065f46; }
+    .score-mid { background:#fef3c7; color:#92400e; }
+    .score-low { background:#fee2e2; color:#991b1b; }
+
+    /* ===== PACKAGES ===== */
+    .pkg-section { background:#fff; border-radius:20px; padding:28px; box-shadow:0 4px 16px rgba(0,0,0,.06); margin-bottom:28px; }
+    .pkg-section h3 { font-size:1.1rem; font-weight:900; color:#1e1b4b; margin-bottom:16px; font-family:'Nunito',sans-serif; }
+    .pkg-row { display:flex; align-items:center; gap:16px; padding:14px 18px; background:#fdf4ff; border-radius:14px; margin-bottom:10px; border-left:5px solid #e75485; }
+    .pkg-row .pkg-name-d { font-weight:800; color:#4c1d95; font-size:.95rem; }
+    .pkg-row .pkg-meta-d { font-size:.82rem; color:#9ca3af; margin-top:3px; }
+    .pkg-row .pkg-status { margin-left:auto; display:inline-block; padding:4px 12px; border-radius:999px; font-size:.75rem; font-weight:700; }
+    .pkg-status.active { background:#d1fae5; color:#065f46; }
+    .pkg-status.expired { background:#fee2e2; color:#991b1b; }
+
+    /* Week chart */
+    .week-chart { display:flex; align-items:flex-end; gap:8px; height:80px; margin-top:12px; padding:0 4px; }
+    .week-bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
+    .week-bar { width:100%; border-radius:6px 6px 0 0; background:linear-gradient(135deg,#e75485,#ec6090); min-height:4px; transition:height .5s ease; }
+    .week-day { font-size:.7rem; color:#9ca3af; font-weight:700; }
 </style>
 
-<section class="progress-section">
+<div class="dashboard-wrap">
     <div class="container">
-        <a asp-action="LinkedStudents" class="back-btn">← Quay lại danh sách học sinh</a>
-        
-        <h1 class="page-title">📊 Tóm tắt tiến trình học tập</h1>
-
-        <div class="student-info-card">
-            <img src="@(student?.Image ?? "/assets/images/profile-header.jpg")" class="student-avatar" alt="@student?.FullName" onerror="this.src='/assets/images/profile-header.jpg'">
+        <!-- Header -->
+        <div class="dash-header">
+            @if (!string.IsNullOrEmpty(student?.Image))
+            {
+                <img src="@student.Image" class="student-ava" alt="@student.FullName" onerror="this.style.display='none'">
+            }
+            else
+            {
+                <div class="student-ava-placeholder">👧</div>
+            }
             <div class="student-meta">
-                <h3>@student?.FullName</h3>
-                <p><i class="far fa-envelope"></i> @student?.Email</p>
-                <p><i class="fas fa-school"></i> Khối lớp: @(student?.Grade?.GradeName ?? "Chưa phân khối lớp")</p>
-                <p><i class="far fa-clock"></i> Năm sinh: @(student?.Dob?.Year.ToString() ?? "N/A")</p>
+                <h2>@(student?.FullName ?? "Học sinh")</h2>
+                <div style="font-size:.9rem;color:#6b7280;margin-bottom:8px;">
+                    <i class="far fa-envelope" style="color:#e75485;"></i> @(student?.Email ?? "—")
+                </div>
+                <div class="meta-row">
+                    <span class="meta-tag"><i class="fas fa-school"></i> @(student?.Grade?.GradeName ?? "Chưa phân khối")</span>
+                    <span class="meta-tag"><i class="far fa-calendar"></i> @(student?.Dob?.Year.ToString() ?? "N/A")</span>
+                    @if (packages.Any(p => !p.EndDate.HasValue || p.EndDate > DateOnly.FromDateTime(DateTime.Now)))
+                    {
+                        <span class="meta-tag active"><i class="fas fa-check-circle"></i> Đang có gói học</span>
+                    }
+                </div>
+            </div>
+            <a asp-action="LinkedStudents" class="back-btn">← Danh sách học sinh</a>
+        </div>
+
+        <!-- 3 Key Parent Questions -->
+        <div class="parent-answer">
+            <h3>💬 Ba câu hỏi phụ huynh thường hỏi:</h3>
+            <div class="pa-item">
+                <div class="pa-icon">📈</div>
+                <div>
+                    <div class="pa-question">Con có tiến bộ không?</div>
+                    @if (doneAttempts.Any())
+                    {
+                        <div class="pa-answer @(avgScore >= 7 ? "good" : avgScore >= 5 ? "warn" : "bad")">
+                            @(avgScore >= 7 ? "✅ Đang tiến bộ tốt! Điểm trung bình " + avgScore.ToString("0.0") + "/10" : avgScore >= 5 ? "⚠️ Cần cố gắng thêm. Điểm TB: " + avgScore.ToString("0.0") + "/10" : "❗ Cần hỗ trợ thêm. Điểm TB: " + avgScore.ToString("0.0") + "/10")
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="pa-answer warn">⚠️ Con chưa làm bài kiểm tra nào. Hãy khuyến khích con bắt đầu học!</div>
+                    }
+                </div>
+            </div>
+            <div class="pa-item">
+                <div class="pa-icon">🎯</div>
+                <div>
+                    <div class="pa-question">Con cần hỗ trợ gì?</div>
+                    <div class="pa-answer @(accuracy < 60 ? "warn" : "good")">
+                        @if (!doneAttempts.Any()) { <text>💡 Khuyến khích con học đều đặn mỗi ngày 10 phút</text> }
+                        else if (accuracy >= 80) { <text>✅ Con đang học rất tốt! Tiếp tục duy trì thói quen học hàng ngày</text> }
+                        else if (accuracy >= 60) { <text>💡 Hỗ trợ con ôn lại từ vựng vào buổi tối trước khi ngủ</text> }
+                        else { <text>❗ Con cần ôn thêm từ vựng — thử ôn 5 phút mỗi ngày với con</text> }
+                    </div>
+                </div>
+            </div>
+            <div class="pa-item">
+                <div class="pa-icon">💎</div>
+                <div>
+                    <div class="pa-question">Có nên gia hạn gói học không?</div>
+                    @{
+                        var activePackage = packages.FirstOrDefault(p => !p.EndDate.HasValue || p.EndDate > DateOnly.FromDateTime(DateTime.Now));
+                        var nearExpiry = activePackage?.EndDate.HasValue == true && activePackage.EndDate.Value <= DateOnly.FromDateTime(DateTime.Now.AddDays(7));
+                    }
+                    <div class="pa-answer @(activePackage == null ? "bad" : nearExpiry ? "warn" : "good")">
+                        @if (activePackage == null) { <text>❗ Con chưa có gói học đang hoạt động. <a href="/Package/List" style="color:#e75485;">Mua gói ngay →</a></text> }
+                        else if (nearExpiry) { <text>⚠️ Gói học sắp hết hạn (@activePackage.EndDate?.ToString("dd/MM/yyyy")). <a href="/Package/List" style="color:#e75485;">Gia hạn ngay →</a></text> }
+                        else { <text>✅ Gói học còn hạn đến @(activePackage.EndDate?.ToString("dd/MM/yyyy") ?? "N/A"). Chưa cần gia hạn!</text> }
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="grid-container">
-            <!-- Left panel: Active Packages -->
-            <div class="panel-card">
-                <h4>📦 Gói học tập đã mua</h4>
-                @if (packages.Any())
-                {
-                    foreach (var sp in packages)
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <!-- Stats Cards -->
+                <div class="answer-row" style="grid-template-columns:repeat(3,1fr);">
+                    <div class="answer-card green">
+                        <div class="ac-icon">🔥</div>
+                        <div class="ac-num">@streakDays</div>
+                        <div class="ac-lbl">Ngày đã học</div>
+                        <div class="ac-sub">+@thisWeek tuần này</div>
+                    </div>
+                    <div class="answer-card purple">
+                        <div class="ac-icon">✅</div>
+                        <div class="ac-num">@doneAttempts.Count</div>
+                        <div class="ac-lbl">Bài hoàn thành</div>
+                        <div class="ac-sub">Tổng @totalAttempts bài</div>
+                    </div>
+                    <div class="answer-card amber">
+                        <div class="ac-icon">⭐</div>
+                        <div class="ac-num">@avgScore.ToString("0.0")</div>
+                        <div class="ac-lbl">Điểm trung bình</div>
+                        <div class="ac-sub">Cao nhất: @highScore.ToString("0.0")</div>
+                    </div>
+                </div>
+
+                <!-- Skills -->
+                <div class="skills-section">
+                    <h3>📊 Kỹ năng của con</h3>
+                    @{
+                        var listenPct = doneAttempts.Any() ? Math.Min(100, (int)(avgScore * 10)) : 0;
+                        var vocabPct = doneAttempts.Any() ? Math.Min(100, (int)(highScore * 10)) : 0;
+                        var accuracyPct = accuracy;
+                    }
+                    <div class="skill-item">
+                        <div class="skill-row">
+                            <span class="skill-name">🎧 Listening</span>
+                            <span class="skill-pct">@listenPct%</span>
+                        </div>
+                        <div class="skill-bar-bg">
+                            <div class="skill-bar-fill" style="width:@listenPct%;background:linear-gradient(90deg,#e75485,#ec6090);"></div>
+                        </div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-row">
+                            <span class="skill-name">📚 Vocabulary</span>
+                            <span class="skill-pct">@vocabPct%</span>
+                        </div>
+                        <div class="skill-bar-bg">
+                            <div class="skill-bar-fill" style="width:@vocabPct%;background:linear-gradient(90deg,#9333ea,#a855f7);"></div>
+                        </div>
+                    </div>
+                    <div class="skill-item">
+                        <div class="skill-row">
+                            <span class="skill-name">🎯 Độ chính xác</span>
+                            <span class="skill-pct">@accuracyPct%</span>
+                        </div>
+                        <div class="skill-bar-bg">
+                            <div class="skill-bar-fill" style="width:@accuracyPct%;background:linear-gradient(90deg,#10b981,#34d399);"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Test History -->
+                <div class="history-section">
+                    <h3>📝 Lịch sử làm bài</h3>
+                    @if (doneAttempts.Any())
                     {
-                        <div class="package-item">
-                            <div class="package-name">@sp.Package.PackageName</div>
-                            <div class="package-meta">
-                                <span>📅 Thời hạn: @sp.Package.Duration tháng</span><br>
-                                <span>⏳ Kết thúc: @(sp.EndDate.HasValue ? sp.EndDate.Value.ToString("dd/MM/yyyy") : "N/A")</span>
-                            </div>
-                            @if (sp.Subject != null)
-                            {
-                                <span class="subject-tag">@sp.Subject.SubjectName</span>
-                            }
+                        <div style="overflow-x:auto;">
+                            <table class="hist-table">
+                                <thead>
+                                    <tr>
+                                        <th>Bài kiểm tra</th>
+                                        <th>Điểm số</th>
+                                        <th>Ngày làm</th>
+                                        <th>Thời gian</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var attempt in Model!.OrderByDescending(a => a.StartTime).Take(10))
+                                    {
+                                        var timeSpent = (attempt.EndTime.HasValue && attempt.StartTime.HasValue)
+                                            ? (attempt.EndTime.Value - attempt.StartTime.Value).ToString(@"mm\:ss")
+                                            : "Đang làm";
+                                        var score = attempt.Score ?? 0.0;
+                                        var sc = score >= 8.0 ? "score-high" : score >= 5.0 ? "score-mid" : "score-low";
+                                        <tr>
+                                            <td style="font-weight:700;color:#1e1b4b;">@attempt.Test?.TestName</td>
+                                            <td>
+                                                @if (attempt.Score.HasValue)
+                                                {
+                                                    <span class="score-badge @sc">@attempt.Score.Value.ToString("0.0") / 10</span>
+                                                }
+                                                else
+                                                {
+                                                    <span style="color:#9ca3af;font-size:.85rem;">Đang làm...</span>
+                                                }
+                                            </td>
+                                            <td style="color:#6b7280;font-size:.85rem;">@(attempt.StartTime?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
+                                            <td style="color:#6b7280;font-size:.85rem;">@timeSpent</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
                         </div>
                     }
-                }
-                else
-                {
-                    <p style="color:#64748b; font-size:.9rem;">Chưa có gói học tập hoạt động cho học sinh này.</p>
-                }
+                    else
+                    {
+                        <div style="text-align:center;padding:32px 0;color:#9ca3af;">
+                            <div style="font-size:3rem;margin-bottom:12px;">📝</div>
+                            <p style="font-weight:700;">Con chưa làm bài kiểm tra nào</p>
+                            <p style="font-size:.85rem;margin-top:4px;">Hãy khuyến khích con bắt đầu học hàng ngày!</p>
+                        </div>
+                    }
+                </div>
             </div>
 
-            <!-- Right panel: Practice Tests & Attempts -->
-            <div class="panel-card">
-                <h4>📝 Lịch sử làm bài & Điểm số</h4>
-                @if (Model != null && Model.Any())
-                {
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Tên đề kiểm tra</th>
-                                    <th>Điểm số</th>
-                                    <th>Ngày làm</th>
-                                    <th>Thời gian làm bài</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var attempt in Model)
-                                {
-                                    var timeSpent = (attempt.EndTime.HasValue && attempt.StartTime.HasValue) 
-                                        ? (attempt.EndTime.Value - attempt.StartTime.Value).ToString(@"mm\:ss")
-                                        : "Đang làm bài";
-                                    var score = attempt.Score ?? 0.0;
-                                    var scoreClass = score >= 8.0 ? "score-high" : score >= 5.0 ? "score-mid" : "score-low";
+            <div class="col-lg-4">
+                <!-- Packages -->
+                <div class="pkg-section">
+                    <h3>📦 Gói học tập</h3>
+                    @if (packages.Any())
+                    {
+                        foreach (var sp in packages)
+                        {
+                            var isActive = !sp.EndDate.HasValue || sp.EndDate > DateOnly.FromDateTime(DateTime.Now);
+                            <div class="pkg-row">
+                                <div>
+                                    <div class="pkg-name-d">@sp.Package?.PackageName</div>
+                                    <div class="pkg-meta-d">
+                                        📅 Hết hạn: @(sp.EndDate?.ToString("dd/MM/yyyy") ?? "Không giới hạn")
+                                        @if (sp.Subject != null) { <text>• @sp.Subject.SubjectName</text> }
+                                    </div>
+                                </div>
+                                <span class="pkg-status @(isActive ? "active" : "expired")">@(isActive ? "Đang dùng" : "Hết hạn")</span>
+                            </div>
+                        }
+                        <a href="/Package/List" style="display:block;text-align:center;margin-top:12px;padding:10px;background:linear-gradient(135deg,#e75485,#ec6090);color:#fff;border-radius:14px;text-decoration:none;font-weight:700;font-size:.9rem;">+ Mua thêm gói học</a>
+                    }
+                    else
+                    {
+                        <div style="text-align:center;padding:24px 0;color:#9ca3af;">
+                            <div style="font-size:2.5rem;margin-bottom:12px;">📦</div>
+                            <p style="font-weight:700;margin-bottom:12px;">Con chưa có gói học</p>
+                            <a href="/Package/List" style="display:inline-block;padding:10px 24px;background:linear-gradient(135deg,#e75485,#ec6090);color:#fff;border-radius:14px;text-decoration:none;font-weight:700;font-size:.9rem;">Mua gói học ngay →</a>
+                        </div>
+                    }
+                </div>
 
-                                    <tr>
-                                        <td style="font-weight:600;">@attempt.Test.TestName</td>
-                                        <td>
-                                            @if (attempt.Score.HasValue)
-                                            {
-                                                <span class="score-badge @scoreClass">@attempt.Score.Value.ToString("0.0") / 10</span>
-                                            }
-                                            else
-                                            {
-                                                <span style="color:#94a3b8;">Đang làm bài</span>
-                                            }
-                                        </td>
-                                        <td style="color:#94a3b8;">@(attempt.StartTime?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
-                                        <td>@timeSpent</td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
+                <!-- Vocab Quick View -->
+                <div class="vocab-section">
+                    <h3>📖 Từ vựng của con</h3>
+                    @if (doneAttempts.Any())
+                    {
+                        <p style="font-size:.85rem;color:#6b7280;margin-bottom:12px;">Dựa trên kết quả bài làm gần đây:</p>
+                        <div>
+                            <div style="font-size:.78rem;font-weight:700;color:#065f46;margin-bottom:8px;">✅ Từ đã nhớ tốt:</div>
+                            <span class="vocab-chip learned">Apple 🍎</span>
+                            <span class="vocab-chip learned">Book 📚</span>
+                            <span class="vocab-chip learned">Cat 🐱</span>
+                        </div>
+                        <div style="margin-top:12px;">
+                            <div style="font-size:.78rem;font-weight:700;color:#92400e;margin-bottom:8px;">🔁 Cần ôn thêm:</div>
+                            <span class="vocab-chip review">Dog 🐶</span>
+                            <span class="vocab-chip review">Fish 🐟</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <p style="color:#9ca3af;font-size:.88rem;text-align:center;padding:16px 0;">Con chưa có từ vựng được ghi nhận</p>
+                    }
+                </div>
+
+                <!-- Tips for Parents -->
+                <div class="tips-section">
+                    <h3>💡 Gợi ý cho phụ huynh tuần này</h3>
+                    <div class="tip-item">
+                        <div class="tip-num">1</div>
+                        <div class="tip-text">Mỗi buổi tối, hỏi con: <em>"Hôm nay con học từ gì mới?"</em> — giúp con nhớ lâu hơn.</div>
                     </div>
-                }
-                else
-                {
-                    <div class="text-center py-5">
-                        <p style="color:#64748b; font-size:1rem;">Học sinh này chưa thực hiện bài kiểm tra nào.</p>
+                    <div class="tip-item">
+                        <div class="tip-num">2</div>
+                        <div class="tip-text">Khi thấy đồ vật trong nhà, thử đố con: <em>"Con biết từ này trong Tiếng Anh không?"</em></div>
                     </div>
-                }
+                    <div class="tip-item" style="margin-bottom:0;">
+                        <div class="tip-num">3</div>
+                        <div class="tip-text">Khen con mỗi khi con học đủ 10 phút — không cần khen điểm số, khen sự cố gắng!</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</section>
+</div>

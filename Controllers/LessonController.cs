@@ -126,9 +126,18 @@ public class LessonController : Controller
     [HttpPost]
     public async Task<IActionResult> Delete(int id) { await _lessonService.DeleteAsync(id); return RedirectToAction(nameof(Index)); }
 
-    // Student view
+    // Student detail view (read-only)
     [AllowAnonymous]
     public async Task<IActionResult> Detail(int id)
+    {
+        var lesson = await _lessonService.GetByIdAsync(id);
+        if (lesson == null) return NotFound();
+        return View(lesson);
+    }
+
+    // Student gamified learning screen
+    [Authorize(Roles = "Student,Parent")]
+    public async Task<IActionResult> StudentLearn(int id)
     {
         var lesson = await _lessonService.GetByIdAsync(id);
         if (lesson == null) return NotFound();
