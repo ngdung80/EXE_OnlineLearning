@@ -1,0 +1,213 @@
+@{
+    ViewData["Title"] = "Quản lý thu nhập";
+}
+
+<style>
+    body {
+        background-color: #f0f4fa; /* Màu nền xanh nhạt giống ảnh */
+    }
+    .revenue-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding-top: 100px;
+        padding-bottom: 50px;
+    }
+    .page-title {
+        color: #2c3e50;
+        font-weight: 700;
+        text-align: center;
+        font-size: 26px;
+        text-transform: uppercase;
+        margin-bottom: 15px;
+    }
+    .total-revenue {
+        color: #3498db;
+        text-align: center;
+        font-size: 18px;
+        margin-bottom: 40px;
+        font-weight: 500;
+    }
+    .filter-card {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        margin-bottom: 40px;
+        width: fit-content;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .chart-card {
+        background: white;
+        border-radius: 12px;
+        padding: 40px 30px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .filter-label {
+        font-weight: 600;
+        color: #333;
+        font-size: 15px;
+    }
+    .btn-filter {
+        background-color: #3498db;
+        color: white;
+        border: none;
+        padding: 6px 24px;
+        border-radius: 6px;
+        font-weight: 600;
+        transition: background 0.3s;
+    }
+    .btn-filter:hover {
+        background-color: #2980b9;
+    }
+    .form-select-custom {
+        padding: 6px 30px 6px 12px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        outline: none;
+    }
+</style>
+
+<div class="revenue-container">
+    <h2 class="page-title">QUẢN LÝ THU NHẬP</h2>
+    <p class="total-revenue">Tổng doanh thu từ trước đến nay: @String.Format("{0:N1}", ViewBag.TotalRevenue) VNĐ</p>
+
+    <div class="filter-card">
+        <span class="filter-label">Loại bộ lọc:</span>
+        <select class="form-select-custom">
+            <option>Theo năm</option>
+        </select>
+        
+        <span class="filter-label ms-3">Năm:</span>
+        <select id="yearSelect" class="form-select-custom">
+            @for (int y = 2020; y <= DateTime.Now.Year; y++)
+            {
+                if (y == DateTime.Now.Year) {
+                    <option value="@y" selected>@y</option>
+                } else {
+                    <option value="@y">@y</option>
+                }
+            }
+        </select>
+        
+        <button id="btnFilter" class="btn-filter ms-2">Lọc</button>
+    </div>
+
+    <div class="chart-card">
+        <canvas id="revenueChart" width="800" height="400"></canvas>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let revenueChartInstance = null;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            loadChartData(new Date().getFullYear());
+
+            document.getElementById('btnFilter').addEventListener('click', function() {
+                const selectedYear = document.getElementById('yearSelect').value;
+                loadChartData(selectedYear);
+            });
+        });
+
+        function loadChartData(year) {
+            fetch(`/Revenue/GetRevenueData?year=${year}`)
+                .then(response => response.json())
+                .then(data => {
+                    const labels = data.map(item => item.label);
+                    const revenueData = data.map(item => item.totalRevenue);
+
+                    const ctx = document.getElementById('revenueChart').getContext('2d');
+                    
+                    if (revenueChartInstance) {
+                        revenueChartInstance.destroy();
+                    }
+
+                    revenueChartInstance = new Chart(ctx, {
+                        type: 'bar', // Using bar chart to match the visual style
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: 'Doanh thu theo ngày (VNĐ)',
+                                    data: revenueData,
+                                    backgroundColor: 'rgba(135, 206, 250, 0.6)', // light blue
+                                    borderColor: 'rgba(135, 206, 250, 1)',
+                                    borderWidth: 1,
+                                    barPercentage: 0.5
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Doanh thu (VNĐ)',
+                                        color: '#666',
+                                        font: {
+                                            size: 14
+                                        }
+                                    },
+                                    ticks: {
+                                        callback: function(value) {
+                                            return value;
+                                        }
+                                    },
+                                    grid: {
+                                        color: '#eee'
+                                    }
+                                },
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Ngày',
+                                        color: '#666',
+                                        font: {
+                                            size: 14
+                                        }
+                                    },
+                                    grid: {
+                                        display: false
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top',
+                                    labels: {
+                                        boxWidth: 40,
+                                        boxHeight: 15
+                                    }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            let label = context.dataset.label || '';
+                                            if (label) {
+                                                label += ': ';
+                                            }
+                                            if (context.parsed.y !== null) {
+                                                label += context.parsed.y.toLocaleString('vi-VN') + ' đ';
+                                            }
+                                            return label;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(error => console.error('Error fetching revenue data:', error));
+        }
+    </script>
+}

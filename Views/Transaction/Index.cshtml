@@ -1,0 +1,68 @@
+@model IEnumerable<POT_System_ASPNET.Data.Entities.Transaction>
+
+@{
+    ViewData["Title"] = "Quản lý giao dịch";
+}
+
+<div class="container mt-5 mb-5" style="padding-top: 100px;">
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h2 style="color: #e75485; font-weight: 700;">Danh Sách Giao Dịch</h2>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm" style="border-radius: 15px;">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped align-middle">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Mã Giao Dịch</th>
+                                    <th>Người Dùng</th>
+                                    <th>Khóa Học</th>
+                                    <th>Số Tiền</th>
+                                    <th>Ngày Giao Dịch</th>
+                                    <th>Trạng Thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td>#@item.TransactionId</td>
+                                        <td>@(item.User?.Username ?? "N/A")</td>
+                                        <td>@(item.Package?.PackageName ?? "N/A")</td>
+                                        <td class="text-success fw-bold">@String.Format("{0:N0}", item.Amount) đ</td>
+                                        <td>@(item.TransactionDate?.ToString("dd/MM/yyyy HH:mm") ?? "")</td>
+                                        <td>
+                                            @if (item.Status == "Completed")
+                                            {
+                                                <span class="badge bg-success">Thành công</span>
+                                            }
+                                            else if (item.Status == "Pending")
+                                            {
+                                                <span class="badge bg-warning text-dark">Chờ xử lý</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">@item.Status</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                                @if (!Model.Any())
+                                {
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted">Không có giao dịch nào</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

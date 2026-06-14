@@ -52,7 +52,10 @@
                         </div>
                         <ul class="nav">
                             <li><a asp-controller="Home" asp-action="Index" class="active">Trang chủ</a></li>
-                            <li><a href="/Grade">Khối lớp</a></li>
+                            @if (!User.IsInRole("Admin"))
+                            {
+                                <li><a href="/Grade">Khối lớp</a></li>
+                            }
 
                             @if (!User.Identity!.IsAuthenticated || User.IsInRole("Parent"))
                             {
@@ -61,9 +64,10 @@
 
                             @if (User.IsInRole("Admin"))
                             {
+                                <li><a href="/Revenue">Quản lý thu nhập</a></li>
+                                <li><a href="/Transaction">Quản lý giao dịch</a></li>
                                 <li><a href="/User">Quản lý người dùng</a></li>
                                 <li><a href="/Package">Quản lý gói học</a></li>
-                                <li><a href="/QuestionReport">Báo cáo câu hỏi</a></li>
                             }
 
                             @if (User.IsInRole("Content Manager") || User.IsInRole("Content Approver"))
