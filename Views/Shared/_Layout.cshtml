@@ -12,10 +12,22 @@
     <link rel="stylesheet" href="~/assets/css/animate.css">
     <link rel="stylesheet" href="https://unpkg.com/swiper@7/swiper-bundle.min.css"/>
     <style>
+<<<<<<< Updated upstream
         .main-nav { display: flex; align-items: center; justify-content: space-between; width: 100%; }
         .main-nav .nav { display:flex; justify-content:flex-end; align-items:center; list-style:none; padding:0; margin:0; gap:12px; flex: 1; flex-wrap: nowrap; }
         .main-nav .nav li { position:relative; }
         .main-nav .nav li a { color:#2a0040 !important; text-decoration:none; font-size:14px; display:flex; align-items:center; transition: all .3s; white-space: nowrap; font-weight: 600; }
+=======
+        body, p, span, h1, h2, h3, h4, h5, h6, input, select, textarea, button, label, a {
+            font-family: 'Inter', sans-serif !important;
+        }
+        .fa, .fas, .far, .fab, .fa-solid, .fa-regular, .fa-brands {
+            font-family: 'Font Awesome 6 Free', 'Font Awesome 5 Free', 'FontAwesome' !important;
+        }
+        .main-nav .nav { display:flex; justify-content:flex-start; align-items:center; list-style:none; padding:0; margin:0; gap:25px; }
+        .main-nav .nav li { position:relative; }
+        .main-nav .nav li a { font-family:'Inter',sans-serif !important; color:#2a0040 !important; text-decoration:none; font-size:16px; display:flex; align-items:center; transition: all .3s; }
+>>>>>>> Stashed changes
         .background-header .main-nav .nav li a { color:#2a0040 !important; }
         .main-nav .nav .profile-link a { background-color: #ffe6f0 !important; padding: 6px 15px !important; border-radius: 25px !important; color: #d63384 !important; }
         .main-nav .nav li a:hover, .main-nav .nav li a.active { color:#e75485 !important; }        .background-header .main-nav .nav li a:hover, .background-header .main-nav .nav li a.active { color:#e75485 !important; }
@@ -29,7 +41,7 @@
         .toast-error { background:linear-gradient(135deg,#ef4444,#dc2626); color:#fff; }
         .main-nav .logo { display:flex !important; align-items:center; gap:10px; border-right:none !important; flex-basis:auto !important; margin-right:4% !important; text-decoration:none; }
         .main-nav .logo img { width:45px !important; height:45px !important; object-fit:contain; }
-        .logo-text { font-family:'Inter',sans-serif; font-weight:900; font-size:26px; color:#e75485 !important; transition:color .3s; text-transform:uppercase; letter-spacing:1px; }
+        .logo-text { font-family:'Inter',sans-serif !important; font-weight:900; font-size:26px; color:#e75485 !important; transition:color .3s; text-transform:uppercase; letter-spacing:1px; }
         .background-header .logo-text { color:#e75485 !important; }
         @@keyframes slideIn { from { opacity:0; transform:translateX(50px); } to { opacity:1; transform:translateX(0); } }
         .admin-section, .user-section, .wallet-section, .form-section, .parent-section, .notif-section, .lesson-section, .detail-section, .mgmt-section, .ch-section, .ai-section, .chat-section, .profile-section, .edit-section, .pwd-section, .denied-section, .result-section, .list-section, .hist-section, .sub-section {
@@ -59,10 +71,7 @@
                         }
                         <ul class="nav">
                             <li><a asp-controller="Home" asp-action="Index" class="active">Trang chủ</a></li>
-                            @if (!User.IsInRole("Admin"))
-                            {
-                                <li><a href="/Grade">Khối lớp</a></li>
-                            }
+                            <li><a href="/Grade">Khối lớp</a></li>
 
                             @if (!User.Identity!.IsAuthenticated || User.IsInRole("Parent"))
                             {
@@ -120,7 +129,7 @@
                                 <li class="profile-link">
                                     <a asp-controller="Account" asp-action="Profile">
                                         @User.FindFirst("FullName")?.Value
-                                        <img src="@(User.FindFirst("Image")?.Value ?? "/assets/images/profile-header.jpg")" alt="Profile">
+                                        <img src="@(User.FindFirst("Image")?.Value ?? "/assets/images/profile-header.jpg")" alt="" onerror="this.src='/assets/images/profile-header.jpg'">
                                     </a>
                                     <div class="dropdown">
                                         <a asp-controller="Account" asp-action="Profile" style="color:#f6f6f6!important;">Hồ sơ</a>
@@ -156,7 +165,7 @@
         <div class="toast-msg toast-error" id="toastMsg">@TempData["Error"]</div>
     }
 
-    <main>
+    <main style="display: flow-root;">
         @RenderBody()
     </main>
 

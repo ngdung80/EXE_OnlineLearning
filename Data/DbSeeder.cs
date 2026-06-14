@@ -1,5 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using POT_System_ASPNET.Data.Entities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace POT_System_ASPNET.Data;
 
@@ -73,7 +77,7 @@ public static class DbSeeder
                 Role = "Student",
                 Status = "active",
                 Deleted = false,
-                Dob = new DateOnly(2010, 10, 10),
+                Dob = new DateOnly(2018, 10, 10), // Tuổi phù hợp lớp 1, 2
                 ParentId = parentUser.UserId
             });
         }
@@ -133,26 +137,195 @@ public static class DbSeeder
 
         await db.SaveChangesAsync();
 
-        // Seed sample Grades
-        if (!await db.Grades.AnyAsync())
-        {
-            db.Grades.AddRange(
-                new Grade { GradeName = "Lớp 10", Description = "Chương trình Toán - Lý - Hóa lớp 10", Status = "Active" },
-                new Grade { GradeName = "Lớp 11", Description = "Chương trình Toán - Lý - Hóa lớp 11", Status = "Active" },
-                new Grade { GradeName = "Lớp 12", Description = "Ôn thi THPT Quốc gia", Status = "Active" }
-            );
-        }
+        // Kiểm tra xem có cần dọn dẹp dữ liệu cũ (Lớp 10, 11, 12) và seed lại dữ liệu tiếng Anh hay không
+        var needsReSeed = !await db.Grades.AnyAsync(g => g.GradeName == "Lớp 1") || 
+                          await db.Grades.AnyAsync(g => g.GradeName == "Lớp 10" || g.GradeName == "Lớp 11" || g.GradeName == "Lớp 12");
 
-        // Seed sample Packages
-        if (!await db.Packages.AnyAsync())
+        if (needsReSeed)
         {
+            // 1. Gỡ bỏ liên kết GradeId của tất cả User để tránh vi phạm Foreign Key
+            var allUsers = await db.Users.ToListAsync();
+            foreach (var u in allUsers)
+            {
+                u.GradeId = null;
+            }
+            await db.SaveChangesAsync();
+
+            // 2. Xóa các bản ghi liên quan theo thứ tự an toàn
+            db.QuestionReports.RemoveRange(await db.QuestionReports.ToListAsync());
+            db.TestQuestionResults.RemoveRange(await db.TestQuestionResults.ToListAsync());
+            db.TestQuestions.RemoveRange(await db.TestQuestions.ToListAsync());
+            db.TestAttempts.RemoveRange(await db.TestAttempts.ToListAsync());
+            db.Tests.RemoveRange(await db.Tests.ToListAsync());
+            db.Questions.RemoveRange(await db.Questions.ToListAsync());
+            db.Lessons.RemoveRange(await db.Lessons.ToListAsync());
+            db.Chapters.RemoveRange(await db.Chapters.ToListAsync());
+            db.StudentPackages.RemoveRange(await db.StudentPackages.ToListAsync());
+            db.Transactions.RemoveRange(await db.Transactions.ToListAsync());
+            db.WalletTransactions.RemoveRange(await db.WalletTransactions.ToListAsync());
+            db.Subjects.RemoveRange(await db.Subjects.ToListAsync());
+            db.Packages.RemoveRange(await db.Packages.ToListAsync());
+            db.Grades.RemoveRange(await db.Grades.ToListAsync());
+            await db.SaveChangesAsync();
+
+            // 3. Seed Grades mới
+            var grade1 = new Grade { GradeName = "Lớp 1", Description = "Chương trình học Tiếng Anh cho trẻ 6 tuổi", Status = "Active" };
+            var grade2 = new Grade { GradeName = "Lớp 2", Description = "Chương trình học Tiếng Anh cho trẻ 7 tuổi", Status = "Active" };
+            db.Grades.AddRange(grade1, grade2);
+            await db.SaveChangesAsync();
+
+            // 4. Seed Subjects mới
+            var subject1 = new Subject 
+            { 
+                GradeId = grade1.GradeId, 
+                SubjectName = "Tiếng Anh Lớp 1", 
+                Description = "Lộ trình học từ vựng, phát âm và giao tiếp cơ bản nhất cho trẻ 6 tuổi.", 
+                Status = "Active",
+                Image = "/images/subjects/english1.png"
+            };
+            var subject2 = new Subject 
+            { 
+                GradeId = grade2.GradeId, 
+                SubjectName = "Tiếng Anh Lớp 2", 
+                Description = "Nâng cao từ vựng bám sát đời sống, rèn luyện nghe và phản xạ giao tiếp đơn giản cho trẻ 7 tuổi.", 
+                Status = "Active",
+                Image = "/images/subjects/english2.png"
+            };
+            db.Subjects.AddRange(subject1, subject2);
+            await db.SaveChangesAsync();
+
+            // 5. Seed Chapters (Units)
+            // Lớp 1 Units
+            var ch1_1 = new Chapter { SubjectId = subject1.SubjectId, ChapterName = "Unit 1: Hello & Goodbye", Description = "Chào hỏi và làm quen cơ bản bằng tiếng Anh", Status = "Active" };
+            var ch1_2 = new Chapter { SubjectId = subject1.SubjectId, ChapterName = "Unit 2: Alphabet & Numbers 1-10", Description = "Bảng chữ cái đơn giản và các con số từ 1 đến 10", Status = "Active" };
+            var ch1_3 = new Chapter { SubjectId = subject1.SubjectId, ChapterName = "Unit 3: My School Things", Description = "Nhận biết các đồ dùng học tập phổ biến trong lớp học", Status = "Active" };
+            
+            // Lớp 2 Units
+            var ch2_1 = new Chapter { SubjectId = subject2.SubjectId, ChapterName = "Unit 1: Colors & Shapes", Description = "Màu sắc sống động xung quanh bé và các hình khối cơ bản", Status = "Active" };
+            var ch2_2 = new Chapter { SubjectId = subject2.SubjectId, ChapterName = "Unit 2: My Family & Friends", Description = "Cách gọi tên các thành viên trong gia đình và bạn thân", Status = "Active" };
+            var ch2_3 = new Chapter { SubjectId = subject2.SubjectId, ChapterName = "Unit 3: Animals & Pets", Description = "Thế giới động vật ngộ nghĩnh và các thú cưng trong nhà", Status = "Active" };
+            
+            db.Chapters.AddRange(ch1_1, ch1_2, ch1_3, ch2_1, ch2_2, ch2_3);
+            await db.SaveChangesAsync();
+
+            // 6. Seed Lessons
+            // Unit 1 Lớp 1
+            var les1_1_1 = new Lesson { ChapterId = ch1_1.ChapterId, LessonName = "Lesson 1: Say Hello", ContentText = "Trong bài học này, bé sẽ học cách chào hỏi cơ bản bằng tiếng Anh: Hello, Hi, Good morning.", Status = "Active" };
+            var les1_1_2 = new Lesson { ChapterId = ch1_1.ChapterId, LessonName = "Lesson 2: Say Goodbye", ContentText = "Bài học giúp bé biết cách chào tạm biệt thân thiện với bạn bè và thầy cô: Goodbye, Bye, See you later.", Status = "Active" };
+
+            // Unit 2 Lớp 1
+            var les1_2_1 = new Lesson { ChapterId = ch1_2.ChapterId, LessonName = "Lesson 1: Alphabet Fun (A, B, C)", ContentText = "Làm quen với 3 chữ cái đầu tiên trong bảng chữ cái: A (Apple), B (Ball), C (Cat).", Status = "Active" };
+            var les1_2_2 = new Lesson { ChapterId = ch1_2.ChapterId, LessonName = "Lesson 2: Count 1 to 5", ContentText = "Giúp bé tập đếm từ số 1 đến 5 bằng tiếng Anh: One, Two, Three, Four, Five.", Status = "Active" };
+
+            // Unit 3 Lớp 1
+            var les1_3_1 = new Lesson { ChapterId = ch1_3.ChapterId, LessonName = "Lesson 1: In the Classroom", ContentText = "Học các từ vựng về đồ dùng học tập phổ biến trong ba lô: Book (quyển sách), Pen (cây bút), Pencil (bút chì).", Status = "Active" };
+
+            // Unit 1 Lớp 2
+            var les2_1_1 = new Lesson { ChapterId = ch2_1.ChapterId, LessonName = "Lesson 1: Let's Paint", ContentText = "Nhận biết các màu sắc cơ bản bằng tiếng Anh: Red (đỏ), Blue (xanh dương), Green (xanh lá), Yellow (vàng).", Status = "Active" };
+            var les2_1_2 = new Lesson { ChapterId = ch2_1.ChapterId, LessonName = "Lesson 2: Circles and Squares", ContentText = "Làm quen với các hình khối đơn giản: Circle (hình tròn), Square (hình vuông), Triangle (hình tam giác).", Status = "Active" };
+
+            // Unit 2 Lớp 2
+            var les2_2_1 = new Lesson { ChapterId = ch2_2.ChapterId, LessonName = "Lesson 1: This is my Dad", ContentText = "Giới thiệu các thành viên trong gia đình yêu quý của bé: Father (bố), Mother (mẹ), Brother (anh/em trai), Sister (chị/em gái).", Status = "Active" };
+
+            // Unit 3 Lớp 2
+            var les2_3_1 = new Lesson { ChapterId = ch2_3.ChapterId, LessonName = "Lesson 1: Cute Pets", ContentText = "Học các từ vựng về thú cưng đáng yêu nuôi trong nhà: Dog (chó), Cat (mèo), Fish (cá), Bird (chim).", Status = "Active" };
+
+            db.Lessons.AddRange(les1_1_1, les1_1_2, les1_2_1, les1_2_2, les1_3_1, les2_1_1, les2_1_2, les2_2_1, les2_3_1);
+            await db.SaveChangesAsync();
+
+            // 7. Seed Questions
+            var qList = new List<Question>
+            {
+                // Greetings
+                new Question { LessonId = les1_1_1.LessonId, QuestionContent = "Khi gặp người khác, em chào bằng tiếng Anh thế nào?", Answer = "Hello, Goodbye, Thank you, Sorry", CorrectAnswer = "Hello", Level = "Remember", Status = "Active" },
+                new Question { LessonId = les1_1_1.LessonId, QuestionContent = "Em tự giới thiệu tên mình bằng cách nói: My ... is Nick.", Answer = "name, book, dog, school", CorrectAnswer = "name", Level = "Understand", Status = "Active" },
+                
+                // Goodbye
+                new Question { LessonId = les1_1_2.LessonId, QuestionContent = "Từ nào mang ý nghĩa 'Tạm biệt' trong tiếng Anh?", Answer = "Goodbye, Hello, Good morning, Hi", CorrectAnswer = "Goodbye", Level = "Remember", Status = "Active" },
+                
+                // Alphabet A, B, C
+                new Question { LessonId = les1_2_1.LessonId, QuestionContent = "Chữ cái đầu tiên trong bảng chữ cái tiếng Anh là chữ gì?", Answer = "A, B, C, D", CorrectAnswer = "A", Level = "Remember", Status = "Active" },
+                new Question { LessonId = les1_2_1.LessonId, QuestionContent = "Con mèo tiếng Anh là 'Cat'. Chữ cái bắt đầu của từ 'Cat' là gì?", Answer = "C, A, T, B", CorrectAnswer = "C", Level = "Understand", Status = "Active" },
+                
+                // Numbers 1 to 5
+                new Question { LessonId = les1_2_2.LessonId, QuestionContent = "Số '2' trong tiếng Anh đọc là gì?", Answer = "Two, One, Three, Four", CorrectAnswer = "Two", Level = "Remember", Status = "Active" },
+                new Question { LessonId = les1_2_2.LessonId, QuestionContent = "Bé hãy đếm xem có bao nhiêu quả táo trong tiếng Anh khi có 4 quả táo?", Answer = "Four, Five, Three, Two", CorrectAnswer = "Four", Level = "Apply", Status = "Active" },
+                
+                // Classroom Book/Pen
+                new Question { LessonId = les1_3_1.LessonId, QuestionContent = "Từ nào nghĩa là 'quyển sách' trong tiếng Anh?", Answer = "Book, Pen, Ruler, Pencil", CorrectAnswer = "Book", Level = "Remember", Status = "Active" },
+                new Question { LessonId = les1_3_1.LessonId, QuestionContent = "Bé dùng cái gì để viết và vẽ chì?", Answer = "Pencil, Book, Eraser, Desk", CorrectAnswer = "Pencil", Level = "Understand", Status = "Active" },
+                
+                // Let's Paint Colors
+                new Question { LessonId = les2_1_1.LessonId, QuestionContent = "Quả táo chín đỏ sẽ có màu gì trong tiếng Anh?", Answer = "Red, Blue, Yellow, Green", CorrectAnswer = "Red", Level = "Understand", Status = "Active" },
+                new Question { LessonId = les2_1_1.LessonId, QuestionContent = "Màu xanh dương trong tiếng Anh đọc là gì?", Answer = "Blue, Yellow, Green, Pink", CorrectAnswer = "Blue", Level = "Remember", Status = "Active" },
+                
+                // Shapes
+                new Question { LessonId = les2_1_2.LessonId, QuestionContent = "Hình tròn trong tiếng Anh là gì?", Answer = "Circle, Square, Triangle, Rectangle", CorrectAnswer = "Circle", Level = "Remember", Status = "Active" },
+                new Question { LessonId = les2_1_2.LessonId, QuestionContent = "Hình vuông tiếng Anh đọc là gì?", Answer = "Square, Circle, Triangle, Star", CorrectAnswer = "Square", Level = "Remember", Status = "Active" },
+                
+                // Family
+                new Question { LessonId = les2_2_1.LessonId, QuestionContent = "Người 'Bố' yêu quý trong tiếng Anh gọi là gì?", Answer = "Father, Mother, Brother, Sister", CorrectAnswer = "Father", Level = "Remember", Status = "Active" },
+                new Question { LessonId = les2_2_1.LessonId, QuestionContent = "Người 'Mẹ' kính yêu trong tiếng Anh gọi là gì?", Answer = "Mother, Father, Sister, Grandfather", CorrectAnswer = "Mother", Level = "Remember", Status = "Active" },
+                
+                // Pets
+                new Question { LessonId = les2_3_1.LessonId, QuestionContent = "Chú mèo đáng yêu trong tiếng Anh là gì?", Answer = "Cat, Dog, Bird, Rabbit", CorrectAnswer = "Cat", Level = "Remember", Status = "Active" },
+                new Question { LessonId = les2_3_1.LessonId, QuestionContent = "Chú chó trung thành trong tiếng Anh đọc là gì?", Answer = "Dog, Cat, Fish, Pig", CorrectAnswer = "Dog", Level = "Remember", Status = "Active" }
+            };
+            db.Questions.AddRange(qList);
+            await db.SaveChangesAsync();
+
+            // 8. Seed Tests & TestQuestions
+            var test1 = new Test
+            {
+                TestName = "Bài Kiểm Tra Năng Lực Tiếng Anh Lớp 1",
+                SubjectId = subject1.SubjectId,
+                Duration = 10,
+                Status = "Active",
+                Types = "Quick Test",
+                CreatedAt = DateTime.UtcNow
+            };
+            var test2 = new Test
+            {
+                TestName = "Bài Kiểm Tra Năng Lực Tiếng Anh Lớp 2",
+                SubjectId = subject2.SubjectId,
+                Duration = 10,
+                Status = "Active",
+                Types = "Quick Test",
+                CreatedAt = DateTime.UtcNow
+            };
+            db.Tests.AddRange(test1, test2);
+            await db.SaveChangesAsync();
+
+            // Gán câu hỏi
+            foreach (var q in qList)
+            {
+                if (q.Lesson.Chapter.SubjectId == subject1.SubjectId)
+                {
+                    db.TestQuestions.Add(new TestQuestion { TestId = test1.TestId, QuestionId = q.QuestionId });
+                }
+                else if (q.Lesson.Chapter.SubjectId == subject2.SubjectId)
+                {
+                    db.TestQuestions.Add(new TestQuestion { TestId = test2.TestId, QuestionId = q.QuestionId });
+                }
+            }
+            await db.SaveChangesAsync();
+
+            // 9. Seed Packages mới dành cho phụ huynh mua cho con học
             db.Packages.AddRange(
-                new Package { PackageName = "Gói Cơ Bản", Description = "Học không giới hạn 1 khối lớp trong 1 tháng", Price = 99000, Duration = 1, Status = "Active" },
-                new Package { PackageName = "Gói Tiêu Chuẩn", Description = "Học không giới hạn 1 khối lớp trong 3 tháng", Price = 259000, Duration = 3, Status = "Active" },
-                new Package { PackageName = "Gói Cao Cấp", Description = "Học không giới hạn tất cả khối lớp trong 6 tháng", Price = 499000, Duration = 6, Status = "Active" }
+                new Package { PackageName = "Gói Học Thử Miễn Phí", Description = "Dùng thử miễn phí đầy đủ tính năng trong 1 tháng học tập", Price = 0, Duration = 1, Status = "Active" },
+                new Package { PackageName = "Gói Cơ Bản (Lớp 1 & Lớp 2)", Description = "Học tiếng Anh 10 phút mỗi ngày bám sát lộ trình sách giáo khoa trong 1 tháng", Price = 99000, Duration = 1, Status = "Active" },
+                new Package { PackageName = "Gói Tiêu Chuẩn (Lớp 1 & Lớp 2)", Description = "Lộ trình học tập cá nhân hóa + Báo cáo tiến bộ tuần cho phụ huynh trong 3 tháng", Price = 259000, Duration = 3, Status = "Active" },
+                new Package { PackageName = "Gói Cao Cấp (Lớp 1 & Lớp 2)", Description = "Trọn bộ lộ trình cá nhân hóa + Báo cáo thông minh cho phụ huynh + Chứng nhận hoàn thành trong 6 tháng", Price = 499000, Duration = 6, Status = "Active" }
             );
-        }
+            await db.SaveChangesAsync();
 
-        await db.SaveChangesAsync();
+            // 10. Gán học sinh mẫu cho Grade 1 để dễ test
+            var student = await db.Users.FirstOrDefaultAsync(u => u.Username == "student");
+            if (student != null)
+            {
+                student.GradeId = grade1.GradeId;
+                await db.SaveChangesAsync();
+            }
+        }
     }
 }

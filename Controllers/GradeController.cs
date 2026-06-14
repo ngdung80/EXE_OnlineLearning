@@ -5,7 +5,7 @@ using POT_System_ASPNET.Data.Entities;
 
 namespace POT_System_ASPNET.Controllers;
 
-[Authorize(Roles = "Admin")]
+[Authorize]
 public class GradeController : Controller
 {
     private readonly IGradeService _gradeService;
@@ -13,6 +13,7 @@ public class GradeController : Controller
 
     public async Task<IActionResult> Index() => View(await _gradeService.GetAllAsync());
 
+    [Authorize(Roles = "Admin")]
     [HttpGet]
     public IActionResult Create() => View();
 
@@ -25,6 +26,7 @@ public class GradeController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
@@ -33,6 +35,7 @@ public class GradeController : Controller
         return View(grade);
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<IActionResult> Edit(Grade grade)
     {
@@ -42,6 +45,7 @@ public class GradeController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<IActionResult> Delete(int id)
     {
