@@ -266,6 +266,9 @@
             document.getElementById('regForm').style.display = 'block';
             document.getElementById('selectedRole').value = role;
 
+            // Clear all previous error messages and reset borders when switching roles
+            document.querySelectorAll('.input-error-msg').forEach(el => el.remove());
+            document.querySelectorAll('.form-control-r').forEach(el => el.style.borderColor = '#e5e7eb');
             const isParent = role === 'Parent';
             const isStudent = role === 'Mentee';
             const isCM = role === 'Content Manager';
@@ -466,8 +469,15 @@
                 return false;
             }
 
-            // Check if there are any remaining input errors
-            const errors = this.querySelectorAll('.input-error-msg');
+            // Check if there are any remaining input errors on VISIBLE/ENABLED fields only
+            const errors = Array.from(this.querySelectorAll('.input-error-msg')).filter(errSpan => {
+                // Find the closest input inside the same parent
+                const parentGroup = errSpan.closest('.form-group-r');
+                if (!parentGroup) return true;
+                const input = parentGroup.querySelector('input, select, textarea');
+                // Only count the error if the input is not disabled
+                return input && !input.disabled;
+            });
             if (errors.length > 0) {
                 e.preventDefault();
                 alert('Vui lòng sửa các trường thông tin bị lỗi trước khi đăng ký.');

@@ -54,9 +54,12 @@
     <div class="container">
         <div class="page-header">
             <h1 class="page-title"><i class="fas fa-database"></i> Ngân hàng câu hỏi</h1>
-            <a asp-action="Create" asp-route-lessonId="@getLessonId()" class="btn-add">
-                <i class="fas fa-plus"></i> Thêm câu hỏi
-            </a>
+            @if (User.IsInRole("Content Manager") || User.IsInRole("Admin"))
+            {
+                <a asp-action="Create" asp-route-lessonId="@getLessonId()" class="btn-add">
+                    <i class="fas fa-plus"></i> Thêm câu hỏi
+                </a>
+            }
         </div>
 
         <!-- Filters Form -->
@@ -125,15 +128,18 @@
                     </div>
 
                     <div class="action-row">
-                        <a asp-action="Edit" asp-route-id="@q.QuestionId" class="btn-edit">
-                            <i class="fas fa-edit"></i> Sửa
-                        </a>
-                        <form asp-action="Delete" asp-route-id="@q.QuestionId" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa câu hỏi này không?');" style="display:inline;">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn-delete">
-                                <i class="fas fa-trash-alt"></i> Xóa
-                            </button>
-                        </form>
+                        @if (User.IsInRole("Content Manager") || User.IsInRole("Admin"))
+                        {
+                            <a asp-action="Edit" asp-route-id="@q.QuestionId" class="btn-edit">
+                                <i class="fas fa-edit"></i> Sửa
+                            </a>
+                            <form asp-action="Delete" asp-route-id="@q.QuestionId" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa câu hỏi này không?');" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn-delete">
+                                    <i class="fas fa-trash-alt"></i> Xóa
+                                </button>
+                            </form>
+                        }
                     </div>
                 </div>
             }

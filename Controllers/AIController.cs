@@ -126,7 +126,29 @@ public class AIController : Controller
         }
         catch (Exception ex)
         {
-            return Json(new { error = ex.Message });
+            Console.WriteLine("\n=== GEMINI API ERROR ===");
+            Console.WriteLine(ex.Message);
+            Console.WriteLine("========================\n");
+
+            // User-friendly error messages
+            string userMessage;
+            if (ex.Message.Contains("429") || ex.Message.Contains("RESOURCE_EXHAUSTED") || ex.Message.Contains("quota"))
+            {
+                userMessage = "⚠️ Trợ lý AI đang tạm thời bận (giới hạn lượt dùng). Vui lòng đợi vài giây rồi thử lại. Nếu lỗi tiếp tục, điều này có thể do quóta API đã hết trong ngày hôm nay.";
+            }
+            else if (ex.Message.Contains("401") || ex.Message.Contains("403") || ex.Message.Contains("API_KEY"))
+            {
+                userMessage = "🔒 Lỗi xác thực API. Vui lòng liên hệ quản trị viên.";
+            }
+            else if (ex.Message.Contains("timeout") || ex.Message.Contains("HttpRequest"))
+            {
+                userMessage = "🔄 Kết nối bị gián đoạn. Vui lòng kiểm tra mạng và thử lại.";
+            }
+            else
+            {
+                userMessage = "🤖 Trợ lý AI đang gặp sự cố kỹ thuật. Vui lòng thử lại sau.";
+            }
+            return Json(new { error = userMessage });
         }
     }
 

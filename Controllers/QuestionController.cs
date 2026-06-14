@@ -31,6 +31,7 @@ public class QuestionController : Controller
         return View(questions);
     }
 
+    [Authorize(Roles = "Admin,Content Manager")]
     [HttpGet]
     public async Task<IActionResult> Create(int? lessonId)
     {
@@ -39,6 +40,7 @@ public class QuestionController : Controller
         return View();
     }
 
+    [Authorize(Roles = "Admin,Content Manager")]
     [HttpPost]
     public async Task<IActionResult> Create(Question question)
     {
@@ -50,6 +52,7 @@ public class QuestionController : Controller
         return RedirectToAction(nameof(Index), new { lessonId = question.LessonId });
     }
 
+    [Authorize(Roles = "Admin,Content Manager")]
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
@@ -59,6 +62,7 @@ public class QuestionController : Controller
         return View(question);
     }
 
+    [Authorize(Roles = "Admin,Content Manager")]
     [HttpPost]
     public async Task<IActionResult> Edit(Question question)
     {
@@ -77,6 +81,7 @@ public class QuestionController : Controller
         return RedirectToAction(nameof(Index), new { lessonId = existing.LessonId });
     }
 
+    [Authorize(Roles = "Admin,Content Manager")]
     [HttpPost]
     public async Task<IActionResult> Delete(int id)
     {

@@ -49,7 +49,7 @@
                         @foreach (var pkg in Model)
                         {
                             <tr>
-                                <td>#@pkg.PackageId</td>
+                                <td>@pkg.PackageId</td>
                                 <td style="font-weight:700;">@pkg.PackageName</td>
                                 <td style="color:#cbd5e1; max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">@pkg.Description</td>
                                 <td style="color:#34d399; font-weight:600;">@pkg.Price.ToString("N0")</td>
@@ -64,7 +64,7 @@
                                         <a asp-action="Edit" asp-route-id="@pkg.PackageId" class="btn-edit">
                                             <i class="fas fa-edit"></i> Sửa
                                         </a>
-                                        <form asp-action="Delete" asp-route-id="@pkg.PackageId" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa gói học tập này không?');">
+                                        <form asp-action="Delete" asp-route-id="@pkg.PackageId" method="post" onsubmit="confirmDelete(event, this);">
                                             @Html.AntiForgeryToken()
                                             <button type="submit" class="btn-delete">
                                                 <i class="fas fa-trash-alt"></i> Xóa
@@ -86,3 +86,26 @@
         </div>
     </div>
 </section>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function confirmDelete(e, form) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Xác nhận xóa',
+                text: "Bạn có chắc chắn muốn xóa gói học tập này không?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e75485',
+                cancelButtonColor: '#94a3b8',
+                confirmButtonText: 'Đồng ý',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        }
+    </script>
+}
