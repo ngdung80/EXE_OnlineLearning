@@ -28,6 +28,9 @@
         @if (TempData["Error"] != null) {
             <div style="background:rgba(239,68,68,.15);border:1px solid #ef4444;color:#ef4444;padding:12px;border-radius:10px;margin-bottom:20px;">@TempData["Error"]</div>
         }
+        @if (TempData["Success"] != null) {
+            <div style="background:rgba(16,185,129,.15);border:1px solid #10b981;color:#10b981;padding:12px;border-radius:10px;margin-bottom:20px;">@TempData["Success"]</div>
+        }
 
         <div class="student-grid">
             @if (Model != null && Model.Any())
@@ -43,20 +46,49 @@
                     </div>
                 }
             }
-            <a asp-controller="Package" asp-action="List" class="add-student-card" style="text-decoration:none;">
+            <div class="add-student-card" data-bs-toggle="modal" data-bs-target="#linkStudentModal">
                 <div class="add-icon">➕</div>
                 <p style="font-weight:600;">Thêm học sinh</p>
-                <p style="font-size:.8rem;margin-top:4px;">Mua gói học tập để liên kết học sinh</p>
-            </a>
+                <p style="font-size:.8rem;margin-top:4px;">Nhập email tài khoản con để liên kết</p>
+            </div>
         </div>
 
         @if (Model == null || !Model.Any())
         {
             <div class="empty-state">
                 <div style="font-size:3rem;margin-bottom:15px;">👶</div>
-                <p>Chưa có học sinh nào được liên kết. Hãy mua gói học tập để bắt đầu!</p>
-                <a asp-controller="Package" asp-action="List" style="display:inline-block;margin-top:15px;padding:12px 28px;background:linear-gradient(135deg,#ec6090,#e75485);color:#fff;border-radius:25px;text-decoration:none;font-weight:700;">🎁 Xem gói học tập</a>
+                <p>Chưa có học sinh nào được liên kết. Hãy nhập email của con để bắt đầu theo dõi!</p>
+                <button class="btn" data-bs-toggle="modal" data-bs-target="#linkStudentModal" style="display:inline-block;margin-top:15px;padding:12px 28px;background:linear-gradient(135deg,#ec6090,#e75485);color:#fff;border-radius:25px;border:none;font-weight:700;cursor:pointer;">➕ Liên kết tài khoản con</button>
             </div>
         }
     </div>
 </section>
+
+<!-- Modal Liên kết học sinh -->
+<div class="modal fade" id="linkStudentModal" tabindex="-1" aria-labelledby="linkStudentModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background:#1e293b; border: 1px solid rgba(255,255,255,.1); border-radius: 20px; color: #e2e8f0;">
+      <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,.06); padding: 20px;">
+        <h5 class="modal-title" id="linkStudentModalLabel" style="color:#ec6090; font-weight:700;"><i class="fas fa-link"></i> Liên kết tài khoản học sinh</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="background-color: transparent; border: none; color: #fff; font-size: 1.25rem;">&times;</button>
+      </div>
+      <form asp-controller="Parent" asp-action="LinkStudent" method="post">
+        @Html.AntiForgeryToken()
+        <div class="modal-body" style="padding: 24px;">
+          <p style="font-size: 0.88rem; color: #94a3b8; margin-bottom: 20px;">Nhập địa chỉ email của con bạn (tài khoản Học sinh đã đăng ký trên hệ thống PLO) để liên kết và theo dõi tiến độ học tập.</p>
+          <div style="margin-bottom:0;">
+              <label style="color:#e2e8f0; font-weight:600; display:block; margin-bottom:8px;">📧 Email của con</label>
+              <div style="position:relative;">
+                  <i class="fas fa-envelope" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#94a3b8;"></i>
+                  <input type="email" name="studentEmail" required style="width:100%; padding:12px 14px 12px 40px; background:rgba(255,255,255,.06); border:2px solid rgba(255,255,255,.1); border-radius:12px; color:#fff; font-family:'Inter',sans-serif; font-size:.95rem;">
+              </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,.06); padding: 16px 20px; display:flex; gap:10px; justify-content:flex-end;">
+          <button type="button" class="btn" data-bs-dismiss="modal" style="background:rgba(255,255,255,.1); color:#fff; border:none; padding:10px 20px; border-radius:12px; font-weight:600; cursor:pointer;">Hủy bỏ</button>
+          <button type="submit" class="btn" style="background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border:none; padding:10px 20px; border-radius:12px; font-weight:700; cursor:pointer;">Liên kết ngay</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
