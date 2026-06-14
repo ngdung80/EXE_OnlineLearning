@@ -13,7 +13,7 @@ public class UserService : IUserService
     public async Task<User?> CheckLoginAsync(string username, string password)
     {
         var user = await _db.Users
-            .FirstOrDefaultAsync(u => u.Username == username && u.Status == "active");
+            .FirstOrDefaultAsync(u => (u.Username == username || u.Email == username) && u.Status == "active");
 
         if (user == null) return null;
         if (!BCrypt.Net.BCrypt.Verify(password, user.Password)) return null;
