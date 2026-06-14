@@ -93,6 +93,22 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult Register() => View();
 
+    [HttpGet]
+    public async Task<IActionResult> CheckUsername(string username)
+    {
+        if (string.IsNullOrWhiteSpace(username)) return Json(new { exists = false });
+        var exists = await _userService.UsernameExistsAsync(username.Trim().ToLower());
+        return Json(new { exists });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> CheckEmail(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email)) return Json(new { exists = false });
+        var exists = await _userService.EmailExistsAsync(email.Trim().ToLower());
+        return Json(new { exists });
+    }
+
     [HttpPost]
     public async Task<IActionResult> Register(string username, string password, string confirmPassword,
         string email, string fullName, string phone, string dob, string role, string? specialization,
@@ -104,36 +120,14 @@ public class AccountController : Controller
 
         if (string.IsNullOrEmpty(storedCode) || verificationCode != storedCode || storedEmail != email)
         {
-            ViewBag.Error = "Invalid verification code.";
+            ViewBag.Error = "Mã xác thực không đúng.";
             return View();
         }
 
         if (codeTimestamp != null && (DateTime.Now - DateTime.Parse(codeTimestamp)).TotalMinutes > 5)
         {
             HttpContext.Session.Remove("VerificationCode");
-            ViewBag.Error = "Verification code expired.";
-            return View();
-        }
-
-        if (await _userService.UsernameExistsAsync(username.ToLower())) { ViewBag.Error = "Username already exists."; return View(); }
-        if (await _userService.EmailExistsAsync(email.ToLower())) { ViewBag.Error = "Email already in use."; return View(); }
-        if (password != confirmPassword) { ViewBag.Error = "Passwords do not match."; return View(); }
-
-        if (!System.Text.RegularExpressions.Regex.IsMatch(password, @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"))
-        {
-            ViewBag.Error = "Password must be 8+ chars with uppercase, lowercase, number, and special char.";
-            return View();
-        }
-
-        if (!string.IsNullOrEmpty(phone) && !System.Text.RegularExpressions.Regex.IsMatch(phone, @"^0\d{9}$"))
-        {
-            ViewBag.Error = "Phone must be 10 digits starting with 0.";
-            return View();
-        }
-
-        if (!DateOnly.TryParse(dob, out var dobDate) || dobDate > DateOnly.FromDateTime(DateTime.Now))
-        {
-            ViewBag.Error = "Invalid date of birth.";
+            ViewBag.Error = "Mã xác thực đã hết hạn (quá 5 phút).";
             return View();
         }
 
@@ -144,6 +138,43 @@ public class AccountController : Controller
             _ => role
         };
 
+        if (string.IsNullOrEmpty(username) && mappedRole == "Parent")
+        {
+            username = email;
+        }
+
+        if (string.IsNullOrEmpty(username))
+        {
+            ViewBag.Error = "Tên đăng nhập không được để trống.";
+            return View();
+        }
+
+        if (await _userService.UsernameExistsAsync(username.ToLower())) { ViewBag.Error = "Tên đăng nhập đã tồn tại trên hệ thống."; return View(); }
+        if (await _userService.EmailExistsAsync(email.ToLower())) { ViewBag.Error = "Email đã được sử dụng."; return View(); }
+        if (password != confirmPassword) { ViewBag.Error = "Mật khẩu xác nhận không trùng khớp."; return View(); }
+
+        if (!System.Text.RegularExpressions.Regex.IsMatch(password, @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"))
+        {
+            ViewBag.Error = "Mật khẩu phải từ 8 ký tự trở lên, chứa nhất 1 chữ hoa, 1 chữ thường, 1 chữ số và 1 ký tự đặc biệt.";
+            return View();
+        }
+
+        if (!string.IsNullOrEmpty(phone) && !System.Text.RegularExpressions.Regex.IsMatch(phone, @"^0\d{9}$"))
+        {
+            ViewBag.Error = "Số điện thoại phải gồm 10 chữ số và bắt đầu bằng số 0.";
+            return View();
+        }
+
+        DateOnly dobDate = DateOnly.FromDateTime(DateTime.Now);
+        if (!string.IsNullOrEmpty(dob))
+        {
+            if (!DateOnly.TryParse(dob, out dobDate) || dobDate > DateOnly.FromDateTime(DateTime.Now))
+            {
+                ViewBag.Error = "Ngày sinh không hợp lệ.";
+                return View();
+            }
+        }
+
         var user = new User
         {
             Username = username.ToLower(),
@@ -152,14 +183,14 @@ public class AccountController : Controller
             Role = mappedRole,
             FullName = fullName,
             Phone = string.IsNullOrEmpty(phone) ? null : phone,
-            Dob = dobDate,
+            Dob = mappedRole == "Parent" ? null : dobDate,
             Status = mappedRole == "Content Manager" ? "pending" : "active",
             Specialization = mappedRole == "Content Manager" ? specialization : null
         };
 
         await _userService.InsertUserAsync(user);
 
-        // Create wallet for Parent
+        // Tạo ví cho Phụ huynh
         if (mappedRole == "Parent")
             await _walletService.GetOrCreateAsync(user.UserId);
 
@@ -167,10 +198,11 @@ public class AccountController : Controller
         HttpContext.Session.Remove("VerificationEmail");
         HttpContext.Session.Remove("CodeTimestamp");
 
-        ViewBag.Success = mappedRole == "Content Manager"
-            ? "Registration successful! Please wait for Admin approval."
-            : "Registration successful! Please login.";
-        return View();
+        TempData["Success"] = mappedRole == "Content Manager"
+            ? "Đăng ký tài khoản thành công! Vui lòng chờ Ban quản trị phê duyệt vai trò Giáo viên."
+            : "Đăng ký tài khoản thành công! Vui lòng đăng nhập.";
+
+        return RedirectToAction("Login");
     }
 
     // ── Send Verification Code ───────────────────────────────────────────────
@@ -179,16 +211,36 @@ public class AccountController : Controller
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(req.Email))
+            {
+                return Json(new { success = false, message = "Email không được để trống." });
+            }
+
+            if (await _userService.EmailExistsAsync(req.Email.Trim().ToLower()))
+            {
+                return Json(new { success = false, message = "Email này đã được sử dụng để đăng ký tài khoản khác." });
+            }
+
             var code = new Random().Next(100000, 999999).ToString();
             HttpContext.Session.SetString("VerificationCode", code);
             HttpContext.Session.SetString("VerificationEmail", req.Email);
             HttpContext.Session.SetString("CodeTimestamp", DateTime.Now.ToString("o"));
+            
+            Console.WriteLine($"\n[OTP DEBUG] =========================================");
+            Console.WriteLine($"[OTP DEBUG] EMAIL: {req.Email}");
+            Console.WriteLine($"[OTP DEBUG] VERIFICATION CODE: {code}");
+            Console.WriteLine($"[OTP DEBUG] =========================================\n");
+
             await _emailService.SendVerificationCodeAsync(req.Email, code);
             return Json(new { success = true });
         }
         catch (Exception ex)
         {
-            return Json(new { success = false, message = ex.Message });
+            var code = HttpContext.Session.GetString("VerificationCode");
+            return Json(new { 
+                success = false, 
+                message = $"Lỗi gửi Email: {ex.Message}. [DEBUG]: Do SMTP chưa cấu hình, vui lòng lấy mã xác thực trong Console Terminal của Server (Mã OTP: {code})." 
+            });
         }
     }
 

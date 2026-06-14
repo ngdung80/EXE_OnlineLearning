@@ -232,6 +232,9 @@
                         </div>
                     </div>
                 </div>
+                <div style="font-size: 0.78rem; color: #6b7280; margin-top: -12px; margin-bottom: 18px; padding-left: 5px; line-height: 1.4;">
+                    💡 <strong>Mật khẩu mạnh:</strong> Ít nhất 8 ký tự, gồm ít nhất 1 chữ hoa, 1 chữ thường, 1 số và 1 ký tự đặc biệt (VD: @@, #, $, !).
+                </div>
 
                 <!-- Verification -->
                 <div class="form-group-r" style="background:#fdf4ff;border:2px solid #e9d5ff;border-radius:14px;padding:16px 18px;">
@@ -277,8 +280,39 @@
             document.getElementById('studentFields').style.display = !isParent ? 'block' : 'none';
             document.getElementById('contentManagerFields').style.display = isCM ? 'block' : 'none';
 
-            // For parent, reuse the email field from parent section
-            const emailInput = document.querySelector('input[name="email"]');
+            // Disable/Enable inputs in sections to avoid duplicate names in form submission
+            const parentSection = document.getElementById('parentFields');
+            const studentSection = document.getElementById('studentFields');
+            
+            const parentInputs = parentSection.querySelectorAll('input, select, textarea');
+            const studentInputs = studentSection.querySelectorAll('input, select, textarea');
+
+            if (isParent) {
+                parentInputs.forEach(input => {
+                    input.removeAttribute('disabled');
+                });
+                studentInputs.forEach(input => {
+                    input.setAttribute('disabled', 'true');
+                    clearInputError(input);
+                });
+            } else {
+                parentInputs.forEach(input => {
+                    input.setAttribute('disabled', 'true');
+                    clearInputError(input);
+                });
+                studentInputs.forEach(input => {
+                    input.removeAttribute('disabled');
+                    // specialization only for CM
+                    if (input.name === 'specialization') {
+                        if (isCM) {
+                            input.removeAttribute('disabled');
+                        } else {
+                            input.setAttribute('disabled', 'true');
+                            clearInputError(input);
+                        }
+                    }
+                });
+            }
         }
 
         function backToRole() {
@@ -287,16 +321,31 @@
         }
 
         async function sendCode() {
-            // Use parent email or student email
             const emailEl = currentRole === 'Parent'
                 ? document.getElementById('regEmail')
                 : document.getElementById('regEmailStudent');
-            const email = emailEl?.value;
+            const email = emailEl?.value.trim();
 
             if (!email || !/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(email)) {
                 alert('Vui lòng nhập email hợp lệ trước.');
+                emailEl?.focus();
                 return;
             }
+
+            // Check if email already exists before trying to send OTP
+            try {
+                const checkRes = await fetch(`/Account/CheckEmail?email=${encodeURIComponent(email)}`);
+                const checkData = await checkRes.json();
+                if (checkData.exists) {
+                    showInputError(emailEl, 'Email này đã được sử dụng.');
+                    alert('Email này đã được đăng ký tài khoản khác. Vui lòng chọn email khác.');
+                    emailEl?.focus();
+                    return;
+                }
+            } catch (err) {
+                console.error("Check email error: ", err);
+            }
+
             const btn = document.getElementById('btnSendCode');
             btn.disabled = true; btn.textContent = 'Đang gửi...';
             try {
@@ -320,9 +369,111 @@
                     status.textContent = '✗ ' + (data.message || 'Gửi thất bại');
                     status.style.color = '#ef4444';
                     btn.disabled = false; btn.textContent = 'Gửi mã';
+                    alert(data.message || 'Gửi mã thất bại. Vui lòng thử lại.');
                 }
             } catch { btn.disabled = false; btn.textContent = 'Gửi mã'; }
         }
+
+        // Realtime validations
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check username
+            const usernameInput = document.getElementById('username');
+            if (usernameInput) {
+                usernameInput.addEventListener('blur', async function() {
+                    const username = this.value.trim();
+                    if (username.length >= 3) {
+                        const res = await fetch(`/Account/CheckUsername?username=${encodeURIComponent(username)}`);
+                        const data = await res.json();
+                        if (data.exists) {
+                            showInputError(usernameInput, 'Tên đăng nhập này đã được sử dụng.');
+                        } else {
+                            clearInputError(usernameInput);
+                        }
+                    } else if (username.length > 0) {
+                        showInputError(usernameInput, 'Tên đăng nhập phải có ít nhất 3 ký tự.');
+                    } else {
+                        clearInputError(usernameInput);
+                    }
+                });
+            }
+
+            // Check email
+            const emailInputs = [document.getElementById('regEmail'), document.getElementById('regEmailStudent')];
+            emailInputs.forEach(input => {
+                if (input) {
+                    input.addEventListener('blur', async function() {
+                        const email = this.value.trim();
+                        if (/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(email)) {
+                            const res = await fetch(`/Account/CheckEmail?email=${encodeURIComponent(email)}`);
+                            const data = await res.json();
+                            if (data.exists) {
+                                showInputError(input, 'Email này đã được sử dụng.');
+                            } else {
+                                clearInputError(input);
+                            }
+                        } else if (email.length > 0) {
+                            showInputError(input, 'Định dạng email không hợp lệ.');
+                        } else {
+                            clearInputError(input);
+                        }
+                    });
+                }
+            });
+        });
+
+        function showInputError(input, message) {
+            let errorSpan = input.parentNode.parentNode.querySelector('.input-error-msg');
+            if (!errorSpan) {
+                errorSpan = document.createElement('span');
+                errorSpan.className = 'input-error-msg';
+                errorSpan.style.color = '#ef4444';
+                errorSpan.style.fontSize = '0.78rem';
+                errorSpan.style.fontWeight = '700';
+                errorSpan.style.marginTop = '4px';
+                errorSpan.style.display = 'block';
+                input.parentNode.parentNode.appendChild(errorSpan);
+            }
+            errorSpan.textContent = '✗ ' + message;
+            input.style.borderColor = '#ef4444';
+        }
+
+        function clearInputError(input) {
+            let errorSpan = input.parentNode.parentNode.querySelector('.input-error-msg');
+            if (errorSpan) {
+                errorSpan.remove();
+            }
+            input.style.borderColor = '#e5e7eb';
+        }
+
+        // Form Submit Password requirements & mismatch check
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            // Strong password check: at least 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special char
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@@$!%*?&])[A-Za-z\d@@$!%*?&]{8,}$/;
+            if (!passwordRegex.test(password)) {
+                e.preventDefault();
+                alert('Mật khẩu chưa đủ mạnh! Yêu cầu ít nhất 8 ký tự, gồm chữ hoa, chữ thường, chữ số và ký tự đặc biệt.');
+                document.getElementById('regPassword').focus();
+                return false;
+            }
+
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                alert('Mật khẩu xác nhận không trùng khớp.');
+                document.getElementById('confirmPassword').focus();
+                return false;
+            }
+
+            // Check if there are any remaining input errors
+            const errors = this.querySelectorAll('.input-error-msg');
+            if (errors.length > 0) {
+                e.preventDefault();
+                alert('Vui lòng sửa các trường thông tin bị lỗi trước khi đăng ký.');
+                return false;
+            }
+        });
     </script>
 </body>
 </html>

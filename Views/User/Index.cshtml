@@ -107,10 +107,20 @@
                                     <span class="badge-status @(u.Status == "active" ? "status-active" : "status-inactive")">@statusViet</span>
                                 </td>
                                 <td>
-                                    <form asp-action="ToggleStatus" asp-route-id="@u.UserId" method="post" style="display:inline">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn-sm btn-toggle">⚡ Đổi trạng thái</button>
-                                    </form>
+                                    @if (u.Status == "pending")
+                                    {
+                                        <form asp-action="ToggleStatus" asp-route-id="@u.UserId" method="post" style="display:inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn-sm btn-toggle" style="background:rgba(16,185,129,.2); color:#10b981; border: 1px solid #10b981;">✅ Phê duyệt</button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="ToggleStatus" asp-route-id="@u.UserId" method="post" style="display:inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn-sm btn-toggle">⚡ Đổi trạng thái</button>
+                                        </form>
+                                    }
                                     <form asp-action="Delete" asp-route-id="@u.UserId" method="post" style="display:inline" onsubmit="return confirm('Xóa người dùng @u.Username?')">
                                         @Html.AntiForgeryToken()
                                         <button type="submit" class="btn-sm btn-del">🗑️</button>

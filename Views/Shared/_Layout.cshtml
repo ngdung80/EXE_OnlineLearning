@@ -31,6 +31,9 @@
         .logo-text { font-family:'Inter',sans-serif; font-weight:900; font-size:26px; color:#e75485 !important; transition:color .3s; text-transform:uppercase; letter-spacing:1px; }
         .background-header .logo-text { color:#e75485 !important; }
         @@keyframes slideIn { from { opacity:0; transform:translateX(50px); } to { opacity:1; transform:translateX(0); } }
+        .admin-section, .user-section, .wallet-section, .form-section, .parent-section, .notif-section, .lesson-section, .detail-section, .mgmt-section, .ch-section, .ai-section, .chat-section, .profile-section, .edit-section, .pwd-section, .denied-section, .result-section, .list-section, .hist-section, .sub-section {
+            padding-top: 120px !important;
+        }
     </style>
     @RenderSection("Styles", required: false)
 </head>
@@ -44,12 +47,15 @@
                             <img src="~/assets/images/logo.png" asp-append-version="true" alt="PLO Logo">
                             <span class="logo-text">PLO</span>
                         </a>
-                        <div class="search-input">
-                            <form id="search" action="#">
-                                <input type="text" placeholder="Tìm kiếm bài học..." id="searchText" name="searchKeyword"/>
-                                <i class="fa fa-search"></i>
-                            </form>
-                        </div>
+                        @if (!User.IsInRole("Admin") && !User.IsInRole("Content Manager") && !User.IsInRole("Content Approver"))
+                        {
+                            <div class="search-input">
+                                <form id="search" action="#">
+                                    <input type="text" placeholder="Tìm kiếm bài học..." id="searchText" name="searchKeyword"/>
+                                    <i class="fa fa-search"></i>
+                                </form>
+                            </div>
+                        }
                         <ul class="nav">
                             <li><a asp-controller="Home" asp-action="Index" class="active">Trang chủ</a></li>
                             @if (!User.IsInRole("Admin"))
