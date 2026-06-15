@@ -7,12 +7,17 @@ namespace POT_System_ASPNET.Services;
 public interface IWalletService
 {
     Task<Wallet?> GetByParentIdAsync(int parentId);
+    Task<Wallet?> GetWalletByIdAsync(int walletId);
     Task<Wallet> GetOrCreateAsync(int parentId);
     Task UpdateBalanceAsync(int walletId, double newBalance);
     Task TopUpAsync(int parentId, double amount, string description);
     Task<List<WalletTransaction>> GetTransactionsAsync(int walletId, int page, int pageSize);
     Task<int> CountTransactionsAsync(int walletId);
     Task InsertTransactionAsync(WalletTransaction wt);
+    Task<WalletTransaction?> GetTransactionByIdAsync(int transactionId);
+    Task UpdateTransactionAsync(WalletTransaction wt);
+    /// <summary>Tìm giao dịch TopUp Pending của ví trong vòng 10 phút để tránh tạo duplicate</summary>
+    Task<WalletTransaction?> GetPendingTopUpAsync(int walletId, double amount);
 }
 
 public class WalletService : IWalletService
@@ -22,6 +27,9 @@ public class WalletService : IWalletService
 
     public async Task<Wallet?> GetByParentIdAsync(int parentId)
         => await _db.Wallets.FirstOrDefaultAsync(w => w.ParentId == parentId);
+
+    public async Task<Wallet?> GetWalletByIdAsync(int walletId)
+        => await _db.Wallets.FindAsync(walletId);
 
     public async Task<Wallet> GetOrCreateAsync(int parentId)
     {
@@ -66,6 +74,28 @@ public class WalletService : IWalletService
         => await _db.WalletTransactions.CountAsync(wt => wt.WalletId == walletId);
 
     public async Task InsertTransactionAsync(WalletTransaction wt) { _db.WalletTransactions.Add(wt); await _db.SaveChangesAsync(); }
+
+    public async Task<WalletTransaction?> GetTransactionByIdAsync(int transactionId)
+        => await _db.WalletTransactions.FindAsync(transactionId);
+
+    public async Task UpdateTransactionAsync(WalletTransaction wt)
+    {
+        _db.WalletTransactions.Update(wt);
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task<WalletTransaction?> GetPendingTopUpAsync(int walletId, double amount)
+    {
+        var cutoff = DateTime.Now.AddMinutes(-10);
+        return await _db.WalletTransactions
+            .Where(wt => wt.WalletId == walletId
+                      && wt.TransactionType == "TopUp"
+                      && wt.Status == "Pending"
+                      && wt.Amount == amount
+                      && wt.CreatedAt >= cutoff)
+            .OrderByDescending(wt => wt.CreatedAt)
+            .FirstOrDefaultAsync();
+    }
 }
 
 public interface ITransactionService

@@ -231,6 +231,8 @@ public class AppDbContext : DbContext
             e.Property(t => t.UserId).HasColumnName("user_id");
             e.Property(t => t.PackageId).HasColumnName("package_id");
             e.Property(t => t.StudentPackageId).HasColumnName("student_package_id");
+            e.Property(t => t.StudentId).HasColumnName("student_id");
+            e.Property(t => t.GradeId).HasColumnName("grade_id");
             e.Property(t => t.MenteeCount).HasColumnName("mentee_count");
             e.Property(t => t.Amount).HasColumnName("amount");
             e.Property(t => t.TransactionDate).HasColumnName("transaction_date");

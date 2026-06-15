@@ -16,6 +16,7 @@ public class PaymentController : Controller
     private readonly IStudentPackageService _studentPackageService;
     private readonly ISubjectService _subjectService;
     private readonly ITransactionService _transactionService;
+    private readonly IWalletService _walletService;
     private readonly PayOSClient _payOS;
     private readonly IConfiguration _config;
 
@@ -24,6 +25,7 @@ public class PaymentController : Controller
         IStudentPackageService studentPackageService,
         ISubjectService subjectService,
         ITransactionService transactionService,
+        IWalletService walletService,
         PayOSClient payOS,
         IConfiguration config)
     {
@@ -31,11 +33,10 @@ public class PaymentController : Controller
         _studentPackageService = studentPackageService;
         _subjectService = subjectService;
         _transactionService = transactionService;
+        _walletService = walletService;
         _payOS = payOS;
         _config = config;
     }
-
-    private static readonly System.Collections.Concurrent.ConcurrentDictionary<int, (int studentId, int gradeId)> _pendingAssignments = new();
 
     [HttpPost]
     [Authorize(Roles = "Parent")]
@@ -46,18 +47,19 @@ public class PaymentController : Controller
 
         var parentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
 
+        // Lưu StudentId và GradeId xuống DB ngay — không dùng RAM để tránh mất khi restart
         var transaction = new Transaction
         {
             UserId = parentId,
             PackageId = packageId,
+            StudentId = studentId,
+            GradeId = gradeId,
             MenteeCount = 1,
             Amount = package.Price,
             Status = "Pending",
             TransactionDate = DateTime.Now
         };
         await _transactionService.InsertAsync(transaction);
-
-        _pendingAssignments[transaction.TransactionId] = (studentId, gradeId);
 
         var returnUrl = _config["PayOS:ReturnUrl"] + $"?transactionId={transaction.TransactionId}";
         var cancelUrl = _config["PayOS:CancelUrl"] + $"?transactionId={transaction.TransactionId}";
@@ -135,6 +137,95 @@ public class PaymentController : Controller
         return View("PaymentFail");
     }
 
+    [Authorize(Roles = "Parent")]
+    [HttpPost]
+    public async Task<IActionResult> CreateTopUpUrl(double amount)
+    {
+        var parentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var wallet = await _walletService.GetOrCreateAsync(parentId);
+
+        // Kiểm tra xem đã có Pending transaction cùng số tiền trong 10 phút qua chưa
+        // → dùng lại để tránh sinh record Pending thừa khi user bấm nút nhiều lần
+        var walletTransaction = await _walletService.GetPendingTopUpAsync(wallet.WalletId, amount);
+
+        if (walletTransaction == null)
+        {
+            walletTransaction = new WalletTransaction
+            {
+                WalletId = wallet.WalletId,
+                Amount = amount,
+                TransactionType = "TopUp",
+                Description = "Nạp tiền vào ví",
+                CreatedAt = DateTime.Now,
+                Status = "Pending"
+            };
+            await _walletService.InsertTransactionAsync(walletTransaction);
+        }
+
+        long orderCode = walletTransaction.WalletTransactionId + 100000000;
+        long amountInVND = (long)amount;
+
+        var returnUrl = $"{Request.Scheme}://{Request.Host}/Payment/TopUpSuccess?walletTransactionId={walletTransaction.WalletTransactionId}";
+        var cancelUrl = $"{Request.Scheme}://{Request.Host}/Payment/TopUpCancel?walletTransactionId={walletTransaction.WalletTransactionId}";
+
+        PaymentLinkItem item = new PaymentLinkItem { Name = "Nạp tiền vào ví", Quantity = 1, Price = amountInVND };
+        List<PaymentLinkItem> items = new List<PaymentLinkItem> { item };
+
+        CreatePaymentLinkRequest paymentData = new CreatePaymentLinkRequest
+        {
+            OrderCode = orderCode,
+            Amount = amountInVND,
+            Description = $"nap tien {orderCode}",
+            Items = items,
+            CancelUrl = cancelUrl,
+            ReturnUrl = returnUrl
+        };
+
+        CreatePaymentLinkResponse createPayment = await _payOS.PaymentRequests.CreateAsync(paymentData);
+        return Redirect(createPayment.CheckoutUrl);
+    }
+
+    [Authorize(Roles = "Parent")]
+    public async Task<IActionResult> TopUpSuccess(int walletTransactionId, string code = "", string status = "")
+    {
+        var parentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var wallet = await _walletService.GetByParentIdAsync(parentId);
+        
+        if (wallet == null) return NotFound();
+
+        long orderCode = walletTransactionId + 100000000;
+        bool isSuccess = false;
+        try 
+        {
+            PaymentLink paymentInfo = await _payOS.PaymentRequests.GetAsync((int)orderCode);
+            if (paymentInfo.Status == PaymentLinkStatus.Paid)
+            {
+                isSuccess = true;
+            }
+        } 
+        catch { }
+
+        if (isSuccess || (code == "00" && (status == "PAID" || status == "SUCCESS")))
+        {
+            await CompleteTopUpTransaction(walletTransactionId);
+            TempData["Success"] = "Nạp tiền thành công.";
+        }
+        else
+        {
+            TempData["Success"] = "Giao dịch nạp tiền đang được xử lý.";
+        }
+
+        return RedirectToAction("Index", "Wallet");
+    }
+
+    [Authorize(Roles = "Parent")]
+    public async Task<IActionResult> TopUpCancel(int walletTransactionId)
+    {
+        // For simplicity, we just redirect back with a message
+        TempData["Error"] = "Bạn đã hủy nạp tiền.";
+        return RedirectToAction("Index", "Wallet");
+    }
+
     [AllowAnonymous]
     [HttpPost]
     public async Task<IActionResult> Webhook([FromBody] PayOS.Models.Webhooks.Webhook webhookBody)
@@ -145,7 +236,14 @@ public class PaymentController : Controller
 
             if (data.Code == "00")
             {
-                await CompleteTransaction((int)data.OrderCode);
+                if (data.OrderCode > 100000000)
+                {
+                    await CompleteTopUpTransaction((int)(data.OrderCode - 100000000));
+                }
+                else
+                {
+                    await CompleteTransaction((int)data.OrderCode);
+                }
             }
 
             return Ok(new { success = true });
@@ -161,29 +259,45 @@ public class PaymentController : Controller
         var transaction = await _transactionService.GetByIdAsync(transactionId);
         if (transaction != null && transaction.Status == "Pending")
         {
-            if (_pendingAssignments.TryGetValue(transactionId, out var assignment))
+            // Đọc StudentId và GradeId từ DB (đã lưu lúc tạo đơn) — không còn phụ thuộc RAM
+            if (transaction.StudentId.HasValue && transaction.GradeId.HasValue)
             {
                 var package = await _packageService.GetByIdAsync(transaction.PackageId);
                 if (package != null)
                 {
-                    var subjectIds = await _subjectService.GetSubjectIdsByGradeIdAsync(assignment.gradeId);
+                    var subjectIds = await _subjectService.GetSubjectIdsByGradeIdAsync(transaction.GradeId.Value);
                     var startDate = DateOnly.FromDateTime(DateTime.Now);
                     var endDate = startDate.AddMonths(package.Duration);
-                    
-                    var studentPackageId = await _studentPackageService.InsertForGradeAsync(assignment.studentId, transaction.PackageId, assignment.gradeId, startDate, endDate, subjectIds);
-                    
+
+                    var studentPackageId = await _studentPackageService.InsertForGradeAsync(
+                        transaction.StudentId.Value, transaction.PackageId,
+                        transaction.GradeId.Value, startDate, endDate, subjectIds);
+
                     transaction.StudentPackageId = studentPackageId;
                     transaction.Status = "Completed";
                     await _transactionService.UpdateAsync(transaction);
-                    
-                    // Xóa khỏi cache sau khi hoàn thành
-                    _pendingAssignments.TryRemove(transactionId, out _);
                 }
             }
-            else 
+            else
             {
                 transaction.Status = "Completed";
                 await _transactionService.UpdateAsync(transaction);
+            }
+        }
+    }
+
+    private async Task CompleteTopUpTransaction(int walletTransactionId)
+    {
+        var walletTransaction = await _walletService.GetTransactionByIdAsync(walletTransactionId);
+        if (walletTransaction != null && walletTransaction.Status == "Pending")
+        {
+            walletTransaction.Status = "Completed";
+            await _walletService.UpdateTransactionAsync(walletTransaction);
+
+            var wallet = await _walletService.GetWalletByIdAsync(walletTransaction.WalletId);
+            if (wallet != null)
+            {
+                await _walletService.UpdateBalanceAsync(wallet.WalletId, wallet.Balance + walletTransaction.Amount);
             }
         }
     }

@@ -118,14 +118,6 @@ public class WalletController : Controller
         return View(transactions);
     }
 
-    [HttpPost]
-    public async Task<IActionResult> TopUp(double amount)
-    {
-        var parentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
-        await _walletService.TopUpAsync(parentId, amount, "Wallet top-up");
-        TempData["Success"] = $"Topped up {amount:N0} VND successfully.";
-        return RedirectToAction(nameof(Index));
-    }
 }
 
 [Authorize]
