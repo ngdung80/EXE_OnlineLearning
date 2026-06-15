@@ -11,12 +11,20 @@ public class GradeController : Controller
     private readonly IGradeService _gradeService;
     public GradeController(IGradeService gradeService) => _gradeService = gradeService;
 
-    public async Task<IActionResult> Index() => View(await _gradeService.GetAllAsync());
+    public async Task<IActionResult> Index()
+    {
+        if (User.IsInRole("Admin") || User.IsInRole("Content Manager") || User.IsInRole("Content Approver"))
+        {
+            return View(await _gradeService.GetAllAsync());
+        }
+        return View(await _gradeService.GetActiveAsync());
+    }
 
     [Authorize(Roles = "Admin")]
     [HttpGet]
     public IActionResult Create() => View();
 
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<IActionResult> Create(Grade grade)
     {

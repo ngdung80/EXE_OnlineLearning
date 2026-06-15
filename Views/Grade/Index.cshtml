@@ -29,7 +29,7 @@
     <div class="container">
         @if (TempData["Success"] != null) { <div class="alert-success mb-3">@TempData["Success"]</div> }
         <div class="mgmt-header">
-            <h2>📚 Quản lý khối lớp</h2>
+            <h2>📚 @(User.IsInRole("Admin") || User.IsInRole("Content Manager") || User.IsInRole("Content Approver") ? "Quản lý khối lớp" : "Khối lớp học tập")</h2>
             @if (User.IsInRole("Admin"))
             {
                 <a asp-action="Create" class="btn-add"><i class="fas fa-plus"></i> Thêm khối lớp</a>
@@ -44,7 +44,10 @@
                         <th>Mô tả</th>
                         <th>Trạng thái</th>
                         <th>Môn học</th>
-                        <th>Thao tác</th>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <th>Thao tác</th>
+                        }
                     </tr>
                 </thead>
                 <tbody>
@@ -64,22 +67,22 @@
                                 <td>
                                     <a href="/Subject?gradeId=@g.GradeId" style="color:#60a5fa;text-decoration:none;font-size:.85rem;">Xem môn học →</a>
                                 </td>
-                                <td>
-                                    @if (User.IsInRole("Admin"))
-                                    {
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <td>
                                         <a asp-action="Edit" asp-route-id="@g.GradeId" class="btn-sm-action btn-edit-sm me-1">✏️ Sửa</a>
                                         <form asp-action="Delete" asp-route-id="@g.GradeId" method="post" style="display:inline" onsubmit="return confirm('Xóa khối lớp này?')">
                                             @Html.AntiForgeryToken()
                                             <button type="submit" class="btn-sm-action btn-del-sm">🗑️ Xóa</button>
                                         </form>
-                                    }
-                                </td>
+                                    </td>
+                                }
                             </tr>
                         }
                     }
                     else
                     {
-                        <tr><td colspan="6" class="text-center" style="color:#64748b;padding:40px;">Không tìm thấy khối lớp nào.</td></tr>
+                        <tr><td colspan="@(User.IsInRole("Admin") ? 6 : 5)" class="text-center" style="color:#64748b;padding:40px;">Không tìm thấy khối lớp nào.</td></tr>
                     }
                 </tbody>
             </table>

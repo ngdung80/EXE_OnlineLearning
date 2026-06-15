@@ -5,7 +5,7 @@ using POT_System_ASPNET.Data.Entities;
 
 namespace POT_System_ASPNET.Controllers;
 
-[Authorize(Roles = "Admin,Content Manager")]
+[Authorize]
 public class ChapterController : Controller
 {
     private readonly IChapterService _chapterService;
@@ -21,12 +21,30 @@ public class ChapterController : Controller
 
     public async Task<IActionResult> Index(int? subjectId)
     {
-        ViewBag.Subjects = await _subjectService.GetAllAsync();
+        var isAdminOrManager = User.IsInRole("Admin") || User.IsInRole("Content Manager");
+        var allSubjects = await _subjectService.GetAllAsync();
+        ViewBag.Subjects = isAdminOrManager ? allSubjects : allSubjects.Where(s => s.Status == "Active").ToList();
         ViewBag.SelectedSubjectId = subjectId;
-        var chapters = subjectId.HasValue ? await _chapterService.GetBySubjectIdAsync(subjectId.Value) : await _chapterService.GetAllAsync();
+        
+        List<Chapter> chapters = subjectId.HasValue 
+            ? await _chapterService.GetBySubjectIdAsync(subjectId.Value) 
+            : await _chapterService.GetAllAsync();
+
+        if (!isAdminOrManager)
+        {
+            chapters = chapters.Where(c => c.Status == "Active").ToList();
+        }
+
+        if (subjectId.HasValue)
+        {
+            var subject = await _subjectService.GetByIdAsync(subjectId.Value);
+            ViewBag.Subject = subject;
+        }
+
         return View(chapters);
     }
 
+    [Authorize(Roles = "Admin,Content Manager")]
     [HttpGet]
     public async Task<IActionResult> Create(int? subjectId)
     {
@@ -36,6 +54,7 @@ public class ChapterController : Controller
         return View();
     }
 
+    [Authorize(Roles = "Admin,Content Manager")]
     [HttpPost]
     public async Task<IActionResult> Create(Chapter chapter)
     {
@@ -44,6 +63,7 @@ public class ChapterController : Controller
         return RedirectToAction(nameof(Index), new { subjectId = chapter.SubjectId });
     }
 
+    [Authorize(Roles = "Admin,Content Manager")]
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
@@ -53,6 +73,7 @@ public class ChapterController : Controller
         return View(chapter);
     }
 
+    [Authorize(Roles = "Admin,Content Manager")]
     [HttpPost]
     public async Task<IActionResult> Edit(Chapter chapter)
     {
@@ -61,6 +82,7 @@ public class ChapterController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    [Authorize(Roles = "Admin,Content Manager")]
     [HttpPost]
     public async Task<IActionResult> Delete(int id)
     {

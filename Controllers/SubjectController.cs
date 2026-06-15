@@ -5,7 +5,7 @@ using POT_System_ASPNET.Data.Entities;
 
 namespace POT_System_ASPNET.Controllers;
 
-[Authorize(Roles = "Admin,Content Manager")]
+[Authorize]
 public class SubjectController : Controller
 {
     private readonly ISubjectService _subjectService;
@@ -19,14 +19,29 @@ public class SubjectController : Controller
 
     public async Task<IActionResult> Index(int? gradeId)
     {
-        ViewBag.Grades = await _gradeService.GetAllAsync();
+        var isAdminOrManager = User.IsInRole("Admin") || User.IsInRole("Content Manager");
+        ViewBag.Grades = isAdminOrManager ? await _gradeService.GetAllAsync() : await _gradeService.GetActiveAsync();
         ViewBag.SelectedGradeId = gradeId;
-        var subjects = gradeId.HasValue
+        
+        List<Subject> subjects = gradeId.HasValue
             ? await _subjectService.GetByGradeIdAsync(gradeId.Value)
             : await _subjectService.GetAllAsync();
+
+        if (!isAdminOrManager)
+        {
+            subjects = subjects.Where(s => s.Status == "Active").ToList();
+        }
+
+        if (gradeId.HasValue)
+        {
+            var grade = await _gradeService.GetByIdAsync(gradeId.Value);
+            ViewBag.Grade = grade;
+        }
+
         return View(subjects);
     }
 
+    [Authorize(Roles = "Admin,Content Manager")]
     [HttpGet]
     public async Task<IActionResult> Create()
     {
@@ -34,6 +49,7 @@ public class SubjectController : Controller
         return View();
     }
 
+    [Authorize(Roles = "Admin,Content Manager")]
     [HttpPost]
     public async Task<IActionResult> Create(Subject subject, IFormFile? imageFile)
     {
@@ -51,6 +67,7 @@ public class SubjectController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    [Authorize(Roles = "Admin,Content Manager")]
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
@@ -60,6 +77,7 @@ public class SubjectController : Controller
         return View(subject);
     }
 
+    [Authorize(Roles = "Admin,Content Manager")]
     [HttpPost]
     public async Task<IActionResult> Edit(Subject subject, IFormFile? imageFile)
     {
@@ -77,6 +95,7 @@ public class SubjectController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    [Authorize(Roles = "Admin,Content Manager")]
     [HttpPost]
     public async Task<IActionResult> Delete(int id)
     {

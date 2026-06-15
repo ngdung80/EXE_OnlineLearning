@@ -6,7 +6,7 @@ using System.Security.Claims;
 
 namespace POT_System_ASPNET.Controllers;
 
-[Authorize(Roles = "Admin,Content Manager,Content Approver")]
+[Authorize]
 public class LessonController : Controller
 {
     private readonly ILessonService _lessonService;
@@ -26,18 +26,37 @@ public class LessonController : Controller
     public async Task<IActionResult> Index(string? name, int? gradeId, int? subjectId, int? chapterId, string? status, int page = 1)
     {
         const int pageSize = 10;
-        ViewBag.Grades = await _gradeService.GetAllAsync();
-        ViewBag.Subjects = subjectId.HasValue ? await _subjectService.GetByGradeIdAsync(gradeId ?? 0) : new List<Subject>();
-        ViewBag.Chapters = chapterId.HasValue ? await _chapterService.GetBySubjectIdAsync(subjectId ?? 0) : new List<Chapter>();
+        var isAdminOrStaff = User.IsInRole("Admin") || User.IsInRole("Content Manager") || User.IsInRole("Content Approver");
+
+        if (!isAdminOrStaff)
+        {
+            status = "Active"; // Force active only for Student and Parent
+        }
+
+        ViewBag.Grades = isAdminOrStaff ? await _gradeService.GetAllAsync() : await _gradeService.GetActiveAsync();
+        
+        var rawSubjects = subjectId.HasValue ? await _subjectService.GetByGradeIdAsync(gradeId ?? 0) : new List<Subject>();
+        ViewBag.Subjects = isAdminOrStaff ? rawSubjects : rawSubjects.Where(s => s.Status == "Active").ToList();
+        
+        var rawChapters = chapterId.HasValue ? await _chapterService.GetBySubjectIdAsync(subjectId ?? 0) : new List<Chapter>();
+        ViewBag.Chapters = isAdminOrStaff ? rawChapters : rawChapters.Where(c => c.Status == "Active").ToList();
+
         ViewBag.Filter = new { name, gradeId, subjectId, chapterId, status, page };
 
         var lessons = await _lessonService.SearchAsync(name, gradeId, subjectId, chapterId, status, page, pageSize);
         var total = await _lessonService.CountAsync(name, gradeId, subjectId, chapterId, status);
         ViewBag.TotalPages = (int)Math.Ceiling((double)total / pageSize);
         ViewBag.CurrentPage = page;
+
+        if (chapterId.HasValue)
+        {
+            ViewBag.Chapter = await _chapterService.GetByIdAsync(chapterId.Value);
+        }
+
         return View(lessons);
     }
 
+    [Authorize(Roles = "Admin,Content Manager,Content Approver")]
     [HttpGet]
     public async Task<IActionResult> Create()
     {
@@ -46,6 +65,7 @@ public class LessonController : Controller
         return View();
     }
 
+    [Authorize(Roles = "Admin,Content Manager,Content Approver")]
     [HttpPost]
     public async Task<IActionResult> Create(Lesson lesson, IFormFile? lessonFile, IFormFile? imageFile)
     {
@@ -73,6 +93,7 @@ public class LessonController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    [Authorize(Roles = "Admin,Content Manager,Content Approver")]
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
@@ -83,6 +104,7 @@ public class LessonController : Controller
         return View(lesson);
     }
 
+    [Authorize(Roles = "Admin,Content Manager,Content Approver")]
     [HttpPost]
     public async Task<IActionResult> Edit(Lesson lesson, IFormFile? imageFile, IFormFile? lessonFile)
     {
@@ -117,12 +139,15 @@ public class LessonController : Controller
         return RedirectToAction(nameof(Index));
     }
 
+    [Authorize(Roles = "Admin,Content Manager,Content Approver")]
     [HttpPost]
     public async Task<IActionResult> SetInactive(int id) { await _lessonService.SetInactiveAsync(id); return RedirectToAction(nameof(Index)); }
 
+    [Authorize(Roles = "Admin,Content Manager,Content Approver")]
     [HttpPost]
     public async Task<IActionResult> Recover(int id) { await _lessonService.RecoverAsync(id); return RedirectToAction(nameof(Index)); }
 
+    [Authorize(Roles = "Admin,Content Manager,Content Approver")]
     [HttpPost]
     public async Task<IActionResult> Delete(int id) { await _lessonService.DeleteAsync(id); return RedirectToAction(nameof(Index)); }
 
