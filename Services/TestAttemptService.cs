@@ -53,7 +53,21 @@ public class TestAttemptService : ITestAttemptService
         foreach (var q in questions)
         {
             var selected = answers.ContainsKey(q.QuestionId) ? answers[q.QuestionId] : null;
-            bool isCorrect = selected != null && selected == q.CorrectAnswer;
+            bool isMc = q.IsMultipleChoice;
+            bool isCorrect = false;
+            if (selected != null)
+            {
+                if (isMc)
+                {
+                    isCorrect = selected.Trim().Equals(q.CorrectAnswer?.Trim(), StringComparison.OrdinalIgnoreCase);
+                }
+                else
+                {
+                    var cleanSelected = selected.Trim().ToLower();
+                    var cleanCorrect = q.CorrectAnswer?.Trim().ToLower() ?? "";
+                    isCorrect = cleanCorrect.Length > 0 && (cleanSelected == cleanCorrect || cleanSelected.Contains(cleanCorrect) || cleanCorrect.Contains(cleanSelected));
+                }
+            }
             if (isCorrect) correct++;
             _db.TestQuestionResults.Add(new TestQuestionResult
             {

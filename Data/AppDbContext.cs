@@ -25,6 +25,7 @@ public class AppDbContext : DbContext
     public DbSet<Notification> Notifications { get; set; }
     public DbSet<QuestionReport> QuestionReports { get; set; }
     public DbSet<MentorAssignment> MentorAssignments { get; set; }
+    public DbSet<StudentLessonProgress> StudentLessonProgresses { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -107,6 +108,7 @@ public class AppDbContext : DbContext
             e.Property(l => l.InactiveDate).HasColumnName("inactive_date");
             e.Property(l => l.ImageUrl).HasColumnName("image_url");
             e.Property(l => l.DeletedDate).HasColumnName("deleted_date");
+            e.Property(l => l.VocabularyJson).HasColumnName("vocabulary_json");
             e.HasOne(l => l.Chapter).WithMany(c => c.Lessons).HasForeignKey(l => l.ChapterId);
         });
 
@@ -314,6 +316,20 @@ public class AppDbContext : DbContext
             e.Property(ma => ma.Status).HasColumnName("status");
             e.HasOne(ma => ma.Mentor).WithMany().HasForeignKey(ma => ma.MentorId).OnDelete(DeleteBehavior.NoAction);
             e.HasOne(ma => ma.Student).WithMany().HasForeignKey(ma => ma.StudentId).OnDelete(DeleteBehavior.NoAction);
+        });
+
+        // ── StudentLessonProgress ───────────────────────────────────────────
+        modelBuilder.Entity<StudentLessonProgress>(e =>
+        {
+            e.ToTable("StudentLessonProgress");
+            e.HasKey(p => p.ProgressId);
+            e.Property(p => p.ProgressId).HasColumnName("progress_id");
+            e.Property(p => p.StudentId).HasColumnName("student_id");
+            e.Property(p => p.LessonId).HasColumnName("lesson_id");
+            e.Property(p => p.CompletedAt).HasColumnName("completed_at");
+
+            e.HasOne(p => p.Student).WithMany().HasForeignKey(p => p.StudentId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(p => p.Lesson).WithMany().HasForeignKey(p => p.LessonId).OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

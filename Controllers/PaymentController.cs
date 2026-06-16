@@ -64,7 +64,8 @@ public class PaymentController : Controller
         var returnUrl = _config["PayOS:ReturnUrl"] + $"?transactionId={transaction.TransactionId}";
         var cancelUrl = _config["PayOS:CancelUrl"] + $"?transactionId={transaction.TransactionId}";
 
-        long orderCode = transaction.TransactionId;
+        // Sử dụng random prefix kết hợp với TransactionId để tránh trùng lặp OrderCode trên PayOS
+        long orderCode = new Random().Next(1000, 10000) * 100000L + transaction.TransactionId;
         long amountInVND = (long)package.Price;
         
         PaymentLinkItem item = new PaymentLinkItem { Name = package.PackageName, Quantity = 1, Price = amountInVND };
@@ -74,15 +75,22 @@ public class PaymentController : Controller
         {
             OrderCode = orderCode,
             Amount = amountInVND,
-            Description = $"ma don {orderCode}", // Simplified description to avoid payOS validation issues or special chars
+            Description = $"madon{transaction.TransactionId}",
             Items = items,
             CancelUrl = cancelUrl,
             ReturnUrl = returnUrl
         };
 
-        CreatePaymentLinkResponse createPayment = await _payOS.PaymentRequests.CreateAsync(paymentData);
-
-        return Redirect(createPayment.CheckoutUrl);
+        try
+        {
+            CreatePaymentLinkResponse createPayment = await _payOS.PaymentRequests.CreateAsync(paymentData);
+            return Redirect(createPayment.CheckoutUrl);
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = $"Không thể khởi tạo thanh toán với PayOS: {ex.Message}";
+            return Redirect("/Package/List");
+        }
     }
 
     [Authorize(Roles = "Parent")]
@@ -162,7 +170,8 @@ public class PaymentController : Controller
             await _walletService.InsertTransactionAsync(walletTransaction);
         }
 
-        long orderCode = walletTransaction.WalletTransactionId + 100000000;
+        // Sử dụng random prefix kết hợp với WalletTransactionId để tránh trùng lặp OrderCode trên PayOS
+        long orderCode = new Random().Next(11000, 20000) * 100000L + walletTransaction.WalletTransactionId;
         long amountInVND = (long)amount;
 
         var returnUrl = $"{Request.Scheme}://{Request.Host}/Payment/TopUpSuccess?walletTransactionId={walletTransaction.WalletTransactionId}";
@@ -175,35 +184,45 @@ public class PaymentController : Controller
         {
             OrderCode = orderCode,
             Amount = amountInVND,
-            Description = $"nap tien {orderCode}",
+            Description = $"naptien{walletTransaction.WalletTransactionId}",
             Items = items,
             CancelUrl = cancelUrl,
             ReturnUrl = returnUrl
         };
 
-        CreatePaymentLinkResponse createPayment = await _payOS.PaymentRequests.CreateAsync(paymentData);
-        return Redirect(createPayment.CheckoutUrl);
+        try
+        {
+            CreatePaymentLinkResponse createPayment = await _payOS.PaymentRequests.CreateAsync(paymentData);
+            return Redirect(createPayment.CheckoutUrl);
+        }
+        catch (Exception ex)
+        {
+            TempData["Error"] = $"Không thể khởi tạo nạp tiền với PayOS: {ex.Message}";
+            return RedirectToAction("Index", "Wallet");
+        }
     }
 
     [Authorize(Roles = "Parent")]
-    public async Task<IActionResult> TopUpSuccess(int walletTransactionId, string code = "", string status = "")
+    public async Task<IActionResult> TopUpSuccess(int walletTransactionId, string code = "", string status = "", long? orderCode = null)
     {
         var parentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
         var wallet = await _walletService.GetByParentIdAsync(parentId);
         
         if (wallet == null) return NotFound();
 
-        long orderCode = walletTransactionId + 100000000;
         bool isSuccess = false;
-        try 
+        if (orderCode.HasValue)
         {
-            PaymentLink paymentInfo = await _payOS.PaymentRequests.GetAsync((int)orderCode);
-            if (paymentInfo.Status == PaymentLinkStatus.Paid)
+            try 
             {
-                isSuccess = true;
-            }
-        } 
-        catch { }
+                PaymentLink paymentInfo = await _payOS.PaymentRequests.GetAsync((int)orderCode.Value);
+                if (paymentInfo.Status == PaymentLinkStatus.Paid)
+                {
+                    isSuccess = true;
+                }
+            } 
+            catch { }
+        }
 
         if (isSuccess || (code == "00" && (status == "PAID" || status == "SUCCESS")))
         {
@@ -221,7 +240,6 @@ public class PaymentController : Controller
     [Authorize(Roles = "Parent")]
     public async Task<IActionResult> TopUpCancel(int walletTransactionId)
     {
-        // For simplicity, we just redirect back with a message
         TempData["Error"] = "Bạn đã hủy nạp tiền.";
         return RedirectToAction("Index", "Wallet");
     }
@@ -236,13 +254,31 @@ public class PaymentController : Controller
 
             if (data.Code == "00")
             {
-                if (data.OrderCode > 100000000)
+                int orderCodeInt = (int)data.OrderCode;
+                
+                if (orderCodeInt >= 1100000000)
                 {
-                    await CompleteTopUpTransaction((int)(data.OrderCode - 100000000));
+                    // New style TopUp
+                    await CompleteTopUpTransaction(orderCodeInt % 100000);
+                }
+                else if (orderCodeInt >= 100000000)
+                {
+                    // New style Package purchase or old style TopUp
+                    int potentialOldTopUpId = orderCodeInt - 100000000;
+                    var oldTopUp = await _walletService.GetTransactionByIdAsync(potentialOldTopUpId);
+                    if (oldTopUp != null)
+                    {
+                        await CompleteTopUpTransaction(potentialOldTopUpId);
+                    }
+                    else
+                    {
+                        await CompleteTransaction(orderCodeInt % 100000);
+                    }
                 }
                 else
                 {
-                    await CompleteTransaction((int)data.OrderCode);
+                    // Old style Package purchase
+                    await CompleteTransaction(orderCodeInt);
                 }
             }
 

@@ -30,7 +30,14 @@
                         <input type="hidden" name="CorrectAnswer" id="correctAnswerHidden" />
 
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Loại câu hỏi *</label>
+                                <select name="IsMultipleChoice" id="qTypeSelect" class="form-select" onchange="toggleQuestionType()" required>
+                                    <option value="true" selected>Trắc nghiệm</option>
+                                    <option value="false">Tự luận</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
                                 <label class="form-label">Bài học *</label>
                                 <select name="LessonId" class="form-select" required>
                                     <option value="">-- Chọn bài học --</option>
@@ -40,7 +47,7 @@
                                     }
                                 </select>
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label class="form-label">Mức độ nhận thức *</label>
                                 <select name="Level" class="form-select" required>
                                     <option value="Remember">Nhận biết</option>
@@ -52,10 +59,11 @@
 
                         <div class="mb-3">
                             <label class="form-label">Nội dung câu hỏi *</label>
-                            <textarea name="QuestionContent" class="form-control" rows="4" placeholder="Nhập nội dung câu hỏi trắc nghiệm tại đây..." required></textarea>
+                            <textarea name="QuestionContent" class="form-control" rows="4" placeholder="Nhập nội dung câu hỏi..." required></textarea>
                         </div>
 
-                        <div class="row">
+                        <!-- MC Options wrapper -->
+                        <div class="row" id="mcOptionsWrapper">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Đáp án A *</label>
                                 <input type="text" id="optA" class="form-control" placeholder="Lựa chọn đáp án A" required>
@@ -74,7 +82,8 @@
                             </div>
                         </div>
 
-                        <div class="mb-4">
+                        <!-- MC Correct Option Select -->
+                        <div class="mb-4" id="mcCorrectOptionWrapper">
                             <label class="form-label">Đáp án đúng *</label>
                             <select id="correctOptionSelect" class="form-select" required>
                                 <option value="A">Đáp án A</option>
@@ -82,6 +91,12 @@
                                 <option value="C">Đáp án C</option>
                                 <option value="D">Đáp án D</option>
                             </select>
+                        </div>
+
+                        <!-- Essay Answer Hint wrapper (Initially Hidden) -->
+                        <div class="mb-4" id="essayCorrectAnswerWrapper" style="display: none;">
+                            <label class="form-label">Gợi ý đáp án đúng / Mẫu đáp án tự luận *</label>
+                            <textarea id="essayCorrectAnswerInput" class="form-control" rows="3" placeholder="Nhập câu trả lời mẫu cho tự luận..."></textarea>
                         </div>
 
                         <div class="d-flex gap-3">
@@ -97,27 +112,62 @@
 
 @section Scripts {
     <script>
+        function toggleQuestionType() {
+            const isMultiple = document.getElementById('qTypeSelect').value === 'true';
+            const mcWrapper = document.getElementById('mcOptionsWrapper');
+            const mcCorrectWrapper = document.getElementById('mcCorrectOptionWrapper');
+            const essayWrapper = document.getElementById('essayCorrectAnswerWrapper');
+
+            const optInputs = [document.getElementById('optA'), document.getElementById('optB'), document.getElementById('optC'), document.getElementById('optD')];
+            const correctOptSel = document.getElementById('correctOptionSelect');
+            const essayInput = document.getElementById('essayCorrectAnswerInput');
+
+            if (isMultiple) {
+                mcWrapper.style.display = 'flex';
+                mcCorrectWrapper.style.display = 'block';
+                essayWrapper.style.display = 'none';
+
+                optInputs.forEach(i => i.setAttribute('required', 'required'));
+                correctOptSel.setAttribute('required', 'required');
+                essayInput.removeAttribute('required');
+            } else {
+                mcWrapper.style.display = 'none';
+                mcCorrectWrapper.style.display = 'none';
+                essayWrapper.style.display = 'block';
+
+                optInputs.forEach(i => i.removeAttribute('required'));
+                correctOptSel.removeAttribute('required');
+                essayInput.setAttribute('required', 'required');
+            }
+        }
+
         function prepareAnswers(e) {
             e.preventDefault();
 
-            const optA = document.getElementById('optA').value.trim();
-            const optB = document.getElementById('optB').value.trim();
-            const optC = document.getElementById('optC').value.trim();
-            const optD = document.getElementById('optD').value.trim();
-            const correctLetter = document.getElementById('correctOptionSelect').value;
+            const isMultiple = document.getElementById('qTypeSelect').value === 'true';
+            if (isMultiple) {
+                const optA = document.getElementById('optA').value.trim();
+                const optB = document.getElementById('optB').value.trim();
+                const optC = document.getElementById('optC').value.trim();
+                const optD = document.getElementById('optD').value.trim();
+                const correctLetter = document.getElementById('correctOptionSelect').value;
 
-            // Combine answers
-            const answers = [optA, optB, optC, optD];
-            document.getElementById('answerHidden').value = answers.join(', ');
+                // Combine answers
+                const answers = [optA, optB, optC, optD];
+                document.getElementById('answerHidden').value = answers.join(', ');
 
-            // Set correct answer text
-            let correctVal = "";
-            if (correctLetter === "A") correctVal = optA;
-            else if (correctLetter === "B") correctVal = optB;
-            else if (correctLetter === "C") correctVal = optC;
-            else if (correctLetter === "D") correctVal = optD;
+                // Set correct answer text
+                let correctVal = "";
+                if (correctLetter === "A") correctVal = optA;
+                else if (correctLetter === "B") correctVal = optB;
+                else if (correctLetter === "C") correctVal = optC;
+                else if (correctLetter === "D") correctVal = optD;
 
-            document.getElementById('correctAnswerHidden').value = correctVal;
+                document.getElementById('correctAnswerHidden').value = correctVal;
+            } else {
+                document.getElementById('answerHidden').value = ""; // No multiple choice options
+                document.getElementById('correctAnswerHidden').value = document.getElementById('essayCorrectAnswerInput').value.trim();
+            }
 
             // Submit the form
             document.getElementById('questionForm').submit();

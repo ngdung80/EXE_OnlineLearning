@@ -1,0 +1,268 @@
+@model dynamic
+@{
+    ViewData["Title"] = "Góc Luyện Tập Học Tập";
+    var grades = ViewBag.Grades as List<POT_System_ASPNET.Data.Entities.Grade> ?? new List<POT_System_ASPNET.Data.Entities.Grade>();
+    var subjects = ViewBag.Subjects as List<POT_System_ASPNET.Data.Entities.Subject> ?? new List<POT_System_ASPNET.Data.Entities.Subject>();
+    var chapters = ViewBag.Chapters as List<POT_System_ASPNET.Data.Entities.Chapter> ?? new List<POT_System_ASPNET.Data.Entities.Chapter>();
+    var lessons = ViewBag.Lessons as List<POT_System_ASPNET.Data.Entities.Lesson> ?? new List<POT_System_ASPNET.Data.Entities.Lesson>();
+    var completedLessonIds = ViewBag.CompletedLessonIds as List<int> ?? new List<int>();
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+    .practice-section { padding: 60px 0; background: linear-gradient(135deg, #0f172a, #1e293b); min-height: 90vh; color: #fff; font-family: 'Nunito', sans-serif; }
+    .page-header { text-align: center; margin-bottom: 50px; }
+    .page-title { font-size: 2.8rem; font-weight: 900; background: linear-gradient(135deg, #ec6090, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
+    .page-subtitle { color: #94a3b8; font-size: 1.1rem; font-weight: 600; }
+    
+    .step-card { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 24px; padding: 30px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+    .step-header { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 15px; }
+    .step-num { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #ec6090, #e75485); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem; }
+    .step-title { font-size: 1.3rem; font-weight: 800; color: #f8fafc; }
+
+    .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
+    .item-card { background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.25s ease; position: relative; overflow: hidden; }
+    .item-card:hover { transform: translateY(-4px); border-color: #ec6090; background: rgba(236, 96, 144, 0.05); box-shadow: 0 8px 24px rgba(236, 96, 144, 0.15); }
+    .item-card.active { border-color: #c084fc; background: rgba(192, 132, 252, 0.1); box-shadow: 0 8px 24px rgba(192, 132, 252, 0.2); }
+    .item-card i { font-size: 2.2rem; color: #ec6090; margin-bottom: 12px; display: block; transition: all 0.2s; }
+    .item-card.active i { color: #c084fc; }
+    .item-title { font-weight: 700; font-size: 1.05rem; color: #e2e8f0; }
+
+    .list-container { display: flex; flex-direction: column; gap: 12px; }
+    .list-item { display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; cursor: pointer; transition: all 0.2s; }
+    .list-item:hover { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.2); }
+    .list-item.active { background: rgba(192, 132, 252, 0.08); border-color: #c084fc; }
+    .list-item-title { font-weight: 700; font-size: 1.1rem; color: #f1f5f9; }
+    .list-item-meta { font-size: 0.85rem; color: #94a3b8; }
+
+    .lesson-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+    .lesson-card-item { background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; transition: all 0.3s; min-height: 200px; }
+    .lesson-card-item.locked { opacity: 0.65; cursor: not-allowed; background: rgba(15, 23, 42, 0.4); border-color: rgba(255,255,255,0.03); }
+    .lesson-card-item.completed { border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.02); }
+    .lesson-card-item.completed:hover { transform: translateY(-5px); border-color: #10b981; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.15); }
+    
+    .lock-overlay { position: absolute; top: 15px; right: 15px; font-size: 1.3rem; color: #ef4444; background: rgba(239, 68, 68, 0.15); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .complete-badge { position: absolute; top: 15px; right: 15px; font-size: 0.8rem; color: #10b981; background: rgba(16, 185, 129, 0.15); padding: 4px 10px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 700; }
+    
+    .lesson-card-name { font-size: 1.25rem; font-weight: 800; color: #f8fafc; margin-bottom: 8px; padding-right: 50px; line-height: 1.4; }
+    .lesson-card-desc { font-size: 0.85rem; color: #94a3b8; line-height: 1.6; margin-bottom: 20px; }
+    .btn-start-practice { width: 100%; padding: 12px; border-radius: 12px; border: none; background: linear-gradient(135deg, #10b981, #059669); color: #fff; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
+    .btn-start-practice:hover { transform: scale(1.02); box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35); }
+    
+    .locked-msg { font-size: 0.82rem; color: #f87171; display: flex; align-items: center; gap: 6px; font-weight: 600; }
+    
+    .empty-state { text-align: center; padding: 40px 20px; color: #94a3b8; font-weight: 600; font-size: 1.05rem; }
+</style>
+
+<section class="practice-section">
+    <div class="container">
+        <div class="page-header animate__animated animate__fadeInDown">
+            <h1 class="page-title"><i class="fas fa-medal"></i> Góc Luyện Tập Đề Thi</h1>
+            <p class="page-subtitle">Rèn luyện kiến thức mỗi ngày với các bài học con đã hoàn thành xong!</p>
+        </div>
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger mb-4" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; border-radius: 15px; padding: 15px 20px; font-weight: 600;">
+                <i class="fas fa-exclamation-triangle"></i> @TempData["Error"]
+            </div>
+        }
+
+        <!-- STEP 1: SELECT GRADE -->
+        <div class="step-card animate__animated animate__fadeInUp" id="step-grade-container">
+            <div class="step-header">
+                <div class="step-num">1</div>
+                <h2 class="step-title">Chọn Khối Lớp của con</h2>
+            </div>
+            <div class="grid-container">
+                @foreach (var g in grades)
+                {
+                    <div class="item-card" onclick="selectGrade(@g.GradeId, this)">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span class="item-title">@g.GradeName</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- STEP 2: SELECT SUBJECT -->
+        <div class="step-card" id="step-subject-container" style="display: none;">
+            <div class="step-header">
+                <div class="step-num">2</div>
+                <h2 class="step-title">Chọn Môn Học con muốn luyện</h2>
+            </div>
+            <div class="grid-container" id="subject-list"></div>
+        </div>
+
+        <!-- STEP 3: SELECT CHAPTER -->
+        <div class="step-card" id="step-chapter-container" style="display: none;">
+            <div class="step-header">
+                <div class="step-num">3</div>
+                <h2 class="step-title">Chọn Chương bài học</h2>
+            </div>
+            <div class="list-container" id="chapter-list"></div>
+        </div>
+
+        <!-- STEP 4: SELECT LESSON -->
+        <div class="step-card" id="step-lesson-container" style="display: none;">
+            <div class="step-header">
+                <div class="step-num">4</div>
+                <h2 class="step-title">Chọn Bài Học để bắt đầu luyện tập</h2>
+            </div>
+            <div class="lesson-grid" id="lesson-list"></div>
+        </div>
+    </div>
+</section>
+
+<form id="practiceForm" method="post" action="/Test/StartPractice" style="display: none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="lessonId" id="formLessonId" />
+</form>
+
+<script>
+    // Data loaded from server
+    const subjects = [
+        @foreach (var s in subjects) {
+            @Html.Raw($"{{ id: {s.SubjectId}, name: '{s.SubjectName.Replace("'", "\\'")}', gradeId: {s.GradeId} }},")
+        }
+    ];
+
+    const chapters = [
+        @foreach (var c in chapters) {
+            @Html.Raw($"{{ id: {c.ChapterId}, name: '{c.ChapterName.Replace("'", "\\'")}', subjectId: {c.SubjectId} }},")
+        }
+    ];
+
+    const lessons = [
+        @foreach (var l in lessons) {
+            @Html.Raw($"{{ id: {l.LessonId}, name: '{l.LessonName.Replace("'", "\\'")}', chapterId: {l.ChapterId}, completed: {completedLessonIds.Contains(l.LessonId).ToString().ToLower()} }},")
+        }
+    ];
+
+    let selectedGradeId = null;
+    let selectedSubjectId = null;
+    let selectedChapterId = null;
+
+    function selectGrade(gradeId, element) {
+        selectedGradeId = gradeId;
+        
+        // Update styling
+        document.querySelectorAll('#step-grade-container .item-card').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+
+        // Filter subjects
+        const filteredSubjects = subjects.filter(s => s.gradeId === gradeId);
+        const subjectList = document.getElementById('subject-list');
+        subjectList.innerHTML = '';
+
+        if (filteredSubjects.length > 0) {
+            filteredSubjects.forEach(s => {
+                const icon = s.name.toLowerCase().includes('toán') ? 'fa-calculator' : 
+                             s.name.toLowerCase().includes('anh') || s.name.toLowerCase().includes('english') ? 'fa-language' : 
+                             s.name.toLowerCase().includes('văn') || s.name.toLowerCase().includes('tiếng việt') ? 'fa-book-open' : 'fa-atom';
+                subjectList.innerHTML += `
+                    <div class="item-card" onclick="selectSubject(${s.id}, this)">
+                        <i class="fas ${icon}"></i>
+                        <span class="item-title">${s.name}</span>
+                    </div>
+                `;
+            });
+            document.getElementById('step-subject-container').style.display = 'block';
+            document.getElementById('step-subject-container').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            subjectList.innerHTML = '<div class="empty-state">Không có môn học nào thuộc khối lớp này.</div>';
+            document.getElementById('step-subject-container').style.display = 'block';
+        }
+
+        // Hide subsequent steps
+        document.getElementById('step-chapter-container').style.display = 'none';
+        document.getElementById('step-lesson-container').style.display = 'none';
+    }
+
+    function selectSubject(subjectId, element) {
+        selectedSubjectId = subjectId;
+
+        // Update styling
+        document.querySelectorAll('#step-subject-container .item-card').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+
+        // Filter chapters
+        const filteredChapters = chapters.filter(c => c.subjectId === subjectId);
+        const chapterList = document.getElementById('chapter-list');
+        chapterList.innerHTML = '';
+
+        if (filteredChapters.length > 0) {
+            filteredChapters.forEach(c => {
+                chapterList.innerHTML += `
+                    <div class="list-item" onclick="selectChapter(${c.id}, this)">
+                        <span class="list-item-title"><i class="fas fa-folder-open" style="color: #c084fc; margin-right: 10px;"></i> ${c.name}</span>
+                        <span class="list-item-meta">Nhấp chọn chương này</span>
+                    </div>
+                `;
+            });
+            document.getElementById('step-chapter-container').style.display = 'block';
+            document.getElementById('step-chapter-container').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            chapterList.innerHTML = '<div class="empty-state">Không có chương nào thuộc môn học này.</div>';
+            document.getElementById('step-chapter-container').style.display = 'block';
+        }
+
+        // Hide subsequent steps
+        document.getElementById('step-lesson-container').style.display = 'none';
+    }
+
+    function selectChapter(chapterId, element) {
+        selectedChapterId = chapterId;
+
+        // Update styling
+        document.querySelectorAll('#step-chapter-container .list-item').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+
+        // Filter lessons
+        const filteredLessons = lessons.filter(l => l.chapterId === chapterId);
+        const lessonList = document.getElementById('lesson-list');
+        lessonList.innerHTML = '';
+
+        if (filteredLessons.length > 0) {
+            filteredLessons.forEach(l => {
+                if (l.completed) {
+                    lessonList.innerHTML += `
+                        <div class="lesson-card-item completed animate__animated animate__fadeIn">
+                            <span class="complete-badge"><i class="fas fa-check-circle"></i> Đã hoàn thành</span>
+                            <div>
+                                <h3 class="lesson-card-name">${l.name}</h3>
+                                <p class="lesson-card-desc">Con đã học xong lý thuyết bài này. Hãy luyện tập để củng cố kiến thức nhé!</p>
+                            </div>
+                            <button type="button" class="btn-start-practice" onclick="startPractice(${l.id})">
+                                <i class="fas fa-play"></i> Bắt đầu Luyện tập
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    lessonList.innerHTML += `
+                        <div class="lesson-card-item locked">
+                            <div class="lock-overlay"><i class="fas fa-lock"></i></div>
+                            <div>
+                                <h3 class="lesson-card-name">${l.name}</h3>
+                                <p class="lesson-card-desc">Con cần xem bài giảng và hoàn thành phần từ mới của bài này trước khi làm luyện tập.</p>
+                            </div>
+                            <div class="locked-msg">
+                                <i class="fas fa-ban"></i> Chưa mở khóa
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            document.getElementById('step-lesson-container').style.display = 'block';
+            document.getElementById('step-lesson-container').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            lessonList.innerHTML = '<div class="empty-state">Không có bài học nào trong chương này.</div>';
+            document.getElementById('step-lesson-container').style.display = 'block';
+        }
+    }
+
+    function startPractice(lessonId) {
+        document.getElementById('formLessonId').value = lessonId;
+        document.getElementById('practiceForm').submit();
+    }
+</script>

@@ -18,6 +18,7 @@ public interface IWalletService
     Task UpdateTransactionAsync(WalletTransaction wt);
     /// <summary>Tìm giao dịch TopUp Pending của ví trong vòng 10 phút để tránh tạo duplicate</summary>
     Task<WalletTransaction?> GetPendingTopUpAsync(int walletId, double amount);
+    Task DeleteTransactionAsync(int transactionId);
 }
 
 public class WalletService : IWalletService
@@ -82,6 +83,16 @@ public class WalletService : IWalletService
     {
         _db.WalletTransactions.Update(wt);
         await _db.SaveChangesAsync();
+    }
+
+    public async Task DeleteTransactionAsync(int transactionId)
+    {
+        var wt = await _db.WalletTransactions.FindAsync(transactionId);
+        if (wt != null)
+        {
+            _db.WalletTransactions.Remove(wt);
+            await _db.SaveChangesAsync();
+        }
     }
 
     public async Task<WalletTransaction?> GetPendingTopUpAsync(int walletId, double amount)

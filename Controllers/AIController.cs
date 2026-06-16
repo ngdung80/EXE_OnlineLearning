@@ -55,20 +55,24 @@ public class AIController : Controller
             var subject = await _subjectService.GetByIdAsync(req.SubjectId);
             if (subject == null) throw new Exception("Subject does not exist.");
 
-            var chapters = await _chapterService.GetBySubjectIdAsync(req.SubjectId);
-            var lessons = new List<Lesson>();
-            foreach (var ch in chapters)
-                lessons.AddRange(await _lessonService.GetByChapterIdAsync(ch.ChapterId));
+            List<Lesson> lessons = new List<Lesson>();
+            if (req.LessonId.HasValue && req.LessonId.Value > 0)
+            {
+                var targetLesson = await _lessonService.GetByIdAsync(req.LessonId.Value);
+                if (targetLesson != null) lessons.Add(targetLesson);
+            }
+            else
+            {
+                var chapters = await _chapterService.GetBySubjectIdAsync(req.SubjectId);
+                foreach (var ch in chapters)
+                    lessons.AddRange(await _lessonService.GetByChapterIdAsync(ch.ChapterId));
+            }
 
-            if (!lessons.Any()) throw new Exception("No lessons found for this subject.");
-
-            var existingQuestions = new List<Question>();
-            foreach (var l in lessons)
-                existingQuestions.AddRange(await _questionService.GetByLessonIdAsync(l.LessonId));
+            if (!lessons.Any()) throw new Exception("Không tìm thấy bài học nào.");
 
             var practice = new Test
             {
-                TestName = req.PracticeName ?? $"AI Practice {DateTime.Now:yyyyMMddHHmm}",
+                TestName = req.PracticeName ?? $"Luyện tập AI {DateTime.Now:yyyyMMddHHmm}",
                 SubjectId = req.SubjectId,
                 Duration = req.Duration,
                 Status = "Active",
@@ -78,30 +82,40 @@ public class AIController : Controller
             var practiceId = await _testService.InsertAsync(practice);
 
             var questions = new List<Question>();
-            var levelCounts = new[] { (Level: "Remember", Count: req.RememberCount), (Level: "Understand", Count: req.UnderstandCount), (Level: "Apply", Count: req.ApplyCount) };
+            
+            // Build the single batch prompt to retrieve all questions in one go
+            var prompt = BuildBatchPrompt(lessons, req.RememberCount, req.UnderstandCount, req.ApplyCount, req.AdditionalRequirements, subject);
+            
+            var aiResponse = await _geminiService.GenerateContentAsync(prompt);
+            var cleanJsonString = CleanJson(aiResponse);
+            
+            var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var aiQuestions = JsonSerializer.Deserialize<List<AIQuestionDto>>(cleanJsonString, jsonOptions);
 
-            foreach (var (level, count) in levelCounts)
+            if (aiQuestions != null)
             {
-                for (int i = 0; i < count; i++)
+                foreach (var aiQ in aiQuestions)
                 {
-                    try
-                    {
-                        var prompt = BuildPrompt(level, lessons, existingQuestions, req.AdditionalRequirements, subject);
-                        var aiResponse = await _geminiService.GenerateContentAsync(prompt);
-                        var question = ParseAIResponse(aiResponse, lessons.First().LessonId, level);
+                    if (string.IsNullOrEmpty(aiQ.QuestionContent) || aiQ.Options == null || aiQ.Options.Count < 4 || string.IsNullOrEmpty(aiQ.CorrectAnswer))
+                        continue;
 
-                        if (question != null && !await _questionService.ContentExistsAsync(question.QuestionContent))
-                        {
-                            var qId = await _questionService.InsertAsync(question);
-                            questions.Add(question);
-                            await _testService.AddQuestionToTestAsync(practiceId, qId);
-                        }
-                    }
-                    catch (Exception ex) when (ex.Message.Contains("429"))
+                    if (await _questionService.ContentExistsAsync(aiQ.QuestionContent))
+                        continue;
+
+                    var question = new Question
                     {
-                        await Task.Delay(32000);
-                        i--;
-                    }
+                        QuestionContent = aiQ.QuestionContent,
+                        LessonId = lessons.First().LessonId,
+                        Status = "Active",
+                        IsMultipleChoice = true,
+                        Answer = string.Join(", ", aiQ.Options),
+                        CorrectAnswer = aiQ.CorrectAnswer,
+                        Level = aiQ.Level ?? "Remember"
+                    };
+
+                    var qId = await _questionService.InsertAsync(question);
+                    questions.Add(question);
+                    await _testService.AddQuestionToTestAsync(practiceId, qId);
                 }
             }
 
@@ -152,36 +166,104 @@ public class AIController : Controller
         }
     }
 
-    private string BuildPrompt(string level, List<Lesson> lessons, List<Question> existingQuestions, string? additionalReqs, Data.Entities.Subject subject)
+    [Authorize(Roles = "Student")]
+    [HttpPost]
+    public async Task<IActionResult> GenerateSingleQuestion([FromBody] SingleQuestionRequest req)
+    {
+        Response.ContentType = "application/json";
+        try
+        {
+            var lesson = await _lessonService.GetByIdAsync(req.LessonId);
+            if (lesson == null) throw new Exception("Bài học không tồn tại.");
+
+            var subject = lesson.Chapter?.Subject;
+            if (subject == null) throw new Exception("Môn học không tồn tại.");
+
+            var sb = new StringBuilder();
+            sb.Append($"Create a single fun multiple-choice question in Vietnamese for the subject '{subject.SubjectName}' based on the video source and description of this lesson:\n");
+            sb.Append($"- Lesson Name: {lesson.LessonName}\n");
+            sb.Append($"- Video Source: {lesson.FileUrl ?? "No video link"}\n");
+            sb.Append($"- Lesson Description/Content: {lesson.ContentText ?? "No description available"}\n");
+            sb.Append("\nThe question should test the child's understanding of the lesson and video materials, be friendly, and suitable for children.\n");
+            sb.Append("You MUST return the response strictly as a JSON object (no markdown code blocks, no explanations outside the JSON object).\n");
+            sb.Append("The JSON object must have the following exact keys:\n");
+            sb.Append("- \"questionContent\": (string) the text of the question\n");
+            sb.Append("- \"options\": (array of 4 strings) containing option prefix (A, B, C, D). Example: [\"A) Táo\", \"B) Cam\", \"C) Chuối\", \"D) Dâu\"]\n");
+            sb.Append("- \"correctAnswer\": (string) the exact string representing the correct option. Example: \"A) Táo\"\n");
+            sb.Append("- \"explanation\": (string) a short, encouraging explanation in Vietnamese telling the child why that option is correct.\n");
+
+            var prompt = sb.ToString();
+            var aiResponse = await _geminiService.GenerateContentAsync(prompt);
+            var cleanJsonString = CleanJson(aiResponse);
+
+            var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var questionDto = JsonSerializer.Deserialize<AISingleQuestionDto>(cleanJsonString, jsonOptions);
+
+            if (questionDto == null || string.IsNullOrEmpty(questionDto.QuestionContent) || questionDto.Options == null || questionDto.Options.Count < 4 || string.IsNullOrEmpty(questionDto.CorrectAnswer))
+            {
+                throw new Exception("Không thể phân tích câu hỏi do AI tạo ra. Vui lòng thử lại!");
+            }
+
+            return Json(questionDto);
+        }
+        catch (Exception ex)
+        {
+            Response.StatusCode = 400;
+            return Json(new { error = ex.Message });
+        }
+    }
+
+    private string BuildBatchPrompt(List<Lesson> lessons, int rememberCount, int understandCount, int applyCount, string? additionalReqs, Data.Entities.Subject subject)
     {
         var sb = new StringBuilder();
-        sb.Append($"Create a new multiple-choice question for the subject '{subject.SubjectName}' with difficulty level '{level}' (Bloom's Taxonomy: Remember, Understand, Apply).\n");
-        sb.Append("The question should cover content from the following lessons:\n");
+        sb.Append($"Create multiple-choice questions for the subject '{subject.SubjectName}'.\n");
+        sb.Append("The questions should cover content from the following lessons:\n");
         foreach (var l in lessons)
             sb.Append($"- Lesson: {l.LessonName}  Content: {l.ContentText ?? "No content"}\n");
-        sb.Append("\nExisting questions (avoid duplication):\n");
-        if (!existingQuestions.Any()) sb.Append("None.\n");
-        else foreach (var q in existingQuestions) sb.Append($"- {q.QuestionContent}\n");
-        if (!string.IsNullOrWhiteSpace(additionalReqs)) sb.Append($"Additional: {additionalReqs}\n");
-        sb.Append("\nFORMAT:\nQuestion: [content]\nOptions: A) [opt1], B) [opt2], C) [opt3], D) [opt4]\nCorrect: [exact option text]\n");
+            
+        sb.Append($"\nGenerate a total of {rememberCount + understandCount + applyCount} questions:\n");
+        sb.Append($"- {rememberCount} question(s) with level 'Remember'\n");
+        sb.Append($"- {understandCount} question(s) with level 'Understand'\n");
+        sb.Append($"- {applyCount} question(s) with level 'Apply'\n");
+        
+        if (!string.IsNullOrWhiteSpace(additionalReqs)) 
+            sb.Append($"Additional guidelines: {additionalReqs}\n");
+            
+        sb.Append("\nYou MUST return the response strictly as a JSON array of objects. Do not include any explanations or extra text outside the JSON array.\n");
+        sb.Append("Each object in the array must have the following exact keys:\n");
+        sb.Append("- \"questionContent\": (string) the text of the question\n");
+        sb.Append("- \"options\": (array of 4 strings) containing option prefix (A, B, C, D). Example: [\"A) Option text\", \"B) Option text\", \"C) Option text\", \"D) Option text\"]\n");
+        sb.Append("- \"correctAnswer\": (string) the exact string representing the correct option. Example: \"B) Option text\"\n");
+        sb.Append("- \"level\": (string) either \"Remember\", \"Understand\", or \"Apply\"\n");
+        
         return sb.ToString();
     }
 
-    private Question? ParseAIResponse(string result, int lessonId, string level)
+    private string CleanJson(string text)
     {
-        string questionContent = "", answer = "", correctAnswer = "";
-        foreach (var line in result.Split('\n').Select(l => l.Trim()))
+        text = text.Trim();
+        if (text.StartsWith("```json"))
         {
-            if (line.StartsWith("Question: ")) questionContent = line["Question: ".Length..].Trim();
-            else if (line.StartsWith("Options: ")) answer = line["Options: ".Length..].Trim();
-            else if (line.StartsWith("Correct: ")) correctAnswer = line["Correct: ".Length..].Trim();
+            text = text["```json".Length..].Trim();
         }
-        if (string.IsNullOrEmpty(questionContent) || string.IsNullOrEmpty(answer) || string.IsNullOrEmpty(correctAnswer)) return null;
-        var options = answer.Split(',').Select(o => o.Trim()).Where(o => !string.IsNullOrEmpty(o)).ToArray();
-        if (options.Length < 4) return null;
-        if (!options.Any(o => o.Equals(correctAnswer, StringComparison.OrdinalIgnoreCase))) return null;
-        return new Question { QuestionContent = questionContent, LessonId = lessonId, Status = "Active", IsMultipleChoice = true, Answer = answer, CorrectAnswer = correctAnswer, Level = level };
+        else if (text.StartsWith("```"))
+        {
+            text = text["```".Length..].Trim();
+        }
+        if (text.EndsWith("```"))
+        {
+            text = text[..^"```".Length].Trim();
+        }
+        return text;
     }
+}
+
+public class AIQuestionDto
+{
+    public string QuestionContent { get; set; } = "";
+    public List<string> Options { get; set; } = new();
+    public string CorrectAnswer { get; set; } = "";
+    public string Level { get; set; } = "";
 }
 
 public class GeneratePracticeRequest
@@ -194,6 +276,20 @@ public class GeneratePracticeRequest
     public int UnderstandCount { get; set; }
     public int ApplyCount { get; set; }
     public string? AdditionalRequirements { get; set; }
+    public int? LessonId { get; set; }
 }
 
 public class ChatRequest { public string Message { get; set; } = ""; }
+
+public class SingleQuestionRequest
+{
+    public int LessonId { get; set; }
+}
+
+public class AISingleQuestionDto
+{
+    public string QuestionContent { get; set; } = "";
+    public List<string> Options { get; set; } = new();
+    public string CorrectAnswer { get; set; } = "";
+    public string Explanation { get; set; } = "";
+}

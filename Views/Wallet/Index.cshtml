@@ -102,7 +102,6 @@
                             <th>Nội dung</th>
                             <th>Thời gian</th>
                             <th class="right">Tiền vào</th>
-                            <th class="right">Tiền ra</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -129,26 +128,12 @@
                                     {
                                         @("+"+tx.Amount.ToString("N0")+" đ")
                                     }
-                                    else if (isTopUp)
-                                    {
-                                        <span style="color:#64748b;">—</span>
-                                    }
-                                </td>
-                                <td class="amount-debit">
-                                    @if (!isTopUp && tx.Status == "Completed")
-                                    {
-                                        @("-"+tx.Amount.ToString("N0")+" đ")
-                                    }
-                                    else if (!isTopUp)
-                                    {
-                                        <span style="color:#64748b;">—</span>
-                                    }
                                     else
-                                    {
-                                        <span style="color:#64748b;">—</span>
-                                    }
-                                </td>
-                            </tr>
+                                     {
+                                         <span style="color:#64748b;">—</span>
+                                     }
+                                 </td>
+                             </tr>
                         }
                     </tbody>
                 </table>

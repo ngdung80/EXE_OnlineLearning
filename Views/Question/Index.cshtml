@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Ngân hàng câu hỏi";
     var lessons = ViewBag.Lessons as List<POT_System_ASPNET.Data.Entities.Lesson> ?? new List<POT_System_ASPNET.Data.Entities.Lesson>();
+    var subjects = ViewBag.Subjects as List<POT_System_ASPNET.Data.Entities.Subject> ?? new List<POT_System_ASPNET.Data.Entities.Subject>();
     var filter = ViewBag.Filter;
     var currentPage = ViewBag.CurrentPage as int? ?? 1;
     var totalPages = ViewBag.TotalPages as int? ?? 1;
@@ -24,22 +25,24 @@
     .form-control:focus, .form-select:focus { border-color:#ec6090; outline:none; background:rgba(255,255,255,.12); color:#fff; }
     .form-select option { background:#1e293b; }
     
-    .question-card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:20px; padding:25px; margin-bottom:20px; transition:all .2s; }
+    .question-card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:20px; padding:25px; margin-bottom:20px; transition:all .2s; position: relative; }
     .question-card:hover { border-color:rgba(236,96,144,.3); }
     .q-header { display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid rgba(255,255,255,.06); padding-bottom:12px; margin-bottom:15px; flex-wrap:wrap; gap:10px; }
-    .q-meta { font-size:.82rem; color:#94a3b8; }
+    .q-meta { font-size:.82rem; color:#94a3b8; display:flex; align-items:center; gap:12px; }
     .badge-level { padding:4px 10px; border-radius:8px; font-size:.78rem; font-weight:600; }
     .level-Remember { background:rgba(59,130,246,.15); color:#60a5fa; border:1px solid rgba(59,130,246,.3); }
     .level-Understand { background:rgba(245,158,11,.15); color:#f59e0b; border:1px solid rgba(245,158,11,.3); }
     .level-Apply { background:rgba(16,185,129,.15); color:#10b981; border:1px solid rgba(16,185,129,.3); }
     
-    .q-content { font-size:1.02rem; font-weight:600; margin-bottom:15px; }
-    .options-grid { display:grid; grid-template-columns:1fr; gap:10px; margin-bottom:20px; }
+    .q-content { font-size:1.02rem; font-weight:600; margin-bottom:15px; padding-left: 32px; }
+    .options-grid { display:grid; grid-template-columns:1fr; gap:10px; margin-bottom:20px; padding-left: 32px; }
     @@media (min-width: 576px) {
         .options-grid { grid-template-columns:1fr 1fr; }
     }
     .opt-box { padding:12px 16px; background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.06); border-radius:10px; font-size:.88rem; display:flex; align-items:center; gap:8px; }
     .opt-correct { border-color:rgba(16,185,129,.3); background:rgba(16,185,129,.05); color:#34d399; }
+    
+    .essay-box { padding:15px; background:rgba(16,185,129,.06); border:1px solid rgba(16,185,129,.2); border-radius:12px; font-size:.9rem; color:#34d399; margin-bottom:20px; margin-left:32px; }
     
     .action-row { display:flex; justify-content:flex-end; gap:10px; }
     .btn-edit { color:#60a5fa; background:rgba(96,165,250,.1); border:1px solid rgba(96,165,250,.2); padding:6px 14px; border-radius:8px; font-size:.85rem; text-decoration:none; display:inline-flex; align-items:center; gap:4px; transition:all .2s; }
@@ -48,6 +51,16 @@
     .btn-delete:hover { background:rgba(248,113,113,.2); color:#f87171; }
     
     .btn-search { padding:10px 24px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border-radius:10px; border:none; font-weight:600; cursor:pointer; }
+    
+    /* Premium Pagination styling */
+    .pagination-container { display: flex; justify-content: center; gap: 8px; margin-top: 30px; }
+    .pagination-link { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; text-decoration: none; font-weight: 700; transition: all 0.2s; }
+    .pagination-link:hover { background: rgba(236, 96, 144, 0.15); border-color: #ec6090; color: #fff; }
+    .pagination-link.active { background: linear-gradient(135deg, #ec6090, #e75485); border-color: #ec6090; box-shadow: 0 4px 12px rgba(236, 96, 144, 0.3); }
+
+    /* Float Create Test Drawer */
+    .create-test-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); border-top: 2px solid #ec6090; padding: 20px 30px; display: none; z-index: 999; box-shadow: 0 -10px 30px rgba(0,0,0,0.5); }
+    .create-test-bar-container { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; max-width: 1200px; margin: 0 auto; }
 </style>
 
 <section class="admin-section">
@@ -61,6 +74,13 @@
                 </a>
             }
         </div>
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger mb-4" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; border-radius: 15px; padding: 15px 20px; font-weight: 600;">
+                <i class="fas fa-exclamation-triangle"></i> @TempData["Error"]
+            </div>
+        }
 
         <!-- Filters Form -->
         <div class="filter-card">
@@ -98,34 +118,55 @@
             </form>
         </div>
 
-        <!-- Question List -->
+        <!-- Question List Form to build test -->
         @if (Model != null && Model.Any())
         {
+            <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                <button type="button" class="btn btn-outline-info btn-sm" onclick="toggleSelectAll(true)" style="border-radius: 20px; font-weight: 700; color: #60a5fa; border-color: #60a5fa;">Chọn tất cả trang này</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="toggleSelectAll(false)" style="border-radius: 20px; font-weight: 700; color: #94a3b8; border-color: #94a3b8;">Bỏ chọn tất cả trang này</button>
+                <button type="button" class="btn btn-outline-warning btn-sm" onclick="clearAllSelections()" style="border-radius: 20px; font-weight: 700; color: #f59e0b; border-color: #f59e0b;">Xóa hết đã chọn</button>
+            </div>
+
             foreach (var q in Model)
             {
                 string vnLevel = q.Level == "Remember" ? "Nhận biết" : q.Level == "Understand" ? "Thông hiểu" : "Vận dụng";
+                bool isMc = q.IsMultipleChoice;
+                
                 <div class="question-card">
                     <div class="q-header">
                         <div class="q-meta">
-                            <strong>Câu hỏi #@q.QuestionId</strong> &bull; Bài học: <strong>@q.Lesson?.LessonName</strong>
+                            @if (User.IsInRole("Content Manager") || User.IsInRole("Admin"))
+                            {
+                                <input type="checkbox" class="q-checkbox" value="@q.QuestionId" onchange="handleCheckboxChange(this)" style="width:20px; height:20px; cursor:pointer;" />
+                            }
+                            <strong>Câu hỏi #@q.QuestionId (@(isMc ? "Trắc nghiệm" : "Tự luận"))</strong> &bull; Bài học: <strong>@q.Lesson?.LessonName</strong>
                         </div>
                         <span class="badge-level level-@q.Level">@vnLevel</span>
                     </div>
 
                     <div class="q-content">@q.QuestionContent</div>
 
-                    <div class="options-grid">
-                        @{
-                            var opts = q.Answer?.Split(',').Select(o => o.Trim()).ToArray() ?? new string[0];
-                            foreach (var opt in opts)
-                            {
-                                bool isCorrect = opt.Equals(q.CorrectAnswer, StringComparison.OrdinalIgnoreCase);
-                                <div class="opt-box @(isCorrect ? "opt-correct" : "")">
-                                    <span>@(isCorrect ? "🟢" : "⚪")</span> @opt
-                                </div>
+                    @if (isMc)
+                    {
+                        <div class="options-grid">
+                            @{
+                                var opts = q.Answer?.Split(',').Select(o => o.Trim()).ToArray() ?? new string[0];
+                                foreach (var opt in opts)
+                                {
+                                    bool isCorrect = opt.Equals(q.CorrectAnswer, StringComparison.OrdinalIgnoreCase);
+                                    <div class="opt-box @(isCorrect ? "opt-correct" : "")">
+                                        <span>@(isCorrect ? "🟢" : "⚪")</span> @opt
+                                    </div>
+                                }
                             }
-                        }
-                    </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="essay-box">
+                            <i class="fas fa-key"></i> <strong>Đáp án mẫu tự luận:</strong> @q.CorrectAnswer
+                        </div>
+                    }
 
                     <div class="action-row">
                         @if (User.IsInRole("Content Manager") || User.IsInRole("Admin"))
@@ -147,10 +188,10 @@
             <!-- Pagination -->
             if (totalPages > 1)
             {
-                <div class="d-flex justify-content-center gap-2 mt-4">
+                <div class="pagination-container">
                     @for (int i = 1; i <= totalPages; i++)
                     {
-                        <a asp-action="Index" asp-route-search="@getSearch()" asp-route-lessonId="@getLessonId()" asp-route-level="@getLevel()" asp-route-status="@getStatus()" asp-route-page="@i" class="btn-search @(i == currentPage ? "active" : "")" style="padding:6px 14px; text-decoration:none;">@i</a>
+                        <a asp-action="Index" asp-route-search="@getSearch()" asp-route-lessonId="@getLessonId()" asp-route-level="@getLevel()" asp-route-status="@getStatus()" asp-route-page="@i" class="pagination-link @(i == currentPage ? "active" : "")">@i</a>
                     }
                 </div>
             }
@@ -163,3 +204,166 @@
         }
     </div>
 </section>
+
+<!-- Floating Create Test Bar -->
+@if (User.IsInRole("Content Manager") || User.IsInRole("Admin"))
+{
+    <div class="create-test-bar" id="createTestDrawer">
+        <form id="createTestForm" method="post" action="/Question/CreateTestFromQuestions">
+            @Html.AntiForgeryToken()
+            <div id="hiddenCheckboxes"></div>
+            
+            <div class="create-test-bar-container">
+                <div style="flex: 1; min-width: 250px;">
+                    <h5 style="color: #ec6090; font-weight: 800; margin-bottom: 5px;"><i class="fas fa-file-signature"></i> Tạo Đề Thi/Luyện Tập (<span id="selectedCountText">0</span> câu hỏi đã chọn)</h5>
+                    <p style="color: #94a3b8; font-size: 0.8rem; margin: 0;">Lựa chọn câu hỏi ở trên rồi điền thông tin đề thi để tạo.</p>
+                </div>
+                
+                <div class="d-flex gap-2 align-items-center" style="flex: 3; min-width: 500px; flex-wrap: wrap;">
+                    <input type="text" name="testName" class="form-control" placeholder="Tên đề thi..." style="width: 200px;" required />
+                    
+                    <select name="duration" class="form-select" style="width: 130px;" required>
+                        <option value="15">15 phút</option>
+                        <option value="30">30 phút</option>
+                        <option value="45">45 phút</option>
+                        <option value="60">60 phút</option>
+                        <option value="90">90 phút</option>
+                    </select>
+
+                    <select name="types" class="form-select" style="width: 130px;" required>
+                        <option value="Test">Đề kiểm tra</option>
+                        <option value="Practice">Đề luyện tập</option>
+                    </select>
+
+                    <select name="subjectId" class="form-select" style="width: 150px;" required>
+                        <option value="">-- Môn học * --</option>
+                        @foreach (var s in subjects)
+                        {
+                            <option value="@s.SubjectId">@s.SubjectName</option>
+                        }
+                    </select>
+
+                    <select name="lessonId" class="form-select" style="width: 150px;">
+                        <option value="">-- Bài học (tùy chọn) --</option>
+                        @foreach (var l in lessons)
+                        {
+                            <option value="@l.LessonId">@l.LessonName</option>
+                        }
+                    </select>
+                </div>
+
+                <div style="min-width: 150px;">
+                    <button type="submit" class="btn btn-success" style="background: #10b981; border: none; font-weight: 700; padding: 10px 20px; border-radius: 10px; width: 100%;">
+                        🚀 Tạo Đề Ngay
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        const STORAGE_KEY = 'selected_question_ids';
+
+        function getSelectedIds() {
+            try {
+                const stored = sessionStorage.getItem(STORAGE_KEY);
+                return stored ? JSON.parse(stored) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveSelectedIds(ids) {
+            sessionStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+        }
+
+        // Run on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const selectedIds = getSelectedIds();
+            const checkboxes = document.querySelectorAll('.q-checkbox');
+            checkboxes.forEach(cb => {
+                if (selectedIds.includes(parseInt(cb.value))) {
+                    cb.checked = true;
+                }
+            });
+            updateSelectedCount();
+        });
+
+        function handleCheckboxChange(cb) {
+            const val = parseInt(cb.value);
+            let selectedIds = getSelectedIds();
+            if (cb.checked) {
+                if (!selectedIds.includes(val)) {
+                    selectedIds.push(val);
+                }
+            } else {
+                selectedIds = selectedIds.filter(id => id !== val);
+            }
+            saveSelectedIds(selectedIds);
+            updateSelectedCount();
+        }
+
+        function toggleSelectAll(checked) {
+            const checkboxes = document.querySelectorAll('.q-checkbox');
+            let selectedIds = getSelectedIds();
+            checkboxes.forEach(cb => {
+                cb.checked = checked;
+                const val = parseInt(cb.value);
+                if (checked) {
+                    if (!selectedIds.includes(val)) {
+                        selectedIds.push(val);
+                    }
+                } else {
+                    selectedIds = selectedIds.filter(id => id !== val);
+                }
+            });
+            saveSelectedIds(selectedIds);
+            updateSelectedCount();
+        }
+
+        function clearAllSelections() {
+            saveSelectedIds([]);
+            const checkboxes = document.querySelectorAll('.q-checkbox');
+            checkboxes.forEach(cb => cb.checked = false);
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            const selectedIds = getSelectedIds();
+            const count = selectedIds.length;
+            const drawer = document.getElementById('createTestDrawer');
+            const countText = document.getElementById('selectedCountText');
+            
+            if (countText) {
+                countText.innerText = count;
+            }
+
+            if (drawer) {
+                if (count > 0) {
+                    drawer.style.display = 'block';
+                } else {
+                    drawer.style.display = 'none';
+                }
+            }
+
+            // Sync values to hidden inputs in the form
+            const hiddenContainer = document.getElementById('hiddenCheckboxes');
+            if (hiddenContainer) {
+                hiddenContainer.innerHTML = '';
+                selectedIds.forEach(id => {
+                    hiddenContainer.innerHTML += `<input type="hidden" name="questionIds" value="${id}" />`;
+                });
+            }
+        }
+
+        // Clear selection on successful submit
+        const testForm = document.getElementById('createTestForm');
+        if (testForm) {
+            testForm.addEventListener('submit', () => {
+                sessionStorage.removeItem(STORAGE_KEY);
+            });
+        }
+    </script>
+}

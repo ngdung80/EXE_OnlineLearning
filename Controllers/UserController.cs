@@ -97,6 +97,38 @@ public class ParentController : Controller
         
         return View(attempts);
     }
+
+    /// <summary>Xem tiến trình học của các con trong một khối lớp cụ thể.</summary>
+    [HttpGet]
+    public async Task<IActionResult> ProgressByGrade(int gradeId)
+    {
+        var parentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var today = DateOnly.FromDateTime(DateTime.Now);
+
+        // Lấy danh sách con
+        var allChildren = await _userService.GetLinkedStudentsAsync(parentId);
+
+        // Lọc các con có gói học active trong gradeId này
+        var childrenInGrade = new List<POT_System_ASPNET.Data.Entities.User>();
+        foreach (var child in allChildren)
+        {
+            var packages = await _studentPackageService.GetByStudentIdAsync(child.UserId);
+            if (packages.Any(sp => sp.GradeId == gradeId && sp.Status == "Active" && sp.EndDate >= today))
+                childrenInGrade.Add(child);
+        }
+
+        // Nếu chỉ có 1 con → redirect thẳng đến trang tiến trình
+        if (childrenInGrade.Count == 1)
+            return RedirectToAction(nameof(StudentProgress), new { studentId = childrenInGrade[0].UserId });
+
+        // Nếu không có con nào → redirect về danh sách
+        if (!childrenInGrade.Any())
+            return RedirectToAction(nameof(LinkedStudents));
+
+        // Nhiều con → hiển thị danh sách để chọn
+        ViewBag.GradeId = gradeId;
+        return View("SelectStudentForProgress", childrenInGrade);
+    }
 }
 
 [Authorize(Roles = "Parent")]
@@ -117,7 +149,6 @@ public class WalletController : Controller
         ViewBag.CurrentPage = page;
         return View(transactions);
     }
-
 }
 
 [Authorize]

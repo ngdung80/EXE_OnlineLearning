@@ -29,7 +29,7 @@
     <div class="container">
         @if (TempData["Success"] != null) { <div class="alert-success mb-3">@TempData["Success"]</div> }
         <div class="mgmt-header">
-            <h2>📚 @(User.IsInRole("Admin") || User.IsInRole("Content Manager") || User.IsInRole("Content Approver") ? "Quản lý khối lớp" : "Khối lớp học tập")</h2>
+            <h2>📚 @(User.IsInRole("Admin") || User.IsInRole("Content Manager") || User.IsInRole("Content Approver") ? "Quản lý khối lớp" : (ViewBag.IsParent == true ? "Khối lớp đã mua" : "Khối lớp học tập"))</h2>
             @if (User.IsInRole("Admin"))
             {
                 <a asp-action="Create" class="btn-add"><i class="fas fa-plus"></i> Thêm khối lớp</a>
@@ -43,7 +43,7 @@
                         <th>Tên khối lớp</th>
                         <th>Mô tả</th>
                         <th>Trạng thái</th>
-                        <th>Môn học</th>
+                        <th>@(ViewBag.IsParent == true ? "Tiến trình học" : "Môn học")</th>
                         @if (User.IsInRole("Admin"))
                         {
                             <th>Thao tác</th>
@@ -65,7 +65,19 @@
                                     else { <span class="badge-inactive">@(g.Status == "Inactive" ? "Không hoạt động" : (g.Status ?? "—"))</span> }
                                 </td>
                                 <td>
-                                    <a href="/Subject?gradeId=@g.GradeId" style="color:#60a5fa;text-decoration:none;font-size:.85rem;">Xem môn học →</a>
+                                    @if (ViewBag.IsParent == true)
+                                    {
+                                        <a href="/Parent/ProgressByGrade?gradeId=@g.GradeId"
+                                           style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:linear-gradient(135deg,#ec6090,#e75485);color:#fff;border-radius:20px;text-decoration:none;font-size:.82rem;font-weight:700;transition:all .25s;"
+                                           onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(231,84,133,.35)'"
+                                           onmouseout="this.style.transform='';this.style.boxShadow=''">
+                                            📊 Xem quá trình
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a href="/Subject?gradeId=@g.GradeId" style="color:#60a5fa;text-decoration:none;font-size:.85rem;">Xem môn học →</a>
+                                    }
                                 </td>
                                 @if (User.IsInRole("Admin"))
                                 {
@@ -82,7 +94,26 @@
                     }
                     else
                     {
-                        <tr><td colspan="@(User.IsInRole("Admin") ? 6 : 5)" class="text-center" style="color:#64748b;padding:40px;">Không tìm thấy khối lớp nào.</td></tr>
+                        @if (ViewBag.IsParent == true)
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center" style="padding:50px;">
+                                    <div style="display:flex;flex-direction:column;align-items:center;gap:16px;">
+                                        <div style="font-size:3rem;">🛒</div>
+                                        <p style="color:#94a3b8;font-size:1rem;margin:0;">Bạn chưa mua gói học nào cho con.</p>
+                                        <p style="color:#64748b;font-size:.875rem;margin:0;">Hãy mua gói học để mở khóa các khối lớp và môn học.</p>
+                                        <a asp-controller="Package" asp-action="List"
+                                           style="display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:linear-gradient(135deg,#ec6090,#e75485);color:#fff;border-radius:25px;text-decoration:none;font-weight:600;transition:all .3s;">
+                                            🎁 Xem các gói học
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            <tr><td colspan="@(User.IsInRole("Admin") ? 6 : 5)" class="text-center" style="color:#64748b;padding:40px;">Không tìm thấy khối lớp nào.</td></tr>
+                        }
                     }
                 </tbody>
             </table>

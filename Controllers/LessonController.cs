@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using POT_System_ASPNET.Services;
+using POT_System_ASPNET.Data;
 using POT_System_ASPNET.Data.Entities;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 namespace POT_System_ASPNET.Controllers;
 
@@ -13,14 +15,16 @@ public class LessonController : Controller
     private readonly IChapterService _chapterService;
     private readonly ISubjectService _subjectService;
     private readonly IGradeService _gradeService;
+    private readonly AppDbContext _db;
 
     public LessonController(ILessonService lessonService, IChapterService chapterService,
-        ISubjectService subjectService, IGradeService gradeService)
+        ISubjectService subjectService, IGradeService gradeService, AppDbContext db)
     {
         _lessonService = lessonService;
         _chapterService = chapterService;
         _subjectService = subjectService;
         _gradeService = gradeService;
+        _db = db;
     }
 
     public async Task<IActionResult> Index(string? name, int? gradeId, int? subjectId, int? chapterId, string? status, int page = 1)
@@ -114,6 +118,8 @@ public class LessonController : Controller
         existing.LessonName = lesson.LessonName;
         existing.ChapterId = lesson.ChapterId;
         existing.ContentText = lesson.ContentText;
+        existing.FileUrl = lesson.FileUrl;
+        existing.VocabularyJson = lesson.VocabularyJson;
 
         if (imageFile != null && imageFile.Length > 0)
         {
@@ -151,12 +157,20 @@ public class LessonController : Controller
     [HttpPost]
     public async Task<IActionResult> Delete(int id) { await _lessonService.DeleteAsync(id); return RedirectToAction(nameof(Index)); }
 
-    // Student detail view (read-only)
     [AllowAnonymous]
     public async Task<IActionResult> Detail(int id)
     {
         var lesson = await _lessonService.GetByIdAsync(id);
         if (lesson == null) return NotFound();
+
+        bool isCompleted = false;
+        if (User.Identity?.IsAuthenticated == true && User.IsInRole("Student"))
+        {
+            var studentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            isCompleted = await _db.StudentLessonProgresses.AnyAsync(p => p.StudentId == studentId && p.LessonId == id);
+        }
+        ViewBag.IsCompleted = isCompleted;
+
         return View(lesson);
     }
 
@@ -197,5 +211,24 @@ public class LessonController : Controller
         var lesson = await _lessonService.GetByIdAsync(id);
         if (lesson != null) { lesson.Status = "Rejected"; await _lessonService.UpdateAsync(lesson); }
         return RedirectToAction(nameof(PendingApproval));
+    }
+
+    [Authorize(Roles = "Student")]
+    [HttpPost]
+    public async Task<IActionResult> CompleteLesson(int lessonId)
+    {
+        var studentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var exists = await _db.StudentLessonProgresses.AnyAsync(p => p.StudentId == studentId && p.LessonId == lessonId);
+        if (!exists)
+        {
+            _db.StudentLessonProgresses.Add(new StudentLessonProgress
+            {
+                StudentId = studentId,
+                LessonId = lessonId,
+                CompletedAt = DateTime.Now
+            });
+            await _db.SaveChangesAsync();
+        }
+        return Json(new { success = true });
     }
 }

@@ -14,6 +14,7 @@ public class Lesson
     public DateTime? InactiveDate { get; set; }
     public string? ImageUrl { get; set; }
     public DateTime? DeletedDate { get; set; }
+    public string? VocabularyJson { get; set; }
 
     public Chapter Chapter { get; set; } = null!;
     public ICollection<Question> Questions { get; set; } = new List<Question>();

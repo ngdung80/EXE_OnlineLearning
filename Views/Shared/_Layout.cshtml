@@ -117,13 +117,8 @@
                                 }
                                 @if (User.IsInRole("Student"))
                                 {
-                                    <li>
-                                        <a href="#">Công cụ AI</a>
-                                        <div class="dropdown">
-                                            <a asp-controller="AI" asp-action="GeneratePractice" style="color:#f6f6f6!important;">Tự tạo đề luyện tập</a>
-                                            <a asp-controller="AI" asp-action="Chat" style="color:#f6f6f6!important;">Trợ lý AI</a>
-                                        </div>
-                                    </li>
+                                    <li><a asp-controller="AI" asp-action="Chat">Trợ lý AI</a></li>
+                                    <li><a asp-controller="Test" asp-action="Practice">Luyện tập</a></li>
                                     <li><a asp-controller="Test" asp-action="History">Lịch sử làm bài</a></li>
                                 }
                                 <li class="profile-link">
@@ -175,7 +170,10 @@
                 <div class="col-12">
                     <div class="under-footer" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
                         <p>Bản quyền &copy; @DateTime.Now.Year Nền tảng học tập PLO. Bảo lưu mọi quyền.</p>
-                        <a href="/Account/LoginAdmin" style="color:#475569;font-size:.75rem;text-decoration:none;">🛡️ Trang Admin</a>
+                        @if (!User.Identity!.IsAuthenticated || User.IsInRole("Admin"))
+                        {
+                            <a href="/Account/LoginAdmin" style="color:#475569;font-size:.75rem;text-decoration:none;">🛡️ Trang Admin</a>
+                        }
                     </div>
                 </div>
             </div>

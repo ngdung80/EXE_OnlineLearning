@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using POT_System_ASPNET.Services;
 using POT_System_ASPNET.Data.Entities;
+using System.Security.Claims;
 
 namespace POT_System_ASPNET.Controllers;
 
@@ -17,6 +18,24 @@ public class GradeController : Controller
         {
             return View(await _gradeService.GetAllAsync());
         }
+
+        // Parent: chỉ hiển thị các Grade mà con của họ đã mua gói học active
+        if (User.IsInRole("Parent"))
+        {
+            var parentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var purchasedGrades = await _gradeService.GetPurchasedByParentAsync(parentId);
+            ViewBag.IsParent = true;
+            return View(purchasedGrades);
+        }
+
+        // Student: chỉ hiển thị các Grade mà học sinh này đã được mua gói học active
+        if (User.IsInRole("Student"))
+        {
+            var studentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var purchasedGrades = await _gradeService.GetPurchasedByStudentAsync(studentId);
+            return View(purchasedGrades);
+        }
+
         return View(await _gradeService.GetActiveAsync());
     }
 

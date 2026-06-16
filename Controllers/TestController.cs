@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using POT_System_ASPNET.Services;
+using POT_System_ASPNET.Data;
 using POT_System_ASPNET.Data.Entities;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 
 namespace POT_System_ASPNET.Controllers;
 
@@ -13,14 +15,16 @@ public class TestController : Controller
     private readonly ITestAttemptService _testAttemptService;
     private readonly ISubjectService _subjectService;
     private readonly IQuestionReportService _questionReportService;
+    private readonly AppDbContext _db;
 
     public TestController(ITestService testService, ITestAttemptService testAttemptService, 
-        ISubjectService subjectService, IQuestionReportService questionReportService)
+        ISubjectService subjectService, IQuestionReportService questionReportService, AppDbContext db)
     {
         _testService = testService;
         _testAttemptService = testAttemptService;
         _subjectService = subjectService;
         _questionReportService = questionReportService;
+        _db = db;
     }
 
     [HttpPost]
@@ -30,6 +34,24 @@ public class TestController : Controller
         await _questionReportService.AddAsync(questionId, studentId, reason);
         TempData["Success"] = "Thank you! The question report has been submitted.";
         return RedirectToAction(nameof(Result), new { attemptId });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ReportAjax([FromBody] ReportRequest req)
+    {
+        if (req == null || req.QuestionId <= 0 || string.IsNullOrWhiteSpace(req.Reason))
+        {
+            return Json(new { success = false, message = "Thông tin gửi không hợp lệ." });
+        }
+        var studentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        await _questionReportService.AddAsync(req.QuestionId, studentId, req.Reason);
+        return Json(new { success = true, message = "Cảm ơn con! Báo cáo lỗi của câu hỏi đã được gửi đến thầy cô biên tập." });
+    }
+
+    public class ReportRequest
+    {
+        public int QuestionId { get; set; }
+        public string Reason { get; set; } = null!;
     }
 
     public async Task<IActionResult> List(int? subjectId, string? type, int page = 1)
@@ -77,6 +99,79 @@ public class TestController : Controller
         var studentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
         var attempts = await _testAttemptService.GetByStudentIdAsync(studentId);
         return View(attempts);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Practice()
+    {
+        var studentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+        var grades = await _db.Grades.Where(g => g.Status == "Active").ToListAsync();
+        var subjects = await _db.Subjects.Where(s => s.Status == "Active").ToListAsync();
+        var chapters = await _db.Chapters.Where(c => c.Status == "Active").ToListAsync();
+        var lessons = await _db.Lessons.Where(l => l.Status == "Active").ToListAsync();
+
+        var completedLessonIds = await _db.StudentLessonProgresses
+            .Where(p => p.StudentId == studentId)
+            .Select(p => p.LessonId)
+            .ToListAsync();
+
+        ViewBag.Grades = grades;
+        ViewBag.Subjects = subjects;
+        ViewBag.Chapters = chapters;
+        ViewBag.Lessons = lessons;
+        ViewBag.CompletedLessonIds = completedLessonIds;
+
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> StartPractice(int lessonId)
+    {
+        var studentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+        // Verify that lesson is completed
+        var isCompleted = await _db.StudentLessonProgresses.AnyAsync(p => p.StudentId == studentId && p.LessonId == lessonId);
+        if (!isCompleted)
+        {
+            TempData["Error"] = "Con phải hoàn thành bài học này trước để mở khóa luyện tập nhé!";
+            return RedirectToAction(nameof(Practice));
+        }
+
+        // Get lesson details
+        var lesson = await _db.Lessons.Include(l => l.Chapter).FirstOrDefaultAsync(l => l.LessonId == lessonId);
+        if (lesson == null) return NotFound();
+
+        // Get pre-created active questions for this lesson
+        var questions = await _db.Questions.Where(q => q.LessonId == lessonId && q.Status == "Active").ToListAsync();
+        if (questions.Count == 0)
+        {
+            TempData["Error"] = "Bài học này chưa có câu hỏi luyện tập nào được thầy cô tạo sẵn. Con hãy quay lại sau nhé!";
+            return RedirectToAction(nameof(Practice));
+        }
+
+        // Create a practice test
+        var test = new Test
+        {
+            TestName = $"Luyện tập: {lesson.LessonName}",
+            SubjectId = lesson.Chapter.SubjectId,
+            LessonId = lessonId,
+            Duration = 15,
+            Status = "Active",
+            Types = "Practice",
+            StudentId = studentId
+        };
+        _db.Tests.Add(test);
+        await _db.SaveChangesAsync();
+
+        foreach (var q in questions)
+        {
+            _db.TestQuestions.Add(new TestQuestion { TestId = test.TestId, QuestionId = q.QuestionId });
+        }
+        await _db.SaveChangesAsync();
+
+        // Start attempt and redirect to Take
+        return RedirectToAction(nameof(Take), new { id = test.TestId });
     }
 }
 

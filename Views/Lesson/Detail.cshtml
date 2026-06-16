@@ -1,6 +1,45 @@
 @model POT_System_ASPNET.Data.Entities.Lesson
 @{
     ViewData["Title"] = Model?.LessonName ?? "Chi tiết bài học";
+
+    bool isVideo = false;
+    string videoType = "";
+    string embedUrl = "";
+    if (!string.IsNullOrEmpty(Model?.FileUrl))
+    {
+        var url = Model.FileUrl.Trim();
+        if (url.Contains("youtube.com") || url.Contains("youtu.be"))
+        {
+            isVideo = true;
+            videoType = "youtube";
+            string videoId = "";
+            if (url.Contains("v="))
+            {
+                int vIdx = url.IndexOf("v=");
+                int ampIdx = url.IndexOf("&", vIdx);
+                if (ampIdx == -1) videoId = url.Substring(vIdx + 2);
+                else videoId = url.Substring(vIdx + 2, ampIdx - (vIdx + 2));
+            }
+            else if (url.Contains("youtu.be/"))
+            {
+                int slashIdx = url.LastIndexOf("/");
+                videoId = url.Substring(slashIdx + 1);
+                if (videoId.Contains("?"))
+                {
+                    videoId = videoId.Substring(0, videoId.IndexOf("?"));
+                }
+            }
+            embedUrl = "https://www.youtube.com/embed/" + videoId;
+        }
+        else if (url.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) || 
+                 url.EndsWith(".webm", StringComparison.OrdinalIgnoreCase) || 
+                 url.EndsWith(".ogg", StringComparison.OrdinalIgnoreCase) ||
+                 url.EndsWith(".mov", StringComparison.OrdinalIgnoreCase))
+        {
+            isVideo = true;
+            videoType = "direct";
+        }
+    }
 }
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 <style>
@@ -24,6 +63,45 @@
     .btn-take-mini { padding:6px 14px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border-radius:15px; text-decoration:none; font-size:.8rem; font-weight:700; }
     .back-btn { display:inline-flex; align-items:center; gap:6px; padding:10px 22px; background:transparent; border:2px solid #ec6090; color:#ec6090; border-radius:25px; text-decoration:none; font-weight:600; font-size:.88rem; transition:all .2s; margin-top:10px; }
     .back-btn:hover { background:rgba(236,96,144,.1); color:#ec6090; }
+
+    /* AI Quiz Widget Styles */
+    .ai-quiz-widget { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.09); border-radius:20px; padding:30px; color:#fff; }
+    .quiz-option-btn {
+        width: 100%;
+        text-align: left;
+        padding: 14px 18px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        color: #e2e8f0;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: 'Nunito', sans-serif;
+    }
+    .quiz-option-btn:hover:not(:disabled) {
+        background: rgba(168, 85, 247, 0.1);
+        border-color: #a855f7;
+        color: #fff;
+        transform: translateY(-2px);
+    }
+    .quiz-option-btn.correct {
+        background: rgba(16, 185, 129, 0.15) !important;
+        border-color: #10b981 !important;
+        color: #10b981 !important;
+        box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+    }
+    .quiz-option-btn.incorrect {
+        background: rgba(239, 68, 68, 0.15) !important;
+        border-color: #ef4444 !important;
+        color: #ef4444 !important;
+        box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+    }
+    
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
 </style>
 
 <section class="detail-section">
@@ -38,59 +116,73 @@
             <span style="color:#e2e8f0;">@Model?.LessonName</span>
         </div>
 
-        <div class="row justify-content-center">
-            <div class="col-lg-9">
-                <div class="lesson-card">
-                    <h1>@Model?.LessonName</h1>
-                    <div class="lesson-meta">
-                        <span class="meta-badge">📚 @(Model?.Chapter?.Subject?.SubjectName ?? "—")</span>
-                        <span class="meta-badge">📑 @(Model?.Chapter?.ChapterName ?? "—")</span>
-                        @if (!string.IsNullOrEmpty(Model?.Status))
+        <div class="row">
+            @if (User.IsInRole("Student"))
+            {
+                <!-- Left Column for Video & Content -->
+                <div class="col-lg-8 mb-4">
+                    <div class="lesson-card">
+                        <h1>@Model?.LessonName</h1>
+                        <div class="lesson-meta">
+                            <span class="meta-badge">📚 @(Model?.Chapter?.Subject?.SubjectName ?? "—")</span>
+                            <span class="meta-badge">📑 @(Model?.Chapter?.ChapterName ?? "—")</span>
+                        </div>
+
+                        <!-- Video Player Area -->
+                        @if (isVideo)
                         {
-                            string statusColor = Model.Status == "Active" ? "#10b981" : Model.Status == "Pending" ? "#eab308" : "#ef4444";
-                            string statusText = Model.Status == "Active" ? "Hoạt động" : Model.Status == "Pending" ? "Chờ duyệt" : "Không hoạt động";
-                            <span class="meta-badge" style="color:@statusColor">● @statusText</span>
+                            <div class="video-container" style="position:relative; width:100%; border-radius:16px; overflow:hidden; background:#000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom:25px;">
+                                @if (videoType == "youtube")
+                                {
+                                    <div style="padding-top: 56.25%; position: relative;">
+                                        <iframe id="yt-player" src="@embedUrl?enablejsapi=1" style="position: absolute; top:0; left:0; width:100%; height:100%; border:none;" allowfullscreen></iframe>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <video id="direct-video" controls style="width:100%; height:auto; display:block;" ontimeupdate="checkDirectVideoProgress(this)">
+                                        <source src="@Model.FileUrl" type="video/mp4">
+                                        Trình duyệt của con không hỗ trợ xem trực tiếp video này.
+                                    </video>
+                                }
+                            </div>
                         }
-                    </div>
+                        else if (!string.IsNullOrEmpty(Model?.ImageUrl))
+                        {
+                            <img src="@Model.ImageUrl" class="lesson-img" alt="@Model.LessonName">
+                        }
 
-                    @if (!string.IsNullOrEmpty(Model?.ImageUrl))
-                    {
-                        <img src="@Model.ImageUrl" class="lesson-img" alt="@Model.LessonName">
-                    }
+                        @if (!string.IsNullOrEmpty(Model?.ContentText))
+                        {
+                            <div class="lesson-content">@Model.ContentText</div>
+                        }
 
-                    @if (!string.IsNullOrEmpty(Model?.ContentText))
-                    {
-                        <div class="lesson-content">@Model.ContentText</div>
-                    }
+                        @if (!string.IsNullOrEmpty(Model?.FileUrl) && !isVideo)
+                        {
+                            <hr class="divider">
+                            <div class="file-section">
+                                <h4>📎 Tài liệu đính kèm</h4>
+                                <a href="@Model.FileUrl" target="_blank" class="file-link">
+                                    <i class="fas fa-download"></i> Tải tài liệu
+                                </a>
+                            </div>
+                        }
 
-                    @if (!string.IsNullOrEmpty(Model?.FileUrl))
-                    {
-                        <hr class="divider">
-                        <div class="file-section">
-                            <h4>📎 Tài liệu đính kèm</h4>
-                            <a href="@Model.FileUrl" target="_blank" class="file-link">
-                                <i class="fas fa-download"></i> Tải tài liệu
-                            </a>
-                        </div>
-                    }
+                        @if (Model?.Tests != null && Model.Tests.Any())
+                        {
+                            <hr class="divider">
+                            <div class="related-tests">
+                                <h4>📝 Đề luyện tập của bài học này</h4>
+                                @foreach (var t in Model.Tests)
+                                {
+                                    <div class="test-mini">
+                                        <div class="test-mini-name">@t.TestName <span style="color:#64748b;font-size:.8rem;">(@t.Duration phút)</span></div>
+                                        <a asp-controller="Test" asp-action="Take" asp-route-id="@t.TestId" class="btn-take-mini">Bắt đầu →</a>
+                                    </div>
+                                }
+                            </div>
+                        }
 
-                    @if (Model?.Tests != null && Model.Tests.Any())
-                    {
-                        <hr class="divider">
-                        <div class="related-tests">
-                            <h4>📝 Đề luyện tập của bài học này</h4>
-                            @foreach (var t in Model.Tests)
-                            {
-                                <div class="test-mini">
-                                    <div class="test-mini-name">@t.TestName <span style="color:#64748b;font-size:.8rem;">(@t.Duration phút)</span></div>
-                                    <a asp-controller="Test" asp-action="Take" asp-route-id="@t.TestId" class="btn-take-mini">Bắt đầu →</a>
-                                </div>
-                            }
-                        </div>
-                    }
-
-                    @if (User.IsInRole("Student"))
-                    {
                         <hr class="divider">
                         <div style="text-align:center;padding:8px 0;">
                             <a asp-controller="Lesson" asp-action="StudentLearn" asp-route-id="@Model?.LessonId"
@@ -99,12 +191,340 @@
                                 🐝 Bắt đầu học bài này!
                             </a>
                             <p style="color:#94a3b8;font-size:.82rem;margin-top:10px;">Học theo lộ trình 10 phút có gamification</p>
+                            
+                            @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Student"))
+                            {
+                                <div style="margin-top:15px;">
+                                    @if (ViewBag.IsCompleted == true)
+                                    {
+                                        <button type="button" class="btn" style="display:inline-block;padding:10px 30px;background:rgba(16,185,129,0.1);border:2px solid #10b981;color:#10b981;border-radius:999px;font-weight:700;font-size:0.9rem;font-family:'Nunito',sans-serif;" disabled>
+                                            ✔️ Con đã hoàn thành bài học này
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" id="btn-complete-lesson" onclick="completeLessonManual()"
+                                           style="display:inline-block;padding:10px 30px;background:transparent;border:2px solid #10b981;color:#10b981;border-radius:999px;font-weight:700;font-size:0.9rem;font-family:'Nunito',sans-serif;transition:all .3s;cursor:pointer;">
+                                            ✔️ Đánh dấu đã học xong bài này
+                                        </button>
+                                    }
+                                </div>
+                            }
                         </div>
-                    }
 
-                    <a asp-action="Index" asp-route-chapterId="@Model?.ChapterId" class="back-btn">← Quay lại danh sách bài học</a>
+                        <a asp-action="Index" asp-route-chapterId="@Model?.ChapterId" class="back-btn">← Quay lại danh sách bài học</a>
+                    </div>
                 </div>
-            </div>
+
+                <!-- Right Column for AI Quiz Widget -->
+                <div class="col-lg-4">
+                    <div class="ai-quiz-widget">
+                        <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+                            <span style="font-size:2.2rem;">🤖</span>
+                            <div>
+                                <h4 style="margin:0; color:#c084fc; font-weight:800; font-size:1.1rem; font-family:'Nunito',sans-serif; line-height:1.4;">AI có thể giúp bạn hiểu hơn về bài học</h4>
+                                <small style="color:#94a3b8; font-weight:600;">Xem video xong hãy thử sức nhé!</small>
+                            </div>
+                        </div>
+
+                        <!-- Initial Screen -->
+                        <div id="quiz-init-screen" style="text-align:center; padding:20px 0;">
+                            <p style="color:#cbd5e1; font-size:0.95rem; margin-bottom:20px; font-weight:600; line-height:1.5;">Hãy xem ít nhất 50% video để mở khóa câu hỏi đố vui từ AI nhé!</p>
+                            <button type="button" id="btn-ask-ai" class="btn-ask-ai" onclick="loadAISingleQuestion()" style="padding:12px 28px; background:#475569; border:none; color:#94a3b8; font-weight:800; border-radius:30px; cursor:not-allowed; font-family:'Nunito',sans-serif; transition:all 0.2s;" disabled>
+                                🔒 Con hãy xem 50% video để mở khóa!
+                            </button>
+                        </div>
+
+                        <!-- Loading Screen -->
+                        <div id="quiz-loading-screen" style="display:none; text-align:center; padding:30px 0;">
+                            <div style="width:40px; height:40px; border:4px solid rgba(255,255,255,0.1); border-radius:50%; border-top-color:#a855f7; animation:spin 1s linear infinite; margin:0 auto 15px;"></div>
+                            <p style="color:#94a3b8; font-size:0.9rem; font-weight:600;">AI đang soạn câu hỏi cho con...</p>
+                        </div>
+
+                        <!-- Question Screen -->
+                        <div id="quiz-question-screen" style="display:none;">
+                            <div id="quiz-question-content" style="font-weight:700; font-size:1.05rem; margin-bottom:20px; color:#f8fafc; line-height:1.5;"></div>
+                            <div id="quiz-options-container" style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;"></div>
+                            
+                            <!-- Feedback & Explanation -->
+                            <div id="quiz-feedback-box" style="display:none; padding:15px; border-radius:12px; margin-bottom:20px; font-size:0.9rem; font-weight:600; line-height:1.5;">
+                                <div id="quiz-feedback-title" style="font-size:1.1rem; font-weight:800; margin-bottom:5px;"></div>
+                                <div id="quiz-explanation-text"></div>
+                            </div>
+
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span id="quiz-score-badge" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); padding:4px 12px; border-radius:15px; font-size:0.8rem; color:#94a3b8; font-weight:600;">Đã đúng: <span id="quiz-correct-count" style="color:#c084fc;">0</span> câu</span>
+                                <button type="button" id="btn-next-question" onclick="loadAISingleQuestion()" style="display:none; padding:8px 18px; background:linear-gradient(135deg,#ec6090,#e75485); border:none; color:#fff; font-weight:700; border-radius:20px; cursor:pointer; font-size:0.85rem; font-family:'Nunito',sans-serif;">
+                                    Đố câu tiếp theo ➡️
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- Admin/Parent/Content Manager View (Original 1-column layout) -->
+                <div class="col-lg-9 mx-auto">
+                    <div class="lesson-card">
+                        <h1>@Model?.LessonName</h1>
+                        <div class="lesson-meta">
+                            <span class="meta-badge">📚 @(Model?.Chapter?.Subject?.SubjectName ?? "—")</span>
+                            <span class="meta-badge">📑 @(Model?.Chapter?.ChapterName ?? "—")</span>
+                            @if (!string.IsNullOrEmpty(Model?.Status))
+                            {
+                                string statusColor = Model.Status == "Active" ? "#10b981" : Model.Status == "Pending" ? "#eab308" : "#ef4444";
+                                string statusText = Model.Status == "Active" ? "Hoạt động" : Model.Status == "Pending" ? "Chờ duyệt" : "Không hoạt động";
+                                <span class="meta-badge" style="color:@statusColor">● @statusText</span>
+                            }
+                        </div>
+
+                        <!-- Video Player if present for non-students as well to preview -->
+                        @if (isVideo)
+                        {
+                            <div class="video-container" style="position:relative; width:100%; border-radius:16px; overflow:hidden; background:#000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom:25px;">
+                                @if (videoType == "youtube")
+                                {
+                                    <div style="padding-top: 56.25%; position: relative;">
+                                        <iframe src="@embedUrl" style="position: absolute; top:0; left:0; width:100%; height:100%; border:none;" allowfullscreen></iframe>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <video controls style="width:100%; height:auto; display:block;">
+                                        <source src="@Model.FileUrl" type="video/mp4">
+                                        Trình duyệt không hỗ trợ xem trực tiếp video này.
+                                    </video>
+                                }
+                            </div>
+                        }
+                        else if (!string.IsNullOrEmpty(Model?.ImageUrl))
+                        {
+                            <img src="@Model.ImageUrl" class="lesson-img" alt="@Model.LessonName">
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model?.ContentText))
+                        {
+                            <div class="lesson-content">@Model.ContentText</div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model?.FileUrl) && !isVideo)
+                        {
+                            <hr class="divider">
+                            <div class="file-section">
+                                <h4>📎 Tài liệu đính kèm</h4>
+                                <a href="@Model.FileUrl" target="_blank" class="file-link">
+                                    <i class="fas fa-download"></i> Tải tài liệu
+                                </a>
+                            </div>
+                        }
+
+                        @if (Model?.Tests != null && Model.Tests.Any())
+                        {
+                            <hr class="divider">
+                            <div class="related-tests">
+                                <h4>📝 Đề luyện tập của bài học này</h4>
+                                @foreach (var t in Model.Tests)
+                                {
+                                    <div class="test-mini">
+                                        <div class="test-mini-name">@t.TestName <span style="color:#64748b;font-size:.8rem;">(@t.Duration phút)</span></div>
+                                        <a asp-controller="Test" asp-action="Take" asp-route-id="@t.TestId" class="btn-take-mini">Bắt đầu →</a>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        <a asp-action="Index" asp-route-chapterId="@Model?.ChapterId" class="back-btn">← Quay lại danh sách bài học</a>
+                    </div>
+                </div>
+            }
         </div>
     </div>
 </section>
+
+@if (User.IsInRole("Student"))
+{
+    <!-- YouTube IFrame API script -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script>
+        let correctCount = 0;
+        let currentCorrectAnswer = "";
+        let currentExplanation = "";
+        
+        // Check if there is any video player on screen. If not, bypass the unlock gate immediately.
+        let hasWatchedHalf = !document.getElementById('yt-player') && !document.getElementById('direct-video');
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            if (hasWatchedHalf) {
+                enableAIQuizButton();
+            }
+        });
+
+        function enableAIQuizButton() {
+            const btn = document.getElementById('btn-ask-ai');
+            if (btn) {
+                btn.disabled = false;
+                btn.style.background = 'linear-gradient(135deg,#a855f7,#7c3aed)';
+                btn.style.color = '#fff';
+                btn.style.cursor = 'pointer';
+                btn.style.boxShadow = '0 6px 20px rgba(124,58,237,0.3)';
+                btn.innerHTML = '🤖 AI ơi, đố con 1 câu!';
+            }
+        }
+
+        // Direct Video Progress tracking
+        function checkDirectVideoProgress(video) {
+            if (hasWatchedHalf) return;
+            if (video.duration > 0 && video.currentTime >= video.duration / 2) {
+                hasWatchedHalf = true;
+                enableAIQuizButton();
+            }
+        }
+
+        // YouTube Player API progress tracking
+        var player;
+        var progressInterval;
+        
+        function onYouTubeIframeAPIReady() {
+            if (document.getElementById('yt-player')) {
+                player = new YT.Player('yt-player', {
+                    events: {
+                        'onStateChange': onPlayerStateChange
+                    }
+                });
+            }
+        }
+
+        function onPlayerStateChange(event) {
+            if (event.data == YT.PlayerState.PLAYING) {
+                progressInterval = setInterval(checkYTProgress, 1000);
+            } else {
+                clearInterval(progressInterval);
+            }
+        }
+
+        function checkYTProgress() {
+            if (!player || hasWatchedHalf) return;
+            try {
+                const duration = player.getDuration();
+                const currentTime = player.getCurrentTime();
+                if (duration > 0 && currentTime >= duration / 2) {
+                    hasWatchedHalf = true;
+                    clearInterval(progressInterval);
+                    enableAIQuizButton();
+                }
+            } catch (e) {
+                console.error("Error checking YouTube progress:", e);
+            }
+        }
+        
+        async function loadAISingleQuestion() {
+            document.getElementById('quiz-init-screen').style.display = 'none';
+            document.getElementById('quiz-question-screen').style.display = 'none';
+            document.getElementById('quiz-loading-screen').style.display = 'block';
+            document.getElementById('btn-next-question').style.display = 'none';
+            document.getElementById('quiz-feedback-box').style.display = 'none';
+            
+            try {
+                const response = await fetch('/AI/GenerateSingleQuestion', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ lessonId: @Model.LessonId })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || "Không thể tải câu hỏi.");
+                }
+                
+                const data = await response.json();
+                
+                currentCorrectAnswer = data.correctAnswer;
+                currentExplanation = data.explanation;
+                
+                document.getElementById('quiz-question-content').innerText = data.questionContent;
+                
+                const optionsContainer = document.getElementById('quiz-options-container');
+                optionsContainer.innerHTML = '';
+                
+                data.options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'quiz-option-btn';
+                    btn.innerText = opt;
+                    btn.onclick = () => selectQuizOption(btn, opt);
+                    optionsContainer.appendChild(btn);
+                });
+                
+                document.getElementById('quiz-loading-screen').style.display = 'none';
+                document.getElementById('quiz-question-screen').style.display = 'block';
+            } catch (err) {
+                document.getElementById('quiz-loading-screen').style.display = 'none';
+                document.getElementById('quiz-init-screen').style.display = 'block';
+                alert("Lỗi từ AI: " + err.message);
+            }
+        }
+        
+        function selectQuizOption(selectedBtn, selectedOpt) {
+            const btns = document.querySelectorAll('.quiz-option-btn');
+            btns.forEach(btn => btn.disabled = true);
+            
+            const feedbackBox = document.getElementById('quiz-feedback-box');
+            const feedbackTitle = document.getElementById('quiz-feedback-title');
+            const explanationText = document.getElementById('quiz-explanation-text');
+            
+            const isCorrect = selectedOpt.trim().toLowerCase() === currentCorrectAnswer.trim().toLowerCase() || 
+                              (selectedOpt.length > 2 && currentCorrectAnswer.length > 2 && 
+                               selectedOpt.substring(0, 2).toLowerCase() === currentCorrectAnswer.substring(0, 2).toLowerCase());
+                               
+            if (isCorrect) {
+                selectedBtn.classList.add('correct');
+                feedbackBox.style.background = 'rgba(16, 185, 129, 0.1)';
+                feedbackBox.style.border = '1px solid rgba(16, 185, 129, 0.2)';
+                feedbackTitle.style.color = '#10b981';
+                feedbackTitle.innerHTML = '🎉 Chính xác! Con giỏi lắm!';
+                correctCount++;
+                document.getElementById('quiz-correct-count').innerText = correctCount;
+            } else {
+                selectedBtn.classList.add('incorrect');
+                btns.forEach(btn => {
+                    const optText = btn.innerText;
+                    if (optText.trim().toLowerCase() === currentCorrectAnswer.trim().toLowerCase() ||
+                        (optText.length > 2 && currentCorrectAnswer.length > 2 &&
+                         optText.substring(0, 2).toLowerCase() === currentCorrectAnswer.substring(0, 2).toLowerCase())) {
+                        btn.classList.add('correct');
+                    }
+                });
+                feedbackBox.style.background = 'rgba(239, 68, 68, 0.1)';
+                feedbackBox.style.border = '1px solid rgba(239, 68, 68, 0.2)';
+                feedbackTitle.style.color = '#f87171';
+                feedbackTitle.innerHTML = '💡 Con trả lời chưa đúng rồi, xem gợi ý nhé:';
+            }
+            
+            explanationText.innerText = currentExplanation || "AI khuyên con nên xem kỹ lại bài giảng!";
+            feedbackBox.style.display = 'block';
+            document.getElementById('btn-next-question').style.display = 'block';
+        }
+
+        async function completeLessonManual() {
+            try {
+                const response = await fetch('/Lesson/CompleteLesson?lessonId=' + @(Model?.LessonId ?? 0), {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    alert('Chúc mừng con đã hoàn thành bài học! Bài học đã được mở khóa để con luyện tập.');
+                    const btn = document.getElementById('btn-complete-lesson');
+                    if (btn) {
+                        btn.innerText = '✔️ Con đã hoàn thành bài học này';
+                        btn.style.background = 'rgba(16, 185, 129, 0.1)';
+                        btn.style.borderColor = '#10b981';
+                        btn.style.color = '#10b981';
+                        btn.disabled = true;
+                    }
+                }
+            } catch (err) {
+                console.error("Error completing lesson:", err);
+            }
+        }
+    </script>
+}

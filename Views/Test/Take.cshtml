@@ -38,6 +38,7 @@
         .option-text { font-size:.95rem; color:#e2e8f0; }
         .submit-wrap { text-align:center; margin-top:30px; }
         .btn-submit { padding:16px 50px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border:none; border-radius:30px; font-size:1.1rem; font-weight:700; cursor:pointer; transition:all .3s; }
+        .btn-report-star:hover { transform: scale(1.2) rotate(15deg); }
         .btn-submit:hover { transform:translateY(-3px); box-shadow:0 12px 30px rgba(236,96,144,.4); }
         .q-nav { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:30px; }
         .q-dot { width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); color:#e2e8f0; font-size:.8rem; font-weight:600; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .2s; }
@@ -83,20 +84,47 @@
                 foreach (var tq in Model.Test.TestQuestions)
                 {
                     var q = tq.Question;
+                    bool isMc = q?.IsMultipleChoice ?? true;
                     var options = q?.Answer?.Split(',').Select(o => o.Trim()).Where(o => !string.IsNullOrEmpty(o)).ToList() ?? new List<string>();
+                    
                     <div class="question-card" id="q-@qIdx">
-                        <div class="q-num">CÂU HỎI @qIdx / @Model.Test.TestQuestions.Count</div>
-                        <div class="q-content">@q?.QuestionContent</div>
-                        <div class="options">
-                            @foreach (var opt in options)
-                            {
-                                <label class="option-label" onclick="markAnswered(@qIdx)">
-                                    <input type="radio" name="q_@q!.QuestionId" value="@opt">
-                                    <div class="option-dot"></div>
-                                    <span class="option-text">@opt</span>
-                                </label>
-                            }
+                        <div class="q-num">CÂU HỎI @qIdx / @Model.Test.TestQuestions.Count (@(isMc ? "Trắc nghiệm" : "Tự luận"))</div>
+                        <div class="q-content" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 15px;">
+                            <span>@q?.QuestionContent</span>
+                            <button type="button" class="btn-report-star" onclick="toggleReportInline(@q?.QuestionId)" title="Báo cáo lỗi cho câu hỏi này" style="background: none; border: none; padding: 0; cursor: pointer; color: #94a3b8; font-size: 1.25rem; transition: transform 0.2s; outline: none;">
+                                <i class="far fa-star"></i>
+                            </button>
                         </div>
+                        
+                        <!-- Inline Report Form for this question -->
+                        <div id="reportForm-@q?.QuestionId" class="report-box" style="display: none; margin-top: 5px; margin-bottom: 20px; background: rgba(234, 179, 8, 0.05); border: 1px solid rgba(234, 179, 8, 0.2); border-radius: 12px; padding: 15px;">
+                            <div style="font-size: 0.85rem; color: #eab308; font-weight: 700; margin-bottom: 8px;">
+                                <i class="fas fa-exclamation-triangle"></i> Báo cáo lỗi cho câu hỏi này
+                            </div>
+                            <div class="d-flex gap-2">
+                                <input type="text" id="reportReason-@q?.QuestionId" class="form-control" style="font-size: 0.85rem; padding: 6px 12px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 8px; flex: 1;" placeholder="Mô tả lỗi (ví dụ: đáp án sai, sai chính tả...)" />
+                                <button type="button" class="btn btn-sm" onclick="submitReportAjax(@q?.QuestionId)" style="background: #eab308; color: #0f172a; font-weight: 700; border-radius: 8px; border: none; padding: 6px 15px; font-size: 0.85rem; cursor: pointer;">Gửi</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleReportInline(@q?.QuestionId)" style="border-radius: 8px; font-size: 0.85rem; padding: 6px 12px; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff; cursor: pointer;">Hủy</button>
+                            </div>
+                        </div>
+                        
+                        @if (isMc)
+                        {
+                            <div class="options">
+                                @foreach (var opt in options)
+                                {
+                                    <label class="option-label" onclick="markAnswered(@qIdx)">
+                                        <input type="radio" name="q_@q!.QuestionId" value="@opt">
+                                        <div class="option-dot"></div>
+                                        <span class="option-text">@opt</span>
+                                    </label>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <textarea name="q_@q!.QuestionId" class="form-control" rows="4" placeholder="Nhập câu trả lời tự luận của con tại đây..." oninput="markAnsweredText(@qIdx, this)" style="background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.15); color:#fff; border-radius:10px; padding:15px; width:100%;"></textarea>
+                        }
                     </div>
                     qIdx++;
                 }
@@ -133,6 +161,24 @@
             }
         }
 
+        function markAnsweredText(n, textarea) {
+            const dot = document.getElementById('dot-' + n);
+            const val = textarea.value.trim();
+            if (val.length > 0) {
+                if (!dot.classList.contains('answered')) {
+                    dot.classList.add('answered');
+                    answeredCount++;
+                    document.getElementById('progressBar').style.width = (answeredCount / totalQ * 100) + '%';
+                }
+            } else {
+                if (dot.classList.contains('answered')) {
+                    dot.classList.remove('answered');
+                    answeredCount--;
+                    document.getElementById('progressBar').style.width = (answeredCount / totalQ * 100) + '%';
+                }
+            }
+        }
+
         function scrollToQ(n) {
             document.getElementById('q-' + n).scrollIntoView({ behavior:'smooth', block:'center' });
         }
@@ -147,6 +193,62 @@
         window.addEventListener('beforeunload', e => {
             if (remaining > 0) { e.preventDefault(); e.returnValue = ''; }
         });
+
+        function toggleReportInline(qId) {
+            const form = document.getElementById(`reportForm-${qId}`);
+            if (form) {
+                const isHidden = form.style.display === 'none';
+                form.style.display = isHidden ? 'block' : 'none';
+                
+                // Toggle star icon styling
+                const starBtn = form.previousElementSibling.querySelector('.btn-report-star i');
+                if (starBtn) {
+                    if (isHidden) {
+                        starBtn.className = 'fas fa-star'; // Filled star
+                        starBtn.style.color = '#eab308';
+                    } else {
+                        starBtn.className = 'far fa-star'; // Hollow star
+                        starBtn.style.color = '#94a3b8';
+                    }
+                }
+            }
+        }
+
+        async function submitReportAjax(qId) {
+            const reasonInput = document.getElementById(`reportReason-${qId}`);
+            if (!reasonInput || !reasonInput.value.trim()) {
+                alert('Vui lòng nhập lý do báo cáo lỗi.');
+                return;
+            }
+
+            const reason = reasonInput.value.trim();
+            try {
+                const response = await fetch('/Test/ReportAjax', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({ questionId: qId, reason: reason })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert(data.message);
+                    const form = document.getElementById(`reportForm-${qId}`);
+                    if (form) {
+                        form.innerHTML = `<div style="font-size: 0.85rem; color: #10b981; font-weight: 700;"><i class="fas fa-check-circle"></i> Đã gửi báo cáo lỗi thành công! Cảm ơn con.</div>`;
+                        setTimeout(() => {
+                            form.style.display = 'none';
+                        }, 3000);
+                    }
+                } else {
+                    alert(data.message || 'Có lỗi xảy ra khi gửi báo cáo.');
+                }
+            } catch (e) {
+                alert('Không thể kết nối đến máy chủ. Vui lòng thử lại sau.');
+            }
+        }
     </script>
 </body>
 </html>

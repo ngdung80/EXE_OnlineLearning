@@ -61,16 +61,56 @@
                             <textarea name="ContentText" class="form-control" rows="8" placeholder="Nhập nội dung bài học hoặc văn bản tại đây..."></textarea>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Tài liệu / File bài học (PDF, v.v.)</label>
-                                <input type="file" name="lessonFile" class="form-control">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Ảnh bìa</label>
-                                <input type="file" name="imageFile" class="form-control" accept="image/*">
-                            </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ảnh bìa</label>
+                            <input type="file" name="imageFile" class="form-control" accept="image/*">
                         </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Link video học tập (YouTube hoặc link file trực tiếp)</label>
+                            <input type="text" name="FileUrl" class="form-control" placeholder="Dán link YouTube hoặc đường dẫn file cục bộ từ máy tính của bạn">
+                        </div>
+
+                        <!-- Vocabulary Editor Section -->
+                        <div class="mb-4">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                                <label class="form-label" style="font-weight:700; color:#ec6090; font-size:1.1rem; margin:0;">📚 Danh sách từ mới của bài học</label>
+                                <button type="button" class="btn-sm-action" onclick="addVocabularyRow()" style="padding:6px 14px; background:linear-gradient(135deg,#a855f7,#7c3aed); color:#fff; border:none; border-radius:15px; font-weight:700; cursor:pointer;">+ Thêm từ mới</button>
+                            </div>
+                            
+                            <div id="vocab-container" style="display:flex; flex-direction:column; gap:12px;">
+                                <!-- Dynamically rendered -->
+                            </div>
+                            
+                            <input type="hidden" id="VocabularyJson" name="VocabularyJson" value="" />
+                        </div>
+
+                        <!-- Emoji datalist for suggestion -->
+                        <datalist id="emoji-list">
+                            <option value="🍎">🍎 Quả táo</option>
+                            <option value="🍌">🍌 Quả chuối</option>
+                            <option value="🍊">🍊 Quả cam</option>
+                            <option value="🐱">🐱 Con mèo</option>
+                            <option value="🐶">🐶 Con chó</option>
+                            <option value="🐟">🐟 Con cá</option>
+                            <option value="🦁">🦁 Sư tử</option>
+                            <option value="🐸">🐸 Con ếch</option>
+                            <option value="🐒">🐒 Con khỉ</option>
+                            <option value="🚗">🚗 Ô tô</option>
+                            <option value="✈️">✈️ Máy bay</option>
+                            <option value="⚽">⚽ Bóng đá</option>
+                            <option value="📚">📚 Quyển sách</option>
+                            <option value="✏️">✏️ Bút chì</option>
+                            <option value="🏫">🏫 Trường học</option>
+                            <option value="🎈">🎈 Bóng bay</option>
+                            <option value="🧸">🧸 Gấu bông</option>
+                            <option value="🍕">🍕 Bánh Pizza</option>
+                            <option value="🎂">🎂 Bánh kem</option>
+                            <option value="☀️">☀️ Mặt trời</option>
+                            <option value="🌧️">🌧️ Cơn mưa</option>
+                            <option value="🌈">🌈 Cầu vồng</option>
+                            <option value="⭐">⭐ Ngôi sao</option>
+                        </datalist>
 
                         <div class="d-flex gap-3 mt-4">
                             <button type="submit" class="btn-save">💾 Lưu bài học</button>
@@ -138,5 +178,221 @@
                 console.error("Error loading chapters:", err);
             }
         });
+
+        // ===== VOCABULARY MANAGER =====
+        const emojiMap = {
+            // Animals
+            "cat": "🐱", "mèo": "🐱",
+            "dog": "🐶", "chó": "🐶",
+            "fish": "🐟", "cá": "🐟",
+            "bird": "🐦", "chim": "🐦",
+            "lion": "🦁", "sư tử": "🦁",
+            "tiger": "🐯", "hổ": "🐯", "cọp": "🐯",
+            "monkey": "🐒", "khỉ": "🐒",
+            "rabbit": "🐰", "thỏ": "🐰",
+            "elephant": "🐘", "voi": "🐘",
+            "bear": "🧸", "gấu": "🧸",
+            "bee": "🐝", "ong": "🐝",
+            "ant": "🐜", "kiến": "🐜",
+            "frog": "🐸", "ếch": "🐸",
+            "duck": "🦆", "vịt": "🦆",
+            "chicken": "🐔", "gà": "🐔",
+            "pig": "🐷", "heo": "🐷", "lợn": "🐷",
+            "cow": "🐮", "bò": "🐮",
+            "sheep": "🐑", "cừu": "🐑",
+            "horse": "🐴", "ngựa": "🐴",
+            "butterfly": "🦋", "bướm": "🦋",
+            "spider": "🕷️", "nhện": "🕷️",
+            
+            // Fruits & Food
+            "apple": "🍎", "táo": "🍎",
+            "banana": "🍌", "chuối": "🍌",
+            "orange": "🍊", "cam": "🍊",
+            "watermelon": "🍉", "dưa hấu": "🍉",
+            "grape": "🍇", "nho": "🍇",
+            "strawberry": "🍓", "dâu": "🍓",
+            "mango": "🥭", "xoài": "🥭",
+            "coconut": "🥥", "dừa": "🥥",
+            "pizza": "🍕", "pizza": "🍕",
+            "cake": "🎂", "bánh": "🎂",
+            "egg": "🥚", "trứng": "🥚",
+            "milk": "🥛", "sữa": "🥛",
+            "bread": "🍞", "bánh mì": "🍞",
+            "rice": "🍚", "cơm": "🍚",
+            "ice cream": "🍦", "kem": "🍦",
+            "candy": "🍬", "kẹo": "🍬",
+            
+            // School & Study
+            "book": "📚", "sách": "📚",
+            "pencil": "✏️", "bút": "✏️", "pen": "✏️",
+            "ruler": "📏", "thước": "📏",
+            "bag": "🎒", "cặp": "🎒", "balo": "🎒",
+            "school": "🏫", "trường": "🏫",
+            "star": "⭐", "sao": "⭐",
+            "heart": "❤️", "tim": "❤️",
+            
+            // Objects & Vehicles
+            "car": "🚗", "ô tô": "🚗", "xe": "🚗",
+            "plane": "✈️", "máy bay": "✈️",
+            "train": "🚂", "tàu": "🚂",
+            "ball": "⚽", "bóng": "⚽", "football": "⚽",
+            "balloon": "🎈", "bóng bay": "🎈",
+            "bicycle": "🚲", "xe đạp": "🚲",
+            "clock": "⏰", "đồng hồ": "⏰", "time": "⏰",
+            "house": "🏠", "nhà": "🏠",
+            "sun": "☀️", "mặt trời": "☀️",
+            "rain": "🌧️", "mưa": "🌧️",
+            "rainbow": "🌈", "cầu vồng": "🌈",
+            "flower": "🌸", "hoa": "🌸",
+            "tree": "🌳", "cây": "🌳"
+        };
+
+        let vocabList = [];
+
+        function renderVocabRows() {
+            const container = document.getElementById('vocab-container');
+            container.innerHTML = '';
+            
+            if (vocabList.length === 0) {
+                container.innerHTML = `<div id="vocab-empty-msg" style="color:#64748b; font-size:0.9rem; padding:15px; text-align:center; background:rgba(255,255,255,0.02); border:1px dashed rgba(255,255,255,0.08); border-radius:10px;">Chưa có từ mới nào. Hãy nhấn "+ Thêm từ mới" để bắt đầu!</div>`;
+                return;
+            }
+            
+            vocabList.forEach((item, index) => {
+                const row = document.createElement('div');
+                row.className = 'vocab-row';
+                row.style = 'background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); padding:15px; border-radius:12px; margin-bottom:10px; display:flex; flex-direction:column; gap:8px;';
+                row.innerHTML = `
+                    <div style="width:100%; display:flex; gap:10px; flex-wrap:wrap;">
+                        <div style="flex:1; min-width:140px;">
+                            <label style="font-size:0.75rem; color:#94a3b8; display:block; margin-bottom:4px; font-weight:bold;">Từ mới *</label>
+                            <input type="text" class="form-control" value="${item.word || ''}" oninput="updateVocabValue(${index}, 'word', this.value); suggestEmojiFromWord(${index}, this.value);" placeholder="Ví dụ: Apple" required style="padding:8px 12px; font-size:0.9rem;">
+                        </div>
+                        <div style="flex:1; min-width:140px;">
+                            <label style="font-size:0.75rem; color:#94a3b8; display:block; margin-bottom:4px;">Phát âm</label>
+                            <input type="text" class="form-control" value="${item.phonetic || ''}" onchange="updateVocabValue(${index}, 'phonetic', this.value)" placeholder="Ví dụ: /ˈæp.əl/" style="padding:8px 12px; font-size:0.9rem;">
+                        </div>
+                        <div style="flex:1.2; min-width:160px;">
+                            <label style="font-size:0.75rem; color:#a855f7; display:block; margin-bottom:4px; font-weight:bold;">Nghĩa đúng (Đáp án đúng) *</label>
+                            <input type="text" class="form-control" value="${item.meaning || ''}" oninput="updateVocabValue(${index}, 'meaning', this.value); suggestEmojiFromWord(${index}, this.value);" placeholder="Ví dụ: Quả táo" required style="padding:8px 12px; font-size:0.9rem; border-color:#a855f7;">
+                        </div>
+                        <div style="width:140px;">
+                            <label style="font-size:0.75rem; color:#94a3b8; display:block; margin-bottom:4px;">Emoji / Gợi ý</label>
+                            <input type="text" class="form-control" id="emoji-input-${index}" value="${item.emoji || ''}" oninput="updateVocabValue(${index}, 'emoji', this.value); handleEmojiSearch(${index}, this.value);" placeholder="Nhập từ khóa..." style="padding:8px 12px; text-align:center; font-size:0.9rem;">
+                            <div id="emoji-suggestions-${index}" style="margin-top:4px; display:flex; flex-wrap:wrap; gap:3px;"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="width:100%; display:flex; gap:10px; flex-wrap:wrap; background:rgba(0,0,0,0.15); padding:10px; border-radius:8px;">
+                        <div style="flex:1; min-width:120px;">
+                            <label style="font-size:0.72rem; color:#f87171; display:block; margin-bottom:4px;">Nghĩa sai (Nhiễu 1) *</label>
+                            <input type="text" class="form-control" value="${item.wrong1 || ''}" onchange="updateVocabValue(${index}, 'wrong1', this.value)" placeholder="Ví dụ: Quả cam" required style="padding:6px 10px; font-size:0.85rem; border-color:rgba(239,68,68,0.3);">
+                        </div>
+                        <div style="flex:1; min-width:120px;">
+                            <label style="font-size:0.72rem; color:#f87171; display:block; margin-bottom:4px;">Nghĩa sai (Nhiễu 2) *</label>
+                            <input type="text" class="form-control" value="${item.wrong2 || ''}" onchange="updateVocabValue(${index}, 'wrong2', this.value)" placeholder="Ví dụ: Quả chuối" required style="padding:6px 10px; font-size:0.85rem; border-color:rgba(239,68,68,0.3);">
+                        </div>
+                        <div style="flex:1; min-width:120px;">
+                            <label style="font-size:0.72rem; color:#f87171; display:block; margin-bottom:4px;">Nghĩa sai (Nhiễu 3) *</label>
+                            <input type="text" class="form-control" value="${item.wrong3 || ''}" onchange="updateVocabValue(${index}, 'wrong3', this.value)" placeholder="Ví dụ: Con mèo" required style="padding:6px 10px; font-size:0.85rem; border-color:rgba(239,68,68,0.3);">
+                        </div>
+                    </div>
+                    
+                    <div style="width:100%; display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.05); padding-top:8px; margin-top:4px;">
+                        <button type="button" onclick="removeVocabRow(${index})" style="background:rgba(239,68,68,0.15); color:#f87171; border:none; padding:6px 12px; border-radius:8px; cursor:pointer; font-weight:700; font-size:0.8rem; margin-left:auto;">
+                            🗑️ Xóa từ này
+                        </button>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function addVocabularyRow() {
+            vocabList.push({ word: '', phonetic: '', meaning: '', wrong1: '', wrong2: '', wrong3: '', emoji: '' });
+            renderVocabRows();
+            updateHiddenInput();
+        }
+
+        function removeVocabRow(index) {
+            vocabList.splice(index, 1);
+            renderVocabRows();
+            updateHiddenInput();
+        }
+
+        function updateVocabValue(index, field, value) {
+            vocabList[index][field] = value;
+            updateHiddenInput();
+        }
+
+        function updateVocabEmoji(index, emoji) {
+            vocabList[index]['emoji'] = emoji;
+            const input = document.getElementById(`emoji-input-${index}`);
+            if (input) input.value = emoji;
+            updateHiddenInput();
+        }
+
+        function suggestEmojiFromWord(index, wordValue) {
+            if (!wordValue) return;
+            const cleanWord = wordValue.toLowerCase().trim();
+            for (let key in emojiMap) {
+                if (cleanWord === key || cleanWord.includes(key)) {
+                    const emoji = emojiMap[key];
+                    const emojiInput = document.getElementById(`emoji-input-${index}`);
+                    if (emojiInput && !emojiInput.value) {
+                        updateVocabEmoji(index, emoji);
+                    }
+                    break;
+                }
+            }
+        }
+
+        function handleEmojiSearch(index, val) {
+            const suggestionsContainer = document.getElementById(`emoji-suggestions-${index}`);
+            if (!suggestionsContainer) return;
+            
+            if (!val || val.trim() === '') {
+                suggestionsContainer.innerHTML = '';
+                return;
+            }
+            
+            const cleanVal = val.toLowerCase().trim();
+            
+            // Check if exact match to a key in dictionary, if so replace it immediately
+            if (emojiMap[cleanVal]) {
+                const emoji = emojiMap[cleanVal];
+                updateVocabEmoji(index, emoji);
+                suggestionsContainer.innerHTML = '';
+                return;
+            }
+            
+            const matches = new Set();
+            for (let key in emojiMap) {
+                if (key.includes(cleanVal)) {
+                    matches.add(emojiMap[key]);
+                }
+            }
+            
+            suggestionsContainer.innerHTML = '';
+            if (matches.size > 0) {
+                matches.forEach(emoji => {
+                    const span = document.createElement('span');
+                    span.style = 'cursor:pointer; margin-right:5px; font-size:1.1rem; background:rgba(255,255,255,0.05); padding:2px 6px; border-radius:4px;';
+                    span.textContent = emoji;
+                    span.onclick = () => {
+                        updateVocabEmoji(index, emoji);
+                        suggestionsContainer.innerHTML = '';
+                    };
+                    suggestionsContainer.appendChild(span);
+                });
+            }
+        }
+
+        function updateHiddenInput() {
+            document.getElementById('VocabularyJson').value = JSON.stringify(vocabList);
+        }
+
+        // Initialize empty state
+        renderVocabRows();
     </script>
 }

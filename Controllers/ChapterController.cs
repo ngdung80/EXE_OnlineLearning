@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using POT_System_ASPNET.Services;
 using POT_System_ASPNET.Data.Entities;
+using System.Security.Claims;
 
 namespace POT_System_ASPNET.Controllers;
 
@@ -11,24 +12,85 @@ public class ChapterController : Controller
     private readonly IChapterService _chapterService;
     private readonly ISubjectService _subjectService;
     private readonly IGradeService _gradeService;
+    private readonly IStudentPackageService _studentPackageService;
 
-    public ChapterController(IChapterService chapterService, ISubjectService subjectService, IGradeService gradeService)
+    public ChapterController(IChapterService chapterService, ISubjectService subjectService, IGradeService gradeService, IStudentPackageService studentPackageService)
     {
         _chapterService = chapterService;
         _subjectService = subjectService;
         _gradeService = gradeService;
+        _studentPackageService = studentPackageService;
     }
 
     public async Task<IActionResult> Index(int? subjectId)
     {
         var isAdminOrManager = User.IsInRole("Admin") || User.IsInRole("Content Manager");
         var allSubjects = await _subjectService.GetAllAsync();
-        ViewBag.Subjects = isAdminOrManager ? allSubjects : allSubjects.Where(s => s.Status == "Active").ToList();
+        
+        List<Subject> allowedSubjects = allSubjects;
+        
+        if (User.IsInRole("Student"))
+        {
+            var studentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var today = DateOnly.FromDateTime(DateTime.Now);
+            var activePackages = (await _studentPackageService.GetByStudentIdAsync(studentId))
+                .Where(sp => sp.Status == "Active" && sp.EndDate >= today)
+                .ToList();
+            
+            var activeGradeIds = activePackages
+                .Where(sp => sp.GradeId.HasValue)
+                .Select(sp => sp.GradeId!.Value)
+                .Distinct()
+                .ToList();
+
+            if (!subjectId.HasValue)
+            {
+                if (activeGradeIds.Count == 0 || activeGradeIds.Count > 1)
+                {
+                    return RedirectToAction("Index", "Grade");
+                }
+            }
+
+            var activeSubjectIds = activePackages
+                .Where(sp => sp.SubjectId.HasValue)
+                .Select(sp => sp.SubjectId!.Value)
+                .Distinct()
+                .ToList();
+                
+            allowedSubjects = allSubjects.Where(s => activeSubjectIds.Contains(s.SubjectId)).ToList();
+        }
+
+        ViewBag.Subjects = isAdminOrManager ? allSubjects : allowedSubjects.Where(s => s.Status == "Active").ToList();
         ViewBag.SelectedSubjectId = subjectId;
         
-        List<Chapter> chapters = subjectId.HasValue 
-            ? await _chapterService.GetBySubjectIdAsync(subjectId.Value) 
-            : await _chapterService.GetAllAsync();
+        List<Chapter> chapters = new List<Chapter>();
+
+        if (subjectId.HasValue)
+        {
+            if (!isAdminOrManager && !allowedSubjects.Any(s => s.SubjectId == subjectId.Value))
+            {
+                return Forbid();
+            }
+            chapters = await _chapterService.GetBySubjectIdAsync(subjectId.Value);
+        }
+        else
+        {
+            if (isAdminOrManager)
+            {
+                chapters = await _chapterService.GetAllAsync();
+            }
+            else
+            {
+                var allowedSubjectIds = allowedSubjects.Select(s => s.SubjectId).ToList();
+                var allActiveChapters = new List<Chapter>();
+                foreach (var subId in allowedSubjectIds)
+                {
+                    var subChapters = await _chapterService.GetBySubjectIdAsync(subId);
+                    allActiveChapters.AddRange(subChapters);
+                }
+                chapters = allActiveChapters;
+            }
+        }
 
         if (!isAdminOrManager)
         {

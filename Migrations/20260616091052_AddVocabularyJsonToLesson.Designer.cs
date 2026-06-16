@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using POT_System_ASPNET.Data;
 
@@ -11,9 +12,11 @@ using POT_System_ASPNET.Data;
 namespace POT_System_ASPNET.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260616091052_AddVocabularyJsonToLesson")]
+    partial class AddVocabularyJsonToLesson
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -329,36 +332,6 @@ namespace POT_System_ASPNET.Migrations
                     b.HasIndex("ReportedBy");
 
                     b.ToTable("QuestionReport", (string)null);
-                });
-
-            modelBuilder.Entity("POT_System_ASPNET.Data.Entities.StudentLessonProgress", b =>
-                {
-                    b.Property<int>("ProgressId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("progress_id");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProgressId"));
-
-                    b.Property<DateTime>("CompletedAt")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("completed_at");
-
-                    b.Property<int>("LessonId")
-                        .HasColumnType("int")
-                        .HasColumnName("lesson_id");
-
-                    b.Property<int>("StudentId")
-                        .HasColumnType("int")
-                        .HasColumnName("student_id");
-
-                    b.HasKey("ProgressId");
-
-                    b.HasIndex("LessonId");
-
-                    b.HasIndex("StudentId");
-
-                    b.ToTable("StudentLessonProgress", (string)null);
                 });
 
             modelBuilder.Entity("POT_System_ASPNET.Data.Entities.StudentPackage", b =>
@@ -906,25 +879,6 @@ namespace POT_System_ASPNET.Migrations
                     b.Navigation("Question");
 
                     b.Navigation("Reporter");
-                });
-
-            modelBuilder.Entity("POT_System_ASPNET.Data.Entities.StudentLessonProgress", b =>
-                {
-                    b.HasOne("POT_System_ASPNET.Data.Entities.Lesson", "Lesson")
-                        .WithMany()
-                        .HasForeignKey("LessonId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("POT_System_ASPNET.Data.Entities.User", "Student")
-                        .WithMany()
-                        .HasForeignKey("StudentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Lesson");
-
-                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("POT_System_ASPNET.Data.Entities.StudentPackage", b =>

@@ -75,10 +75,10 @@
                                             <span class="ans-lbl">Câu trả lời của bạn:</span>
                                             <span class="@ansClass">@(result.SelectedAnswer ?? "Chưa trả lời")</span>
                                         </div>
-                                        @if (!result.IsCorrect)
+                                        @if (!result.IsCorrect || !(result.Question?.IsMultipleChoice ?? true))
                                         {
                                             <div class="ans-row">
-                                                <span class="ans-lbl">Đáp án đúng:</span>
+                                                <span class="ans-lbl">@(result.Question?.IsMultipleChoice == false ? "Đáp án gợi ý:" : "Đáp án đúng:")</span>
                                                 <span class="ans-correct">@result.Question?.CorrectAnswer</span>
                                             </div>
                                         }

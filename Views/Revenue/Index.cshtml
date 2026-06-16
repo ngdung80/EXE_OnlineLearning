@@ -77,12 +77,7 @@
     <p class="total-revenue">Tổng doanh thu từ trước đến nay: @String.Format("{0:N1}", ViewBag.TotalRevenue) VNĐ</p>
 
     <div class="filter-card">
-        <span class="filter-label">Loại bộ lọc:</span>
-        <select class="form-select-custom">
-            <option>Theo năm</option>
-        </select>
-        
-        <span class="filter-label ms-3">Năm:</span>
+        <span class="filter-label">Năm:</span>
         <select id="yearSelect" class="form-select-custom">
             @for (int y = 2020; y <= DateTime.Now.Year; y++)
             {
@@ -93,8 +88,26 @@
                 }
             }
         </select>
+
+        <span class="filter-label ms-3">Tháng:</span>
+        <select id="monthSelect" class="form-select-custom">
+            <option value="0">Tất cả tháng</option>
+            @for (int m = 1; m <= 12; m++)
+            {
+                <option value="@m">Tháng @m</option>
+            }
+        </select>
+
+        <span class="filter-label ms-3">Ngày:</span>
+        <select id="daySelect" class="form-select-custom">
+            <option value="0">Tất cả ngày</option>
+            @for (int d = 1; d <= 31; d++)
+            {
+                <option value="@d">Ngày @d</option>
+            }
+        </select>
         
-        <button id="btnFilter" class="btn-filter ms-2">Lọc</button>
+        <button id="btnFilter" class="btn-filter ms-3">🔎 Lọc</button>
     </div>
 
     <div class="chart-card">
@@ -108,16 +121,60 @@
         let revenueChartInstance = null;
 
         document.addEventListener('DOMContentLoaded', function () {
-            loadChartData(new Date().getFullYear());
+            // Initial load
+            loadChartData(new Date().getFullYear(), 0, 0);
+
+            // Listeners for dynamic days dropdown update
+            document.getElementById('yearSelect').addEventListener('change', updateDaysDropdown);
+            document.getElementById('monthSelect').addEventListener('change', updateDaysDropdown);
 
             document.getElementById('btnFilter').addEventListener('click', function() {
-                const selectedYear = document.getElementById('yearSelect').value;
-                loadChartData(selectedYear);
+                const year = document.getElementById('yearSelect').value;
+                const month = document.getElementById('monthSelect').value;
+                const day = document.getElementById('daySelect').value;
+                loadChartData(year, month, day);
             });
         });
 
-        function loadChartData(year) {
-            fetch(`/Revenue/GetRevenueData?year=${year}`)
+        function updateDaysDropdown() {
+            const year = parseInt(document.getElementById('yearSelect').value);
+            const month = parseInt(document.getElementById('monthSelect').value);
+            const daySelect = document.getElementById('daySelect');
+            const prevSelectedDay = daySelect.value;
+            
+            // Clear all options except "Tất cả ngày"
+            daySelect.options.length = 1;
+
+            if (month > 0) {
+                const daysInMonth = new Date(year, month, 0).getDate();
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const opt = document.createElement('option');
+                    opt.value = d;
+                    opt.textContent = `Ngày ${d}`;
+                    daySelect.appendChild(opt);
+                }
+                if (parseInt(prevSelectedDay) <= daysInMonth) {
+                    daySelect.value = prevSelectedDay;
+                } else {
+                    daySelect.value = "0";
+                }
+            } else {
+                for (let d = 1; d <= 31; d++) {
+                    const opt = document.createElement('option');
+                    opt.value = d;
+                    opt.textContent = `Ngày ${d}`;
+                    daySelect.appendChild(opt);
+                }
+                daySelect.value = "0";
+            }
+        }
+
+        function loadChartData(year, month, day) {
+            let url = `/Revenue/GetRevenueData?year=${year}`;
+            if (month > 0) url += `&month=${month}`;
+            if (day > 0) url += `&day=${day}`;
+
+            fetch(url)
                 .then(response => response.json())
                 .then(data => {
                     const labels = data.map(item => item.label);
@@ -129,18 +186,29 @@
                         revenueChartInstance.destroy();
                     }
 
+                    // Dynamically set label text based on filters selected
+                    let datasetLabel = 'Doanh thu theo tháng (VNĐ)';
+                    let xAxisTitle = 'Tháng';
+                    if (parseInt(month) > 0 && parseInt(day) > 0) {
+                        datasetLabel = 'Doanh thu theo giờ (VNĐ)';
+                        xAxisTitle = 'Giờ';
+                    } else if (parseInt(month) > 0) {
+                        datasetLabel = 'Doanh thu theo ngày (VNĐ)';
+                        xAxisTitle = 'Ngày';
+                    }
+
                     revenueChartInstance = new Chart(ctx, {
-                        type: 'bar', // Using bar chart to match the visual style
+                        type: 'bar',
                         data: {
                             labels: labels,
                             datasets: [
                                 {
-                                    label: 'Doanh thu theo ngày (VNĐ)',
+                                    label: datasetLabel,
                                     data: revenueData,
-                                    backgroundColor: 'rgba(135, 206, 250, 0.6)', // light blue
-                                    borderColor: 'rgba(135, 206, 250, 1)',
+                                    backgroundColor: 'rgba(52, 152, 219, 0.6)', // matching theme color (#3498db)
+                                    borderColor: 'rgba(52, 152, 219, 1)',
                                     borderWidth: 1,
-                                    barPercentage: 0.5
+                                    barPercentage: 0.6
                                 }
                             ]
                         },
@@ -159,7 +227,7 @@
                                     },
                                     ticks: {
                                         callback: function(value) {
-                                            return value;
+                                            return value.toLocaleString('vi-VN') + ' đ';
                                         }
                                     },
                                     grid: {
@@ -169,7 +237,7 @@
                                 x: {
                                     title: {
                                         display: true,
-                                        text: 'Ngày',
+                                        text: xAxisTitle,
                                         color: '#666',
                                         font: {
                                             size: 14
