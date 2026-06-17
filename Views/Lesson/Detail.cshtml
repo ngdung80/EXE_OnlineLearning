@@ -140,8 +140,11 @@
                                 }
                                 else
                                 {
-                                    <video id="direct-video" controls style="width:100%; height:auto; display:block;" ontimeupdate="checkDirectVideoProgress(this)">
-                                        <source src="@Model.FileUrl" type="video/mp4">
+                                    <div id="video-loading" style="padding: 20px; text-align: center; color: #94a3b8; font-weight: 600;">
+                                        <div style="width:30px; height:30px; border:3px solid rgba(255,255,255,0.1); border-radius:50%; border-top-color:#ec6090; animation:spin 1s linear infinite; margin:0 auto 10px;"></div>
+                                        Đang tải video bài học...
+                                    </div>
+                                    <video id="direct-video" controls controlsList="nodownload" oncontextmenu="return false;" style="width:100%; height:auto; display:none;" ontimeupdate="checkDirectVideoProgress(this)">
                                         Trình duyệt của con không hỗ trợ xem trực tiếp video này.
                                     </video>
                                 }
@@ -228,8 +231,35 @@
                         </div>
 
                         <!-- Initial Screen -->
-                        <div id="quiz-init-screen" style="text-align:center; padding:20px 0;">
-                            <p style="color:#cbd5e1; font-size:0.95rem; margin-bottom:20px; font-weight:600; line-height:1.5;">Hãy xem ít nhất 50% video để mở khóa câu hỏi đố vui từ AI nhé!</p>
+                        <div id="quiz-init-screen" style="text-align:center; padding:15px 0;">
+                            <p style="color:#cbd5e1; font-size:0.95rem; margin-bottom:15px; font-weight:600; line-height:1.5;">Hãy xem ít nhất 50% video để mở khóa câu hỏi đố vui từ AI nhé!</p>
+                            
+                            <!-- Bảng Phần Thưởng -->
+                            <div style="background:rgba(255,255,255,0.03); border:1.5px dashed rgba(236,96,144,0.3); border-radius:14px; padding:16px; margin-bottom:20px; text-align:left;">
+                                <h5 style="color:#ec6090; font-size:0.88rem; font-weight:800; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;"><i class="fas fa-gift"></i> Quà Tặng Đố Vui AI:</h5>
+                                <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; font-size:0.83rem;">
+                                    <img src="/assets/images/avatars/phoenix.svg" style="width:36px; height:36px; border-radius:50%; background:#1e1b4b;" alt="">
+                                    <div>
+                                        <div style="font-weight:700; color:#fff;">🏆 Đúng 5/5 câu: <span style="color:#fbbf24;">Danh hiệu Vua Thông Thái 👑</span></div>
+                                        <div style="color:#94a3b8; font-size:0.75rem;">Mở khóa Avatar "Phượng Hoàng Lửa 🔥"</div>
+                                    </div>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; font-size:0.83rem;">
+                                    <img src="/assets/images/avatars/lion.svg" style="width:36px; height:36px; border-radius:50%; background:#2d1a04;" alt="">
+                                    <div>
+                                        <div style="font-weight:700; color:#fff;">⭐ Đúng 3-4/5 câu: <span style="color:#60a5fa;">Chiến Binh Chăm Chỉ 🦁</span></div>
+                                        <div style="color:#94a3b8; font-size:0.75rem;">Mở khóa Avatar "Sư Tử Dũng Cảm 🦁"</div>
+                                    </div>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:10px; font-size:0.83rem;">
+                                    <img src="/assets/images/avatars/dragon.svg" style="width:36px; height:36px; border-radius:50%; background:#061f2d;" alt="">
+                                    <div>
+                                        <div style="font-weight:700; color:#fff;">✨ Đúng 1-2/5 câu: <span style="color:#10b981;">Nhập Môn Tinh Nghịch 🐲</span></div>
+                                        <div style="color:#94a3b8; font-size:0.75rem;">Mở khóa Avatar "Rồng Con Tinh Nghịch 🐲"</div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <button type="button" id="btn-ask-ai" class="btn-ask-ai" onclick="loadAISingleQuestion()" style="padding:12px 28px; background:#475569; border:none; color:#94a3b8; font-weight:800; border-radius:30px; cursor:not-allowed; font-family:'Nunito',sans-serif; transition:all 0.2s;" disabled>
                                 🔒 Con hãy xem 50% video để mở khóa!
                             </button>
@@ -291,8 +321,11 @@
                                 }
                                 else
                                 {
-                                    <video controls style="width:100%; height:auto; display:block;">
-                                        <source src="@Model.FileUrl" type="video/mp4">
+                                    <div id="preview-video-loading" style="padding: 20px; text-align: center; color: #94a3b8; font-weight: 600;">
+                                        <div style="width:30px; height:30px; border:3px solid rgba(255,255,255,0.1); border-radius:50%; border-top-color:#ec6090; animation:spin 1s linear infinite; margin:0 auto 10px;"></div>
+                                        Đang tải video xem trước...
+                                    </div>
+                                    <video id="preview-video" controls controlsList="nodownload" oncontextmenu="return false;" style="width:100%; height:auto; display:none;">
                                         Trình duyệt không hỗ trợ xem trực tiếp video này.
                                     </video>
                                 }
@@ -348,6 +381,8 @@
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
         let correctCount = 0;
+        let questionCount = 0;
+        const MAX_QUESTIONS = 5;
         let currentCorrectAnswer = "";
         let currentExplanation = "";
         
@@ -419,6 +454,14 @@
         }
         
         async function loadAISingleQuestion() {
+            if (questionCount >= MAX_QUESTIONS) {
+                alert("Con đã hoàn thành tối đa 5 câu hỏi ôn tập của bài học này!");
+                return;
+            }
+            
+            const existingSummary = document.getElementById('quiz-completion-summary');
+            if (existingSummary) existingSummary.remove();
+
             document.getElementById('quiz-init-screen').style.display = 'none';
             document.getElementById('quiz-question-screen').style.display = 'none';
             document.getElementById('quiz-loading-screen').style.display = 'block';
@@ -438,11 +481,12 @@
                 }
                 
                 const data = await response.json();
+                questionCount++;
                 
                 currentCorrectAnswer = data.correctAnswer;
                 currentExplanation = data.explanation;
                 
-                document.getElementById('quiz-question-content').innerText = data.questionContent;
+                document.getElementById('quiz-question-content').innerText = `Câu ${questionCount}/${MAX_QUESTIONS}: ${data.questionContent}`;
                 
                 const optionsContainer = document.getElementById('quiz-options-container');
                 optionsContainer.innerHTML = '';
@@ -503,7 +547,56 @@
             
             explanationText.innerText = currentExplanation || "AI khuyên con nên xem kỹ lại bài giảng!";
             feedbackBox.style.display = 'block';
-            document.getElementById('btn-next-question').style.display = 'block';
+            
+            if (questionCount < MAX_QUESTIONS) {
+                document.getElementById('btn-next-question').style.display = 'block';
+            } else {
+                const oldSummary = document.getElementById('quiz-completion-summary');
+                if (oldSummary) oldSummary.remove();
+
+                let rewardHtml = "";
+                let avatarPath = "";
+                let rankName = "";
+                
+                if (correctCount === 5) {
+                    avatarPath = "/assets/images/avatars/phoenix.svg";
+                    rankName = "Vua Thông Thái 👑";
+                } else if (correctCount >= 3) {
+                    avatarPath = "/assets/images/avatars/lion.svg";
+                    rankName = "Chiến Binh Chăm Chỉ 🦁";
+                } else if (correctCount >= 1) {
+                    avatarPath = "/assets/images/avatars/dragon.svg";
+                    rankName = "Nhập Môn Tinh Nghịch 🐲";
+                }
+                
+                if (avatarPath) {
+                    rewardHtml = `
+                        <div style="margin-top: 15px; padding: 12px; background: rgba(16, 185, 129, 0.1); border: 1.5px solid #10b981; border-radius: 10px; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                            <div style="font-size: 0.82rem; font-weight: 700; color: #10b981;">🎁 ĐÃ MỞ KHÓA AVATAR MỚI!</div>
+                            <img src="${avatarPath}" style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid #10b981;" />
+                            <button type="button" onclick="useUnlockedAvatar('${avatarPath}')" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 18px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                                Sử dụng Avatar này ngay!
+                            </button>
+                        </div>
+                    `;
+                }
+
+                const summaryDiv = document.createElement('div');
+                summaryDiv.id = 'quiz-completion-summary';
+                summaryDiv.style.marginTop = '20px';
+                summaryDiv.style.padding = '15px';
+                summaryDiv.style.background = 'rgba(168, 85, 247, 0.15)';
+                summaryDiv.style.border = '2px solid #a855f7';
+                summaryDiv.style.borderRadius = '12px';
+                summaryDiv.style.textAlign = 'center';
+                summaryDiv.innerHTML = `
+                    <h5 style="color:#c084fc; font-weight:800; margin-bottom:8px; font-size:1.1rem;">🏆 Đã hoàn thành 5 câu đố AI!</h5>
+                    <p style="margin:0; font-size:0.95rem; font-weight:700;">Hạng của con: <span style="color:#ec6090;">${rankName || "Cố Gắng Hơn 🎯"}</span></p>
+                    <p style="margin:4px 0 0 0; font-size:0.9rem; font-weight:600;">Kết quả học tập: <span style="color:#10b981;">${correctCount}</span> / 5 câu chính xác.</p>
+                    ${rewardHtml}
+                `;
+                document.getElementById('quiz-question-screen').appendChild(summaryDiv);
+            }
         }
 
         async function completeLessonManual() {
@@ -526,5 +619,58 @@
                 console.error("Error completing lesson:", err);
             }
         }
+
+        async function useUnlockedAvatar(avatarPath) {
+            try {
+                const response = await fetch('/Account/UpdateAvatar?avatarPath=' + encodeURIComponent(avatarPath), {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert('🎉 Đổi hình đại diện thành công! Trang web sẽ tải lại sau 1 giây.');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    alert('Lỗi: ' + (data.message || 'Không thể đổi hình đại diện.'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Đã xảy ra lỗi khi kết nối máy chủ.');
+            }
+        }
     </script>
 }
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const directVideo = document.getElementById('direct-video');
+        const directLoading = document.getElementById('video-loading');
+        const previewVideo = document.getElementById('preview-video');
+        const previewLoading = document.getElementById('preview-video-loading');
+        
+        const videoElement = directVideo || previewVideo;
+        const loadingElement = directLoading || previewLoading;
+        
+        if (videoElement && '@Model.FileUrl') {
+            const videoUrl = '@Model.FileUrl';
+            
+            fetch(videoUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error('Không thể tải video');
+                    return response.blob();
+                })
+                .then(blob => {
+                    const blobUrl = URL.createObjectURL(blob);
+                    videoElement.src = blobUrl;
+                    
+                    if (loadingElement) loadingElement.style.display = 'none';
+                    videoElement.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Security Video Loading Error:', error);
+                    videoElement.src = videoUrl;
+                    if (loadingElement) loadingElement.style.display = 'none';
+                    videoElement.style.display = 'block';
+                });
+        }
+    });
+</script>

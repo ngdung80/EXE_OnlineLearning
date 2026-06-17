@@ -103,34 +103,67 @@
 
             @if (Model != null)
             {
-                var icons = new[] { "📚", "🚀", "👑", "💡", "⭐" };
-                var tiers = new[] { "📚 Nền tảng", "🚀 Cá nhân hóa", "👑 Toàn diện" };
-                var taglines = new[] {
-                    "Con học 10 phút/ngày với nội dung nền tảng đầy đủ",
-                    "AI điều chỉnh lộ trình + báo cáo tuần chi tiết cho phụ huynh",
-                    "Kèm giáo viên review & tư vấn lộ trình cá nhân hàng tuần"
-                };
-                var featureLists = new[] {
-                    new[]{ "Toàn bộ bài học nền tảng", "Lộ trình học theo trình độ", "Ôn từ thông minh", "Báo cáo tiến bộ cơ bản", "Mascot & phần thưởng sao" },
-                    new[]{ "Tất cả tính năng Basic", "AI cá nhân hóa bài học", "Báo cáo tuần chi tiết", "Gợi ý học ở nhà hàng tuần", "Tạo đề luyện tập với AI" },
-                    new[]{ "Tất cả tính năng Standard", "Giáo viên nhận xét bài/tuần", "Tư vấn lộ trình cá nhân", "Hỗ trợ ưu tiên 24/7", "Phân tích kỹ năng nâng cao" }
-                };
-                int idx = 0;
                 foreach (var pkg in Model)
                 {
-                    bool featured = idx == 1;
-                    var tier = idx < tiers.Length ? tiers[idx] : icons[idx % icons.Length];
-                    var tagline = idx < taglines.Length ? taglines[idx] : pkg.Description ?? "";
-                    var feats = idx < featureLists.Length ? featureLists[idx] : new[]{ pkg.Description ?? "" };
+                    // Lọc bỏ gói học thử miễn phí khỏi vòng lặp để tránh trùng lặp với card tĩnh phía trên
+                    if (pkg.Price == 0 || pkg.PackageName.Contains("Thử"))
+                    {
+                        continue;
+                    }
+
+                    string tierName = "";
+                    string tagline = "";
+                    string[] features = new string[0];
+                    bool featured = false;
+
+                    if (pkg.PackageName.Contains("Cơ Bản") || pkg.Duration == 1)
+                    {
+                        tierName = "⭐ Gói Cơ Bản";
+                        tagline = "Lộ trình học chính thức 1 tháng";
+                        features = new[] {
+                            "Ứng dụng công nghệ AI tự động điều chỉnh lộ trình học phù hợp với sức học của bé.",
+                            "Hệ thống tự động tạo đề luyện tập với AI và đưa ra gợi ý bài học tại nhà hàng tuần.",
+                            "Gửi báo cáo chi tiết kết quả học tập tự động cho phụ huynh vào cuối tuần."
+                        };
+                    }
+                    else if (pkg.PackageName.Contains("Tiêu Chuẩn") || pkg.Duration == 3)
+                    {
+                        tierName = "🚀 Gói Tiêu Chuẩn";
+                        tagline = "Lộ trình học chính thức 3 tháng";
+                        features = new[] {
+                            "Bao gồm đầy đủ các tính năng tự động của gói Cơ Bản.",
+                            "Nâng cấp hệ thống tự động phân tích kỹ năng nâng cao chuyên sâu cho bé.",
+                            "Tự động cập nhật và tư vấn lộ trình học cá nhân hóa theo tiến độ.",
+                            "Được ưu tiên hỗ trợ kỹ thuật và vận hành từ hệ thống 24/7."
+                        };
+                        featured = true; // Đặt gói Tiêu Chuẩn làm gói phổ biến nhất giống như ảnh
+                    }
+                    else if (pkg.PackageName.Contains("Cao Cấp") || pkg.Duration == 6)
+                    {
+                        tierName = "👑 Gói Cao Cấp";
+                        tagline = "Lộ trình học chính thức 6 tháng";
+                        features = new[] {
+                            "Gói dài hạn nhất, tối ưu trọn bộ lộ trình cá nhân hóa nâng cao trong vòng 6 tháng.",
+                            "Hệ thống báo cáo thông minh, phân tích toàn diện mọi chỉ số học tập dành riêng cho phụ huynh.",
+                            "Tự động cấp Chứng nhận hoàn thành khóa học sau khi bé hoàn thành lộ trình 6 tháng."
+                        };
+                    }
+                    else
+                    {
+                        tierName = pkg.PackageName;
+                        tagline = pkg.Description ?? "";
+                        features = new[] { pkg.Description ?? "" };
+                    }
+
                     <div class="pkg-card @(featured ? "featured" : "")">
                         @if (featured) { <div class="featured-pill">⭐ Phổ biến nhất</div> }
-                        <div class="pkg-tier">@tier</div>
+                        <div class="pkg-tier">@tierName</div>
                         <div class="pkg-name">@pkg.PackageName</div>
                         <div class="pkg-tagline">@tagline</div>
-                        <div class="pkg-price">@pkg.Price.ToString("N0")đ <small>/ tháng</small></div>
-                        <div class="pkg-duration">📅 Truy cập trong @pkg.Duration tháng</div>
+                        <div class="pkg-price">@pkg.Price.ToString("N0")đ <small>/ @pkg.Duration tháng</small></div>
+                        <div class="pkg-duration">📅 Hạn sử dụng @pkg.Duration tháng</div>
                         <ul class="pkg-features">
-                            @foreach (var f in feats)
+                            @foreach (var f in features)
                             {
                                 <li><span class="feat-ok">✓</span> @f</li>
                             }
@@ -143,7 +176,7 @@
                         }
                         else if (!User.Identity!.IsAuthenticated)
                         {
-                            <a asp-controller="Account" asp-action="Register" class="btn-buy @(featured ? "" : "outline")" id="pkg-reg-@idx">
+                            <a asp-controller="Account" asp-action="Register" class="btn-buy @(featured ? "" : "outline")" id="pkg-reg-@pkg.PackageId">
                                 @(featured ? "Bắt đầu ngay →" : "Đăng ký để mua")
                             </a>
                         }
@@ -152,7 +185,6 @@
                             <button class="btn-buy" disabled>Chỉ dành cho Phụ huynh</button>
                         }
                     </div>
-                    idx++;
                 }
             }
         </div>
@@ -166,20 +198,20 @@
                         <tr>
                             <th style="min-width:200px;">Tính năng</th>
                             <th>Free Trial</th>
-                            <th>Basic</th>
-                            <th style="background:#c2185b;">Standard ⭐</th>
-                            <th>Premium</th>
+                            <th>Gói Cơ Bản</th>
+                            <th style="background:#c2185b;">Gói Tiêu Chuẩn ⭐</th>
+                            <th>Gói Cao Cấp</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr><td>Bài học nền tảng</td><td><span class="ct-val">5 bài</span></td><td class="ct-yes">✓ Tất cả</td><td class="ct-yes">✓ Tất cả</td><td class="ct-yes">✓ Tất cả</td></tr>
                         <tr><td>Mascot & phần thưởng sao</td><td class="ct-yes">✓</td><td class="ct-yes">✓</td><td class="ct-yes">✓</td><td class="ct-yes">✓</td></tr>
-                        <tr><td>Báo cáo cho phụ huynh</td><td><span class="ct-val">Mẫu</span></td><td><span class="ct-val">Cơ bản</span></td><td class="ct-yes">✓ Tuần đầy đủ</td><td class="ct-yes">✓ Tuần đầy đủ</td></tr>
-                        <tr><td>AI cá nhân hóa lộ trình</td><td class="ct-no">—</td><td class="ct-no">—</td><td class="ct-yes">✓</td><td class="ct-yes">✓</td></tr>
-                        <tr><td>Gợi ý học tại nhà hàng tuần</td><td class="ct-no">—</td><td class="ct-no">—</td><td class="ct-yes">✓</td><td class="ct-yes">✓</td></tr>
-                        <tr><td>Tạo đề luyện tập với AI</td><td class="ct-no">—</td><td class="ct-no">—</td><td class="ct-yes">✓</td><td class="ct-yes">✓</td></tr>
-                        <tr><td>Giáo viên review bài/tuần</td><td class="ct-no">—</td><td class="ct-no">—</td><td class="ct-no">—</td><td class="ct-yes">✓</td></tr>
-                        <tr><td>Hỗ trợ ưu tiên</td><td class="ct-no">—</td><td class="ct-no">—</td><td class="ct-no">—</td><td class="ct-yes">✓ 24/7</td></tr>
+                        <tr><td>Báo cáo cho phụ huynh</td><td><span class="ct-val">Mẫu</span></td><td><span class="ct-val">Cuối tuần</span></td><td class="ct-yes">✓ Tuần đầy đủ</td><td class="ct-yes">✓ Toàn diện thông minh</td></tr>
+                        <tr><td>AI điều chỉnh lộ trình</td><td class="ct-no">—</td><td class="ct-yes">✓ Tự động</td><td class="ct-yes">✓ Tự động</td><td class="ct-yes">✓ Tối ưu nâng cao</td></tr>
+                        <tr><td>Tạo đề luyện tập với AI</td><td class="ct-no">—</td><td class="ct-yes">✓ Hàng tuần</td><td class="ct-yes">✓ Hàng tuần</td><td class="ct-yes">✓ Hàng tuần</td></tr>
+                        <tr><td>Phân tích kỹ năng chuyên sâu</td><td class="ct-no">—</td><td class="ct-no">—</td><td class="ct-yes">✓ Nâng cao</td><td class="ct-yes">✓ Toàn diện</td></tr>
+                        <tr><td>Hỗ trợ kỹ thuật & vận hành</td><td class="ct-no">—</td><td class="ct-no">—</td><td class="ct-yes">✓ Ưu tiên 24/7</td><td class="ct-yes">✓ Ưu tiên 24/7</td></tr>
+                        <tr><td>Chứng nhận hoàn thành</td><td class="ct-no">—</td><td class="ct-no">—</td><td class="ct-no">—</td><td class="ct-yes">✓ Tự động (6 tháng)</td></tr>
                     </tbody>
                 </table>
             </div>

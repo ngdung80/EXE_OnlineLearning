@@ -124,7 +124,7 @@ public class AIController : Controller
         catch (Exception ex)
         {
             Response.StatusCode = 400;
-            return Json(new { message = ex.Message });
+            return Json(new { message = GetFriendlyAIErrorMessage(ex) });
         }
     }
 
@@ -143,26 +143,7 @@ public class AIController : Controller
             Console.WriteLine("\n=== GEMINI API ERROR ===");
             Console.WriteLine(ex.Message);
             Console.WriteLine("========================\n");
-
-            // User-friendly error messages
-            string userMessage;
-            if (ex.Message.Contains("429") || ex.Message.Contains("RESOURCE_EXHAUSTED") || ex.Message.Contains("quota"))
-            {
-                userMessage = "⚠️ Trợ lý AI đang tạm thời bận (giới hạn lượt dùng). Vui lòng đợi vài giây rồi thử lại. Nếu lỗi tiếp tục, điều này có thể do quóta API đã hết trong ngày hôm nay.";
-            }
-            else if (ex.Message.Contains("401") || ex.Message.Contains("403") || ex.Message.Contains("API_KEY"))
-            {
-                userMessage = "🔒 Lỗi xác thực API. Vui lòng liên hệ quản trị viên.";
-            }
-            else if (ex.Message.Contains("timeout") || ex.Message.Contains("HttpRequest"))
-            {
-                userMessage = "🔄 Kết nối bị gián đoạn. Vui lòng kiểm tra mạng và thử lại.";
-            }
-            else
-            {
-                userMessage = "🤖 Trợ lý AI đang gặp sự cố kỹ thuật. Vui lòng thử lại sau.";
-            }
-            return Json(new { error = userMessage });
+            return Json(new { error = GetFriendlyAIErrorMessage(ex) });
         }
     }
 
@@ -209,7 +190,7 @@ public class AIController : Controller
         catch (Exception ex)
         {
             Response.StatusCode = 400;
-            return Json(new { error = ex.Message });
+            return Json(new { error = GetFriendlyAIErrorMessage(ex) });
         }
     }
 
@@ -255,6 +236,28 @@ public class AIController : Controller
             text = text[..^"```".Length].Trim();
         }
         return text;
+    }
+
+    private string GetFriendlyAIErrorMessage(Exception ex)
+    {
+        var msg = ex.Message;
+        if (msg.Contains("429") || msg.Contains("RESOURCE_EXHAUSTED") || msg.Contains("quota"))
+        {
+            return "⚠️ Hệ thống AI đang tạm thời quá tải hoặc hết lượt dùng (quota) miễn phí trong ngày. Con vui lòng đợi một chút rồi thử lại nhé!";
+        }
+        if (msg.Contains("503") || msg.Contains("Unavailable"))
+        {
+            return "☁️ Máy chủ AI của Google đang bận hoặc bảo trì tạm thời. Con vui lòng thử lại sau vài giây nhé!";
+        }
+        if (msg.Contains("401") || msg.Contains("403") || msg.Contains("API_KEY"))
+        {
+            return "🔒 Lỗi xác thực API Key của AI. Quản trị viên vui lòng kiểm tra lại cấu hình.";
+        }
+        if (msg.Contains("timeout") || msg.Contains("canceled") || msg.Contains("HttpClient"))
+        {
+            return "⏳ Kết nối tới máy chủ AI bị quá thời gian phản hồi (Timeout). Vui lòng kiểm tra lại mạng hoặc thử lại sau.";
+        }
+        return "🤖 Trợ lý AI đang gặp sự cố nhỏ khi tạo câu hỏi. Con thử lại nhé!";
     }
 }
 

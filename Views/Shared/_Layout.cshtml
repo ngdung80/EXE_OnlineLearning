@@ -70,7 +70,7 @@
                             </div>
                         }
                         <ul class="nav">
-                            <li><a asp-controller="Home" asp-action="Index" class="active">Trang chủ</a></li>
+                            <li><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
                             <li><a href="/Grade">Khối lớp</a></li>
 
                             @if (!User.Identity!.IsAuthenticated || User.IsInRole("Parent"))
@@ -187,10 +187,74 @@
     <script src="~/assets/js/imagesloaded.js"></script>
     <script src="~/assets/js/custom.js"></script>
     <script>
-        // Auto-hide toast
         document.addEventListener('DOMContentLoaded', function () {
+            // Auto-hide toast
             const toast = document.getElementById('toastMsg');
             if (toast) setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity .5s'; setTimeout(() => toast.remove(), 500); }, 3500);
+
+            // Dynamic active nav link
+            const currentPath = window.location.pathname.toLowerCase();
+            const navLinks = document.querySelectorAll('.main-nav .nav a');
+            
+            navLinks.forEach(link => link.classList.remove('active'));
+            
+            let activeLink = null;
+            
+            // Try to find a link that exactly matches the current path
+            navLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (!href || href === '#') return;
+                
+                try {
+                    const url = new URL(href, window.location.origin);
+                    if (url.pathname.toLowerCase() === currentPath) {
+                        activeLink = link;
+                    }
+                } catch (e) {
+                    if (href.toLowerCase() === currentPath) {
+                        activeLink = link;
+                    }
+                }
+            });
+            
+            // If no exact match, look for prefix matching (e.g. /Grade/Index matches /Grade)
+            if (!activeLink) {
+                let bestMatchLength = 0;
+                navLinks.forEach(link => {
+                    const href = link.getAttribute('href');
+                    if (!href || href === '#' || href === '/') return;
+                    
+                    let linkPath = '';
+                    try {
+                        linkPath = new URL(href, window.location.origin).pathname.toLowerCase();
+                    } catch (e) {
+                        linkPath = href.toLowerCase();
+                    }
+                    
+                    if (currentPath.startsWith(linkPath) && linkPath.length > bestMatchLength) {
+                        activeLink = link;
+                        bestMatchLength = linkPath.length;
+                    }
+                });
+            }
+            
+            // Fallback to "Trang chủ" if we are on the root path
+            if (!activeLink && (currentPath === '/' || currentPath === '/home' || currentPath === '/home/index')) {
+                navLinks.forEach(link => {
+                    const text = link.textContent.trim().toLowerCase();
+                    if (text === 'trang chủ') activeLink = link;
+                });
+            }
+            
+            if (activeLink) {
+                activeLink.classList.add('active');
+                
+                // Highlight dropdown parent if active link is inside a dropdown
+                const dropdownParent = activeLink.closest('li')?.querySelector('a:first-child');
+                if (dropdownParent && dropdownParent !== activeLink) {
+                    dropdownParent.classList.add('active');
+                }
+            }
         });
     </script>
     @RenderSection("Scripts", required: false)

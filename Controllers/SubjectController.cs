@@ -10,11 +10,13 @@ public class SubjectController : Controller
 {
     private readonly ISubjectService _subjectService;
     private readonly IGradeService _gradeService;
+    private readonly IStudentPackageService _studentPackageService;
 
-    public SubjectController(ISubjectService subjectService, IGradeService gradeService)
+    public SubjectController(ISubjectService subjectService, IGradeService gradeService, IStudentPackageService studentPackageService)
     {
         _subjectService = subjectService;
         _gradeService = gradeService;
+        _studentPackageService = studentPackageService;
     }
 
     public async Task<IActionResult> Index(int? gradeId)
@@ -30,6 +32,19 @@ public class SubjectController : Controller
         if (!isAdminOrManager)
         {
             subjects = subjects.Where(s => s.Status == "Active").ToList();
+        }
+
+        if (User.IsInRole("Student"))
+        {
+            var studentId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+            var studentPackages = await _studentPackageService.GetByStudentIdAsync(studentId);
+            var activeSubjectIds = studentPackages
+                .Where(sp => sp.Status == "Active" && sp.EndDate >= DateOnly.FromDateTime(DateTime.Now))
+                .Select(sp => sp.SubjectId)
+                .Where(id => id.HasValue)
+                .Select(id => id!.Value)
+                .ToList();
+            subjects = subjects.Where(s => activeSubjectIds.Contains(s.SubjectId)).ToList();
         }
 
         if (gradeId.HasValue)

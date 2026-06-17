@@ -2,8 +2,35 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using POT_System_ASPNET.Data;
 using POT_System_ASPNET.Services;
-
 var builder = WebApplication.CreateBuilder(args);
+
+// ─── Load Environment Variables from .env ───────────────────────────────────
+var envPath = System.IO.Path.Combine(builder.Environment.ContentRootPath, ".env");
+if (System.IO.File.Exists(envPath))
+{
+    foreach (var line in System.IO.File.ReadAllLines(envPath))
+    {
+        if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#"))
+            continue;
+
+        var parts = line.Split('=', 2);
+        if (parts.Length == 2)
+        {
+            var key = parts[0].Trim();
+            var val = parts[1].Trim();
+
+            // Remove quotes if present
+            if (val.StartsWith("\"") && val.EndsWith("\""))
+                val = val.Substring(1, val.Length - 2);
+            else if (val.StartsWith("'") && val.EndsWith("'"))
+                val = val.Substring(1, val.Length - 2);
+
+            Environment.SetEnvironmentVariable(key, val);
+            builder.Configuration[key] = val;
+            builder.Configuration[key.Replace("__", ":")] = val;
+        }
+    }
+}
 
 // ─── Database ───────────────────────────────────────────────────────────────
 builder.Services.AddDbContext<AppDbContext>(options =>

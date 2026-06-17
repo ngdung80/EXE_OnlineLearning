@@ -370,6 +370,27 @@ public class AccountController : Controller
         return View();
     }
 
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    [HttpPost]
+    public async Task<IActionResult> UpdateAvatar(string avatarPath)
+    {
+        if (string.IsNullOrEmpty(avatarPath)) return Json(new { success = false, message = "Đường dẫn trống." });
+        if (!avatarPath.StartsWith("/assets/images/avatars/"))
+        {
+            return Json(new { success = false, message = "Đường dẫn không hợp lệ." });
+        }
+
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var user = await _userService.GetByIdAsync(userId);
+        if (user == null) return NotFound();
+
+        user.Image = avatarPath;
+        await _userService.UpdateUserAsync(user);
+        await SignInUserAsync(user);
+
+        return Json(new { success = true });
+    }
+
     public IActionResult AccessDenied() => View();
 
     // ── Helper ───────────────────────────────────────────────────────────────

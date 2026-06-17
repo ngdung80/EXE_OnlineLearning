@@ -16,15 +16,17 @@ public class LessonController : Controller
     private readonly ISubjectService _subjectService;
     private readonly IGradeService _gradeService;
     private readonly AppDbContext _db;
+    private readonly IStudentPackageService _studentPackageService;
 
     public LessonController(ILessonService lessonService, IChapterService chapterService,
-        ISubjectService subjectService, IGradeService gradeService, AppDbContext db)
+        ISubjectService subjectService, IGradeService gradeService, AppDbContext db, IStudentPackageService studentPackageService)
     {
         _lessonService = lessonService;
         _chapterService = chapterService;
         _subjectService = subjectService;
         _gradeService = gradeService;
         _db = db;
+        _studentPackageService = studentPackageService;
     }
 
     public async Task<IActionResult> Index(string? name, int? gradeId, int? subjectId, int? chapterId, string? status, int page = 1)
@@ -35,6 +37,30 @@ public class LessonController : Controller
         if (!isAdminOrStaff)
         {
             status = "Active"; // Force active only for Student and Parent
+        }
+
+        if (User.IsInRole("Student"))
+        {
+            var studentId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+            if (chapterId.HasValue)
+            {
+                var chapter = await _chapterService.GetByIdAsync(chapterId.Value);
+                if (chapter == null) return NotFound();
+                
+                var hasAccess = await _studentPackageService.StudentHasAccessToSubjectAsync(studentId, chapter.SubjectId);
+                if (!hasAccess)
+                {
+                    return RedirectToAction("AccessDenied", "Account");
+                }
+            }
+            else if (subjectId.HasValue)
+            {
+                var hasAccess = await _studentPackageService.StudentHasAccessToSubjectAsync(studentId, subjectId.Value);
+                if (!hasAccess)
+                {
+                    return RedirectToAction("AccessDenied", "Account");
+                }
+            }
         }
 
         ViewBag.Grades = isAdminOrStaff ? await _gradeService.GetAllAsync() : await _gradeService.GetActiveAsync();
@@ -49,6 +75,22 @@ public class LessonController : Controller
 
         var lessons = await _lessonService.SearchAsync(name, gradeId, subjectId, chapterId, status, page, pageSize);
         var total = await _lessonService.CountAsync(name, gradeId, subjectId, chapterId, status);
+
+        if (User.IsInRole("Student"))
+        {
+            var studentId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+            var studentPackages = await _studentPackageService.GetByStudentIdAsync(studentId);
+            var activeSubjectIds = studentPackages
+                .Where(sp => sp.Status == "Active" && sp.EndDate >= DateOnly.FromDateTime(DateTime.Now))
+                .Select(sp => sp.SubjectId)
+                .Where(id => id.HasValue)
+                .Select(id => id!.Value)
+                .ToList();
+            
+            lessons = lessons.Where(l => activeSubjectIds.Contains(l.Chapter.SubjectId)).ToList();
+            total = lessons.Count;
+        }
+
         ViewBag.TotalPages = (int)Math.Ceiling((double)total / pageSize);
         ViewBag.CurrentPage = page;
 
@@ -167,10 +209,14 @@ public class LessonController : Controller
         if (User.Identity?.IsAuthenticated == true && User.IsInRole("Student"))
         {
             var studentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var hasAccess = await _studentPackageService.StudentHasAccessToSubjectAsync(studentId, lesson.Chapter.SubjectId);
+            if (!hasAccess)
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
             isCompleted = await _db.StudentLessonProgresses.AnyAsync(p => p.StudentId == studentId && p.LessonId == id);
         }
         ViewBag.IsCompleted = isCompleted;
-
         return View(lesson);
     }
 
@@ -180,6 +226,16 @@ public class LessonController : Controller
     {
         var lesson = await _lessonService.GetByIdAsync(id);
         if (lesson == null) return NotFound();
+
+        if (User.IsInRole("Student"))
+        {
+            var studentId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+            var hasAccess = await _studentPackageService.StudentHasAccessToSubjectAsync(studentId, lesson.Chapter.SubjectId);
+            if (!hasAccess)
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
+        }
         return View(lesson);
     }
 

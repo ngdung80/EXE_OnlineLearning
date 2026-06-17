@@ -10,7 +10,13 @@ namespace POT_System_ASPNET.Controllers;
 public class GradeController : Controller
 {
     private readonly IGradeService _gradeService;
-    public GradeController(IGradeService gradeService) => _gradeService = gradeService;
+    private readonly IStudentPackageService _studentPackageService;
+
+    public GradeController(IGradeService gradeService, IStudentPackageService studentPackageService)
+    {
+        _gradeService = gradeService;
+        _studentPackageService = studentPackageService;
+    }
 
     public async Task<IActionResult> Index()
     {

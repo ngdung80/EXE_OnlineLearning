@@ -24,9 +24,10 @@
     .role-student { background:rgba(59,130,246,.2); color:#60a5fa; }
     .role-parent { background:rgba(16,185,129,.2); color:#10b981; }
     .role-cm { background:rgba(168,85,247,.2); color:#c084fc; }
-    .badge-status { display:inline-block; padding:3px 10px; border-radius:15px; font-size:.75rem; font-weight:600; }
-    .status-active { background:rgba(16,185,129,.2); color:#10b981; }
-    .status-inactive { background:rgba(239,68,68,.2); color:#ef4444; }
+     .badge-status { display:inline-block; padding:3px 10px; border-radius:15px; font-size:.75rem; font-weight:600; }
+     .status-active { background:rgba(16,185,129,.2); color:#10b981; }
+     .status-inactive { background:rgba(239,68,68,.2); color:#ef4444; }
+     .status-pending { background:rgba(245,158,11,.2); color:#f59e0b; }
     .btn-sm { padding:5px 12px; border-radius:12px; font-size:.78rem; font-weight:600; border:none; cursor:pointer; transition:all .2s; text-decoration:none; }
     .btn-toggle { background:rgba(59,130,246,.2); color:#60a5fa; }
     .btn-del { background:rgba(239,68,68,.2); color:#f87171; }
@@ -41,6 +42,7 @@
 <section class="user-section">
     <div class="container">
         @if (TempData["Success"] != null) { <div class="success-msg">@TempData["Success"]</div> }
+        @if (TempData["Error"] != null) { <div style="background:rgba(239,68,68,.15);border:1px solid #ef4444;color:#ef4444;padding:12px;border-radius:10px;margin-bottom:20px;">@TempData["Error"]</div> }
         <div class="section-hd"><h2>👥 Quản lý người dùng</h2></div>
 
         <form method="get" class="filters">
@@ -69,11 +71,11 @@
                     }
                 }
             </select>
-            <select name="status" class="filter-select">
+             <select name="status" class="filter-select">
                 <option value="">Tất cả trạng thái</option>
-                <option value="active">Hoạt động</option>
-                <option value="inactive">Không hoạt động</option>
-                <option value="pending">Chờ duyệt</option>
+                @if (ViewBag.Filter?.status == "active") { <option value="active" selected>Hoạt động</option> } else { <option value="active">Hoạt động</option> }
+                @if (ViewBag.Filter?.status == "inactive") { <option value="inactive" selected>Không hoạt động</option> } else { <option value="inactive">Không hoạt động</option> }
+                @if (ViewBag.Filter?.status == "pending") { <option value="pending" selected>Chờ duyệt</option> } else { <option value="pending">Chờ duyệt</option> }
             </select>
             <button type="submit" class="btn-filter">🔍 Tìm kiếm</button>
         </form>
@@ -104,7 +106,7 @@
                                 <td style="color:#94a3b8;font-size:.88rem;">@u.Email</td>
                                 <td><span class="badge-role @roleClass">@roleNameViet</span></td>
                                 <td>
-                                    <span class="badge-status @(u.Status == "active" ? "status-active" : "status-inactive")">@statusViet</span>
+                                    <span class="badge-status @(u.Status == "active" ? "status-active" : u.Status == "pending" ? "status-pending" : "status-inactive")">@statusViet</span>
                                 </td>
                                 <td>
                                     @if (u.Status == "pending")
@@ -121,6 +123,15 @@
                                             <button type="submit" class="btn-sm btn-toggle">⚡ Đổi trạng thái</button>
                                         </form>
                                     }
+                                    <button type="button" class="btn-sm btn-toggle" style="background:rgba(245,158,11,.2); color:#fbbf24; margin-right:4px; border:none;" 
+                                            data-id="@u.UserId"
+                                            data-fullname="@u.FullName"
+                                            data-email="@u.Email"
+                                            data-role="@u.Role"
+                                            data-status="@u.Status"
+                                            onclick="openEditModal(this)">
+                                        ✏️ Sửa
+                                    </button>
                                     <form asp-action="Delete" asp-route-id="@u.UserId" method="post" style="display:inline" onsubmit="return confirm('Xóa người dùng @u.Username?')">
                                         @Html.AntiForgeryToken()
                                         <button type="submit" class="btn-sm btn-del">🗑️</button>
@@ -148,3 +159,70 @@
         }
     </div>
 </section>
+
+<!-- Modal Sửa thông tin người dùng -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background:#1e293b; border: 1px solid rgba(255,255,255,.1); border-radius: 20px; color: #e2e8f0;">
+      <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,.06); padding: 20px;">
+        <h5 class="modal-title" id="editUserModalLabel" style="color:#ec6090; font-weight:700;"><i class="fas fa-user-edit"></i> Chỉnh sửa người dùng</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="background-color: transparent; border: none; color: #fff; font-size: 1.25rem;">&times;</button>
+      </div>
+      <form asp-controller="User" asp-action="Edit" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" id="editUserId" />
+        <div class="modal-body" style="padding: 24px;">
+          <div style="margin-bottom:18px;">
+              <label style="color:#e2e8f0; font-weight:600; display:block; margin-bottom:8px;">👤 Họ và tên</label>
+              <input type="text" name="fullName" id="editFullName" required style="width:100%; padding:12px; background:rgba(255,255,255,.06); border:2px solid rgba(255,255,255,.1); border-radius:12px; color:#fff; font-family:'Inter',sans-serif; font-size:.95rem;">
+          </div>
+          <div style="margin-bottom:18px;">
+              <label style="color:#e2e8f0; font-weight:600; display:block; margin-bottom:8px;">📧 Email</label>
+              <input type="email" name="email" id="editEmail" required style="width:100%; padding:12px; background:rgba(255,255,255,.06); border:2px solid rgba(255,255,255,.1); border-radius:12px; color:#fff; font-family:'Inter',sans-serif; font-size:.95rem;">
+          </div>
+          <div style="margin-bottom:18px;">
+              <label style="color:#e2e8f0; font-weight:600; display:block; margin-bottom:8px;">🏷️ Vai trò</label>
+              <select name="role" id="editRole" required style="width:100%; padding:12px; background:rgba(255,255,255,.06); border:2px solid rgba(255,255,255,.1); border-radius:12px; color:#fff; font-family:'Inter',sans-serif; font-size:.95rem; -webkit-appearance: none; -moz-appearance: none; appearance: none;">
+                  <option value="Admin" style="background:#1e293b;">Quản trị viên</option>
+                  <option value="Student" style="background:#1e293b;">Học sinh</option>
+                  <option value="Parent" style="background:#1e293b;">Phụ huynh</option>
+                  <option value="Content Manager" style="background:#1e293b;">Quản lý nội dung</option>
+                  <option value="Content Approver" style="background:#1e293b;">Người duyệt nội dung</option>
+              </select>
+          </div>
+          <div style="margin-bottom:0;">
+              <label style="color:#e2e8f0; font-weight:600; display:block; margin-bottom:8px;">⚙️ Trạng thái</label>
+              <select name="status" id="editStatus" required style="width:100%; padding:12px; background:rgba(255,255,255,.06); border:2px solid rgba(255,255,255,.1); border-radius:12px; color:#fff; font-family:'Inter',sans-serif; font-size:.95rem; -webkit-appearance: none; -moz-appearance: none; appearance: none;">
+                  <option value="active" style="background:#1e293b;">Hoạt động</option>
+                  <option value="inactive" style="background:#1e293b;">Không hoạt động</option>
+                  <option value="pending" style="background:#1e293b;">Chờ duyệt</option>
+              </select>
+          </div>
+        </div>
+        <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,.06); padding: 16px 20px; display:flex; gap:10px; justify-content:flex-end;">
+          <button type="button" class="btn" data-bs-dismiss="modal" style="background:rgba(255,255,255,.1); color:#fff; border:none; padding:10px 20px; border-radius:12px; font-weight:600; cursor:pointer;">Hủy bỏ</button>
+          <button type="submit" class="btn" style="background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border:none; padding:10px 20px; border-radius:12px; font-weight:700; cursor:pointer;">Lưu thay đổi</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+    function openEditModal(btn) {
+        const id = btn.getAttribute('data-id');
+        const fullname = btn.getAttribute('data-fullname');
+        const email = btn.getAttribute('data-email');
+        const role = btn.getAttribute('data-role');
+        const status = btn.getAttribute('data-status');
+
+        document.getElementById('editUserId').value = id;
+        document.getElementById('editFullName').value = fullname;
+        document.getElementById('editEmail').value = email;
+        document.getElementById('editRole').value = role;
+        document.getElementById('editStatus').value = status;
+
+        var myModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+        myModal.show();
+    }
+</script>

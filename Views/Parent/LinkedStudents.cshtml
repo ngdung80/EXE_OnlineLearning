@@ -76,11 +76,22 @@
         @Html.AntiForgeryToken()
         <div class="modal-body" style="padding: 24px;">
           <p style="font-size: 0.88rem; color: #94a3b8; margin-bottom: 20px;">Nhập địa chỉ email của con bạn (tài khoản Học sinh đã đăng ký trên hệ thống PLO) để liên kết và theo dõi tiến độ học tập.</p>
-          <div style="margin-bottom:0;">
+          <div style="margin-bottom:18px;">
               <label style="color:#e2e8f0; font-weight:600; display:block; margin-bottom:8px;">📧 Email của con</label>
+              <div style="display:grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
+                  <div style="position:relative; width: 100%;">
+                      <i class="fas fa-envelope" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#94a3b8;"></i>
+                      <input type="email" name="studentEmail" id="studentEmail" required style="width:100%; padding:12px 14px 12px 40px; background:rgba(255,255,255,.06); border:2px solid rgba(255,255,255,.1); border-radius:12px; color:#fff; font-family:'Inter',sans-serif; font-size:.95rem;">
+                  </div>
+                  <button type="button" class="btn" id="btnSendLinkCode" onclick="sendLinkCode()" style="background:#ede9fe; color:#7c3aed; border:2px solid #ddd6fe; border-radius:12px; font-weight:700; padding:12px 18px; cursor:pointer;">Gửi mã</button>
+              </div>
+              <span id="linkCodeStatus" style="font-size:.78rem; font-weight:700; display:block; margin-top:6px; min-height:18px;"></span>
+          </div>
+          <div style="margin-bottom:0;">
+              <label style="color:#e2e8f0; font-weight:600; display:block; margin-bottom:8px;">🔑 Mã xác thực email</label>
               <div style="position:relative;">
-                  <i class="fas fa-envelope" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#94a3b8;"></i>
-                  <input type="email" name="studentEmail" required style="width:100%; padding:12px 14px 12px 40px; background:rgba(255,255,255,.06); border:2px solid rgba(255,255,255,.1); border-radius:12px; color:#fff; font-family:'Inter',sans-serif; font-size:.95rem;">
+                  <i class="fas fa-key" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#94a3b8;"></i>
+                  <input type="text" name="verificationCode" required placeholder="Nhập mã 6 số" style="width:100%; padding:12px 14px 12px 40px; background:rgba(255,255,255,.06); border:2px solid rgba(255,255,255,.1); border-radius:12px; color:#fff; font-family:'Inter',sans-serif; font-size:.95rem;">
               </div>
           </div>
         </div>
@@ -92,3 +103,51 @@
     </div>
   </div>
 </div>
+
+@section Scripts {
+    <script>
+        async function sendLinkCode() {
+            const emailInput = document.getElementById('studentEmail');
+            const email = emailInput?.value.trim();
+
+            if (!email || !/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(email)) {
+                alert('Vui lòng nhập email hợp lệ trước.');
+                emailInput?.focus();
+                return;
+            }
+
+            const btn = document.getElementById('btnSendLinkCode');
+            btn.disabled = true; 
+            btn.textContent = 'Đang gửi...';
+            
+            try {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                const res = await fetch('/Parent/SendLinkCode', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                    body: JSON.stringify({ email })
+                });
+                const data = await res.json();
+                const status = document.getElementById('linkCodeStatus');
+                if (data.success) {
+                    status.textContent = '✓ Đã gửi mã! Kiểm tra email của con bạn.';
+                    status.style.color = '#10b981';
+                    let sec = 60;
+                    const timer = setInterval(() => {
+                        btn.textContent = `Gửi lại (${--sec}s)`;
+                        if (sec <= 0) { clearInterval(timer); btn.disabled = false; btn.textContent = 'Gửi mã'; }
+                    }, 1000);
+                } else {
+                    status.textContent = '✗ ' + (data.message || 'Gửi thất bại');
+                    status.style.color = '#ef4444';
+                    btn.disabled = false; btn.textContent = 'Gửi mã';
+                    alert(data.message || 'Gửi mã thất bại. Vui lòng thử lại.');
+                }
+            } catch (err) { 
+                btn.disabled = false; 
+                btn.textContent = 'Gửi mã'; 
+                console.error(err);
+            }
+        }
+    </script>
+}

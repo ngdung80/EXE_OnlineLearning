@@ -97,6 +97,30 @@ public class ChapterController : Controller
             chapters = chapters.Where(c => c.Status == "Active").ToList();
         }
 
+        if (User.IsInRole("Student"))
+        {
+            var studentId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+            if (subjectId.HasValue)
+            {
+                var hasAccess = await _studentPackageService.StudentHasAccessToSubjectAsync(studentId, subjectId.Value);
+                if (!hasAccess)
+                {
+                    return RedirectToAction("AccessDenied", "Account");
+                }
+            }
+            else
+            {
+                var studentPackages = await _studentPackageService.GetByStudentIdAsync(studentId);
+                var activeSubjectIds = studentPackages
+                    .Where(sp => sp.Status == "Active" && sp.EndDate >= DateOnly.FromDateTime(DateTime.Now))
+                    .Select(sp => sp.SubjectId)
+                    .Where(id => id.HasValue)
+                    .Select(id => id!.Value)
+                    .ToList();
+                chapters = chapters.Where(c => activeSubjectIds.Contains(c.SubjectId)).ToList();
+            }
+        }
+
         if (subjectId.HasValue)
         {
             var subject = await _subjectService.GetByIdAsync(subjectId.Value);
