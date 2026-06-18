@@ -1,0 +1,376 @@
+@model List<POT_System_ASPNET.Data.Entities.WalletTransaction>
+@{
+    ViewData["Title"] = "Ví điện tử";
+}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+    body {
+        background-color: #fdf2f8 !important;
+    }
+    .wallet-section {
+        padding: 100px 0 80px;
+        background: linear-gradient(135deg, #fdf2f8 0%, #f5f3ff 100%);
+        min-height: 85vh;
+        font-family: 'Nunito', sans-serif;
+    }
+    .wallet-card {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 2px solid #fbcfe8;
+        border-radius: 32px;
+        padding: 40px;
+        color: #1f2937;
+        box-shadow: 0 20px 50px rgba(236,96,144,.07);
+        transition: transform 0.3s ease;
+    }
+    .wallet-card:hover {
+        transform: translateY(-2px);
+    }
+    .wallet-balance {
+        font-size: 3.2rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, #e75485 0%, #7c3aed 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 20px;
+    }
+    .wallet-label {
+        color: #4b5563;
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+    .topup-section {
+        margin-top: 28px;
+    }
+    .topup-title {
+        color: #4b5563;
+        font-size: .95rem;
+        margin-bottom: 16px;
+        font-weight: 800;
+        letter-spacing: .5px;
+        text-transform: uppercase;
+    }
+    .topup-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 12px;
+    }
+    .btn-topup-amt {
+        padding: 16px 12px;
+        background: #fff;
+        color: #7c3aed;
+        border: 2px solid #ede9fe;
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 1.05rem;
+        font-weight: 800;
+        text-align: center;
+        transition: all .3s cubic-bezier(.175,.885,.32,1.275);
+        box-shadow: 0 4px 12px rgba(124,58,237,.03);
+        font-family: 'Nunito', sans-serif;
+    }
+    .btn-topup-amt:hover {
+        background: #fff;
+        border-color: #e75485;
+        color: #e75485;
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(231,84,133,.15);
+    }
+    .btn-topup-amt .amt-label {
+        font-size: .75rem;
+        color: #6b7280;
+        font-weight: 600;
+        display: block;
+        margin-top: 4px;
+    }
+    .topup-note {
+        margin-top: 20px;
+        padding: 16px 20px;
+        background: rgba(245,158,11,.06);
+        border: 1.5px solid rgba(245,158,11,.2);
+        border-radius: 20px;
+        color: #d97706;
+        font-size: .88rem;
+        font-weight: 600;
+        line-height: 1.5;
+    }
+    .tx-card {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 2px solid #fbcfe8;
+        border-radius: 32px;
+        overflow: hidden;
+        box-shadow: 0 20px 50px rgba(236,96,144,.07);
+        margin-top: 20px;
+    }
+    .tx-header {
+        padding: 24px 30px;
+        border-bottom: 2px dashed rgba(231,84,133,.18);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .tx-header h4 {
+        color: #e75485;
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin: 0;
+        font-family: 'Nunito', sans-serif;
+    }
+    .tx-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .tx-table th {
+        padding: 16px 24px;
+        font-size: .85rem;
+        color: #4b5563;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        border-bottom: 2px solid #ede9fe;
+        text-align: left;
+    }
+    .tx-table th.right {
+        text-align: right;
+    }
+    .tx-table td {
+        padding: 18px 24px;
+        border-bottom: 1px solid #f3f4f6;
+        vertical-align: middle;
+        font-size: 0.95rem;
+    }
+    .tx-table tr:last-child td {
+        border-bottom: none;
+    }
+    .tx-table tr:hover td {
+        background: rgba(245,243,255,0.4);
+    }
+    .tx-icon-cell {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    .tx-icon-cell.topup {
+        background: rgba(16,185,129,.1);
+    }
+    .tx-icon-cell.purchase {
+        background: rgba(231,84,133,.1);
+    }
+    .tx-desc {
+        font-weight: 700;
+        color: #1f2937;
+        font-size: .95rem;
+    }
+    .tx-status {
+        font-size: .75rem;
+        padding: 4px 10px;
+        border-radius: 20px;
+        display: inline-block;
+        font-weight: 700;
+        margin-top: 6px;
+    }
+    .status-completed {
+        background: rgba(16,185,129,.12);
+        color: #059669;
+    }
+    .status-pending {
+        background: rgba(245,158,11,.12);
+        color: #d97706;
+    }
+    .status-cancelled {
+        background: rgba(239,68,68,.12);
+        color: #dc2626;
+    }
+    .amount-credit {
+        color: #059669;
+        font-weight: 800;
+        font-size: 1.1rem;
+        text-align: right;
+    }
+    .amount-debit {
+        color: #dc2626;
+        font-weight: 800;
+        font-size: 1.1rem;
+        text-align: right;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 60px 40px;
+        color: #6b7280;
+        font-weight: 600;
+    }
+    .pager {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 30px;
+    }
+    .pager a, .pager span {
+        padding: 10px 16px;
+        background: #fff;
+        color: #4b5563;
+        border: 2px solid #ede9fe;
+        border-radius: 12px;
+        text-decoration: none !important;
+        font-weight: 700;
+        transition: all .2s;
+    }
+    .pager a:hover {
+        border-color: #e75485;
+        color: #e75485;
+        background: #fff;
+        transform: translateY(-2px);
+    }
+    .pager .active {
+        background: linear-gradient(135deg, #e75485, #7c3aed);
+        color: #fff !important;
+        border-color: transparent;
+    }
+    .success-msg {
+        background: rgba(16,185,129,.1);
+        border: 2px solid #10b981;
+        color: #059669;
+        padding: 16px 20px;
+        border-radius: 20px;
+        margin-bottom: 24px;
+        font-weight: 700;
+    }
+    .error-msg {
+        background: rgba(239,68,68,.1);
+        border: 2px solid #ef4444;
+        color: #dc2626;
+        padding: 16px 20px;
+        border-radius: 20px;
+        margin-bottom: 24px;
+        font-weight: 700;
+    }
+</style>
+
+<section class="wallet-section">
+    <div class="container">
+        @if (TempData["Success"] != null) { <div class="success-msg">✓ @TempData["Success"]</div> }
+        @if (TempData["Error"] != null) { <div class="error-msg">✗ @TempData["Error"]</div> }
+
+        <!-- Wallet Card -->
+        <div class="row justify-content-center mb-4">
+            <div class="col-lg-8">
+                <div class="wallet-card">
+                    <div class="wallet-label">💰 Số dư hiện tại</div>
+                    <div class="wallet-balance">@(((POT_System_ASPNET.Data.Entities.Wallet)ViewBag.Wallet).Balance.ToString("N0")) <small style="font-size:1.2rem;color:#94a3b8;">VNĐ</small></div>
+
+                    <div class="topup-section">
+                        <div class="topup-title">Chọn số tiền muốn nạp</div>
+                        <div class="topup-grid">
+                            @foreach (var kv in new[] {
+                                (99000,  "= Gói Cơ Bản"),
+                                (200000, "Nạp thêm"),
+                                (259000, "= Gói Tiêu Chuẩn"),
+                                (300000, "Nạp thêm"),
+                                (499000, "= Gói Cao Cấp"),
+                                (500000, "Nạp thêm"),
+                                (1000000, "Nạp lớn"),
+                                (2000000, "VIP")
+                            })
+                            {
+                                <form asp-controller="Payment" asp-action="CreateTopUpUrl" method="post" style="margin:0;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="amount" value="@kv.Item1">
+                                    <button type="submit" class="btn-topup-amt w-100">
+                                        @kv.Item1.ToString("N0") đ
+                                        <span class="amt-label">@kv.Item2</span>
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                        <div class="topup-note">
+                            💡 Sau khi chọn mệnh giá, bạn sẽ được chuyển đến trang thanh toán PayOS — quét mã QR hoặc chuyển khoản theo hướng dẫn để hoàn tất nạp tiền.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction History -->
+        <div class="tx-card">
+            <div class="tx-header">
+                <h4>📋 Lịch sử giao dịch</h4>
+            </div>
+            @if (Model != null && Model.Any())
+            {
+                <table class="tx-table">
+                    <thead>
+                        <tr>
+                            <th style="width:50px;"></th>
+                            <th>Nội dung</th>
+                            <th>Thời gian</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var tx in Model)
+                        {
+                            bool isTopUp = tx.TransactionType == "TopUp";
+                            string statusClass = tx.Status == "Completed" ? "status-completed" : (tx.Status == "Pending" ? "status-pending" : "status-cancelled");
+                            <tr>
+                                <td>
+                                    <div class="tx-icon-cell @(isTopUp ? "topup" : "purchase")">
+                                        @(isTopUp ? "➕" : "🛒")
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="tx-desc">@tx.Description</div>
+                                    <span class="tx-status @statusClass">@tx.Status</span>
+                                </td>
+                                <td>
+                                    <div style="color:#94a3b8; font-size:.88rem;">@tx.CreatedAt?.ToString("dd/MM/yyyy")</div>
+                                    <div style="color:#64748b; font-size:.78rem;">@tx.CreatedAt?.ToString("HH:mm:ss")</div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <div style="font-size:2.5rem;margin-bottom:10px;">💸</div>
+                    <p>Chưa có giao dịch nào.</p>
+                </div>
+            }
+        </div>
+
+        <!-- Pagination -->
+        @if (ViewBag.TotalPages > 1)
+        {
+            <div class="pager">
+                @for (int p = 1; p <= (int)ViewBag.TotalPages; p++)
+                {
+                    <a asp-action="Index" asp-route-page="@p" class="@(p == (int)ViewBag.CurrentPage ? "active" : "")">@p</a>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+<script>
+    // Disable tất cả nút nạp tiền ngay khi bất kỳ nút nào được bấm
+    // → tránh tạo ra 2 giao dịch Pending khi user bấm nhiều lần
+    document.querySelectorAll('.btn-topup-amt').forEach(function(btn) {
+        btn.closest('form').addEventListener('submit', function() {
+            document.querySelectorAll('.btn-topup-amt').forEach(function(b) {
+                b.disabled = true;
+                b.style.opacity = '0.5';
+                b.style.cursor = 'wait';
+            });
+        });
+    });
+</script>

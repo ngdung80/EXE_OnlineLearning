@@ -1,0 +1,111 @@
+@model List<POT_System_ASPNET.Data.Entities.Package>
+@{
+    ViewData["Title"] = "Quản lý gói học tập";
+}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+    .admin-section { padding:80px 0; background:linear-gradient(135deg,#0f172a,#1e293b); min-height:80vh; color:#fff; }
+    .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; }
+    .page-title { font-size:2rem; font-weight:800; color:#ec6090; }
+    .btn-add { padding:10px 24px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border-radius:25px; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:8px; border:none; transition:all .2s; }
+    .btn-add:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(236,96,144,.3); color:#fff; }
+    .admin-card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:20px; padding:30px; overflow-x:auto; }
+    .table { color:#fff; vertical-align:middle; width:100%; border-collapse:collapse; }
+    .table th { border-bottom:2px solid rgba(255,255,255,.1); color:#94a3b8; font-weight:600; padding:15px; text-align:left; }
+    .table td { border-bottom:1px solid rgba(255,255,255,.08); padding:15px; }
+    .badge-active { background:rgba(16,185,129,.15); color:#10b981; border:1px solid rgba(16,185,129,.3); padding:4px 12px; border-radius:12px; font-size:.8rem; }
+    .badge-inactive { background:rgba(239,68,68,.15); color:#ef4444; border:1px solid rgba(239,68,68,.3); padding:4px 12px; border-radius:12px; font-size:.8rem; }
+    .btn-edit { color:#60a5fa; background:rgba(96,165,250,.1); border:1px solid rgba(96,165,250,.2); padding:6px 12px; border-radius:8px; font-size:.85rem; text-decoration:none; transition:all .2s; display:inline-flex; align-items:center; gap:4px; }
+    .btn-edit:hover { background:rgba(96,165,250,.2); color:#60a5fa; }
+    .btn-delete { color:#f87171; background:rgba(248,113,113,.1); border:1px solid rgba(248,113,113,.2); padding:6px 12px; border-radius:8px; font-size:.85rem; cursor:pointer; transition:all .2s; display:inline-flex; align-items:center; gap:4px; }
+    .btn-delete:hover { background:rgba(248,113,113,.2); color:#f87171; }
+</style>
+
+<section class="admin-section">
+    <div class="container">
+        <div class="page-header">
+            <h1 class="page-title">📦 Quản lý gói học tập</h1>
+            <a asp-action="Create" class="btn-add">
+                <i class="fas fa-plus"></i> Thêm gói mới
+            </a>
+        </div>
+
+        <div class="admin-card">
+            @if (Model != null && Model.Any())
+            {
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Mã gói</th>
+                            <th>Tên gói</th>
+                            <th>Mô tả</th>
+                            <th>Giá tiền (VNĐ)</th>
+                            <th>Thời hạn</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var pkg in Model)
+                        {
+                            <tr>
+                                <td>@pkg.PackageId</td>
+                                <td style="font-weight:700;">@pkg.PackageName</td>
+                                <td style="color:#cbd5e1; max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">@pkg.Description</td>
+                                <td style="color:#34d399; font-weight:600;">@pkg.Price.ToString("N0")</td>
+                                <td>@pkg.Duration Tháng</td>
+                                <td>
+                                    <span class="@(pkg.Status == "Active" ? "badge-active" : "badge-inactive")">
+                                        @(pkg.Status == "Active" ? "Hoạt động" : (pkg.Status == "Inactive" ? "Không hoạt động" : pkg.Status))
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <a asp-action="Edit" asp-route-id="@pkg.PackageId" class="btn-edit">
+                                            <i class="fas fa-edit"></i> Sửa
+                                        </a>
+                                        <form asp-action="Delete" asp-route-id="@pkg.PackageId" method="post" onsubmit="confirmDelete(event, this);">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn-delete">
+                                                <i class="fas fa-trash-alt"></i> Xóa
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <p style="color:#94a3b8; font-size:1.1rem;">Không tìm thấy gói học tập nào.</p>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function confirmDelete(e, form) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Xác nhận xóa',
+                text: "Bạn có chắc chắn muốn xóa gói học tập này không?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#e75485',
+                cancelButtonColor: '#94a3b8',
+                confirmButtonText: 'Đồng ý',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        }
+    </script>
+}

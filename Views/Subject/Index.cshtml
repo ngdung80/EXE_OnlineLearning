@@ -1,0 +1,568 @@
+@model List<POT_System_ASPNET.Data.Entities.Subject>
+@{
+    ViewData["Title"] = "Môn học";
+    var grade = ViewBag.Grade as POT_System_ASPNET.Data.Entities.Grade;
+}
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+    .sub-section {
+        padding: 140px 0 80px;
+        background: transparent !important;
+        min-height: 80vh;
+        position: relative;
+        overflow: hidden;
+        font-family: 'Nunito', sans-serif !important;
+        color: #1e1b4b;
+    }
+    .sub-section *:not(i):not(.fa) {
+        font-family: 'Nunito', sans-serif !important;
+    }
+
+    .breadcrumb-bar { display:flex; align-items:center; gap:8px; color:#6b7280; font-size:.95rem; margin-bottom:20px; font-weight: 700; position: relative; z-index: 10; }
+    .breadcrumb-bar a { color:#ec6090; text-decoration:none; }
+    .breadcrumb-bar a:hover { text-decoration:underline; }
+    
+    .section-hd { display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; position: relative; z-index: 10; }
+    .section-hd h2 { color:#ec6090; font-weight:900; margin:0; font-size: 2.2rem; }
+    
+    .btn-add { display:inline-flex; align-items:center; gap:8px; padding:12px 28px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff !important; border-radius:25px; text-decoration:none; font-weight:800; font-size:.9rem; transition:all .3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 5px 15px rgba(236, 96, 144, 0.2); }
+    .btn-add:hover { transform:translateY(-2px) scale(1.02); box-shadow:0 8px 20px rgba(236,96,144,.4); }
+
+    .subject-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:30px; position: relative; z-index: 10; }
+    
+    .sub-card {
+        background: rgba(255, 255, 255, 0.88) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        border: 4px solid #fbcfe8 !important;
+        border-radius: 35px !important;
+        overflow: hidden !important;
+        box-shadow: 0 15px 35px rgba(236, 96, 144, 0.05) !important;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+        display: flex;
+        flex-direction: column;
+    }
+    .sub-card:hover {
+        transform: translateY(-12px) scale(1.03) !important;
+        box-shadow: 0 20px 45px rgba(168, 85, 247, 0.18), 0 0 0 8px rgba(244, 63, 94, 0.1) !important;
+        border-color: #f472b6 !important;
+    }
+
+    .sub-img { width:100%; height:160px; object-fit:cover; transition: transform 0.5s !important; }
+    .sub-card:hover .sub-img { transform: scale(1.1) !important; }
+    
+    .sub-img-placeholder { width:100%; height:160px; background:linear-gradient(135deg,#e0f2fe,#fdf2f8); display:flex; align-items:center; justify-content:center; font-size:3.5rem; transition: transform 0.5s !important; }
+    .sub-card:hover .sub-img-placeholder { transform: scale(1.1) !important; }
+    
+    .sub-body { padding:24px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+    .sub-name { color:#1e1b4b; font-weight:900; font-size:1.3rem; margin-bottom:8px; }
+    .sub-desc { color:#4b5563; font-size:.95rem; margin-bottom:20px; line-height:1.5; font-weight: 700; }
+    .sub-footer { display:flex; justify-content:space-between; align-items:center; margin-top: auto; }
+    
+    .badge-active { display:inline-block; padding:6px 14px; background:rgba(16,185,129,.1); color:#10b981; border-radius:20px; font-size:.8rem; font-weight:800; border: 1px solid rgba(16,185,129,.2); }
+    .badge-inactive { display:inline-block; padding:6px 14px; background:rgba(239,68,68,.1); color:#ef4444; border-radius:20px; font-size:.8rem; font-weight:800; border: 1px solid rgba(239,68,68,.2); }
+    
+    .btn-view-ch { padding:8px 18px; background:rgba(236,96,144,.1); color:#ec6090 !important; border-radius:20px; text-decoration:none; font-size:.85rem; font-weight:800; transition:all .2s; border: 1px solid rgba(236,96,144,.2); }
+    .btn-view-ch:hover { background:rgba(236,96,144,.2); transform: translateY(-1px); }
+    
+    .admin-btns { display:flex; gap:8px; margin-top:15px; border-top: 1px solid #f3f4f6; padding-top: 15px; }
+    .btn-sm-action { padding:8px 16px; border-radius:20px; font-size:.8rem; font-weight:800; border:none; cursor:pointer; transition:all .2s; text-decoration:none; }
+    .btn-edit-sm { background:rgba(59,130,246,.1); color:#3b82f6 !important; border: 1px solid rgba(59,130,246,.2); }
+    .btn-edit-sm:hover { background:rgba(59,130,246,.2); transform: translateY(-1px); }
+    .btn-del-sm { background:rgba(239,68,68,.1); color:#ef4444 !important; border: 1px solid rgba(239,68,68,.2); }
+    .btn-del-sm:hover { background:rgba(239,68,68,.2); transform: translateY(-1px); }
+    
+    .empty-state { text-align:center; padding:60px; color:#4b5563; position: relative; z-index: 10; font-weight: 800; }
+
+    .kid-bg-cloud {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 100px;
+        pointer-events: none;
+        z-index: 1;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.02);
+    }
+    .kid-bg-cloud::before, .kid-bg-cloud::after {
+        content: '';
+        position: absolute;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 50%;
+    }
+    .kid-bg-cloud.c1 {
+        width: 120px; height: 40px; top: 12%; left: 8%;
+        animation: floatCloud 24s linear infinite;
+    }
+    .kid-bg-cloud.c1::before { width: 50px; height: 50px; top: -25px; left: 15px; }
+    .kid-bg-cloud.c1::after { width: 70px; height: 70px; top: -35px; right: 15px; }
+
+    .kid-bg-cloud.c2 {
+        width: 160px; height: 50px; bottom: 15%; right: 8%;
+        animation: floatCloudReverse 28s linear infinite;
+    }
+    .kid-bg-cloud.c2::before { width: 70px; height: 70px; top: -35px; left: 20px; }
+    .kid-bg-cloud.c2::after { width: 90px; height: 90px; top: -45px; right: 20px; }
+
+    @@keyframes floatCloud {
+        0% { transform: translateX(0); }
+        50% { transform: translateX(50px); }
+        100% { transform: translateX(0); }
+    }
+    @@keyframes floatCloudReverse {
+        0% { transform: translateX(0); }
+        50% { transform: translateX(-50px); }
+        100% { transform: translateX(0); }
+    }
+
+    .kid-bg-star {
+        position: absolute;
+        font-size: 2.5rem;
+        color: #f59e0b;
+        opacity: 0.35;
+        pointer-events: none;
+        z-index: 5;
+    }
+    .kid-bg-star.s1 { top: 15%; right: 12%; animation: orbitRight 14s ease-in-out infinite alternate; }
+    .kid-bg-star.s2 { bottom: 18%; left: 10%; animation: orbitLeft 17s ease-in-out infinite alternate; color: #fbbf24; }
+    .kid-bg-star.s3 { top: 45%; left: 6%; animation: floatAroundVertical 11s ease-in-out infinite alternate; font-size: 1.8rem; color: #fca5a5; }
+    .kid-bg-star.s4 { bottom: 40%; right: 6%; animation: floatAroundHorizontal 15s ease-in-out infinite alternate; font-size: 2rem; color: #38bdf8; }
+    .kid-bg-star.s5 { top: 10%; left: 25%; animation: diagonalFloat 20s ease-in-out infinite alternate; font-size: 1.6rem; color: #c084fc; }
+
+    @@keyframes orbitRight {
+        0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+        35% { transform: translate(45px, -70px) rotate(120deg) scale(1.25); }
+        70% { transform: translate(-30px, -120px) rotate(240deg) scale(0.8); }
+        100% { transform: translate(0, 0) rotate(360deg) scale(1); }
+    }
+    @@keyframes orbitLeft {
+        0% { transform: translate(0, 0) rotate(360deg) scale(0.9); }
+        40% { transform: translate(-60px, 50px) rotate(180deg) scale(1.3); }
+        80% { transform: translate(40px, -40px) rotate(0deg) scale(0.7); }
+        100% { transform: translate(0, 0) rotate(-360deg) scale(0.9); }
+    }
+    @@keyframes floatAroundVertical {
+        0% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-90px) rotate(180deg); }
+        100% { transform: translateY(0) rotate(360deg); }
+    }
+    @@keyframes floatAroundHorizontal {
+        0% { transform: translateX(0) rotate(0deg); }
+        50% { transform: translateX(90px) rotate(-180deg); }
+        100% { transform: translateX(0) rotate(-360deg); }
+    }
+    @@keyframes diagonalFloat {
+        0% { transform: translate(0, 0) rotate(0deg); }
+        50% { transform: translate(80px, 80px) rotate(180deg); }
+        100% { transform: translate(0, 0) rotate(360deg); }
+    }
+</style>
+
+@if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Student"))
+{
+    ViewData["Title"] = "Môn Học Của Bé - PLO";
+    <style>
+        @@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap');
+
+        .kid-subs-container {
+            min-height: 80vh;
+            padding: 120px 20px 80px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .kid-breadcrumb {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 800 !important;
+            font-size: 1.1rem !important;
+            margin-bottom: 25px !important;
+            color: #6366f1 !important;
+            z-index: 10;
+        }
+
+        .kid-breadcrumb a {
+            color: #ec6090 !important;
+            text-decoration: none !important;
+        }
+
+        .kid-subs-header {
+            text-align: center;
+            margin-bottom: 50px;
+            z-index: 10;
+        }
+
+        .kid-subs-title {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+            font-size: 3rem !important;
+            background: linear-gradient(135deg, #ec6090 0%, #a855f7 50%, #4f46e5 100%) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            margin-bottom: 15px !important;
+            display: inline-block;
+        }
+
+        .kid-subs-sub {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 800 !important;
+            font-size: 1.5rem !important;
+            color: #4f46e5 !important;
+        }
+
+        .kid-subs-grid {
+            display: flex;
+            justify-content: center;
+            gap: 35px;
+            flex-wrap: wrap;
+            max-width: 1100px;
+            width: 100%;
+            z-index: 10;
+        }
+
+        .kid-sub-card {
+            background: rgba(255, 255, 255, 0.88) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 4px solid #fbcfe8 !important;
+            border-radius: 35px !important;
+            overflow: hidden !important;
+            box-shadow: 0 15px 35px rgba(236, 96, 144, 0.08) !important;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+            display: flex;
+            flex-direction: column;
+            width: 280px;
+            position: relative;
+        }
+
+        .kid-sub-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.4) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: skewX(-25deg);
+        }
+
+        .kid-sub-card:hover::before {
+            animation: sweepShineSub 1.8s ease-in-out infinite;
+        }
+
+        @@keyframes sweepShineSub {
+            0% { left: -150%; }
+            50% { left: 150%; }
+            100% { left: 150%; }
+        }
+
+        .kid-sub-card:hover {
+            transform: translateY(-12px) scale(1.03) !important;
+            box-shadow: 0 20px 45px rgba(168, 85, 247, 0.18), 0 0 0 8px rgba(244, 63, 94, 0.1) !important;
+            border-color: #f472b6 !important;
+        }
+
+        .kid-sub-img-wrap {
+            position: relative;
+            height: 170px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #e0f2fe, #fdf2f8);
+        }
+
+        .kid-sub-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s !important;
+        }
+
+        .kid-sub-card:hover .kid-sub-img {
+            transform: scale(1.1) !important;
+        }
+
+        .kid-sub-img-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4.5rem;
+            animation: bouncePlaceholder 3s ease-in-out infinite alternate;
+        }
+
+        @@keyframes bouncePlaceholder {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(-8px) scale(1.05); }
+        }
+
+        .kid-sub-body {
+            padding: 30px !important;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .kid-sub-name {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+            font-size: 1.6rem !important;
+            color: #1e1b4b !important;
+            margin-bottom: 10px !important;
+        }
+
+        .kid-sub-desc {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 700 !important;
+            font-size: 1.05rem !important;
+            color: #64748b !important;
+            margin-bottom: 25px !important;
+            line-height: 1.5;
+            min-height: 48px;
+        }
+
+        .btn-kid-sub-action {
+            display: inline-block;
+            padding: 12px 28px !important;
+            background: linear-gradient(135deg, #ec6090 0%, #e75485 100%) !important;
+            color: #ffffff !important;
+            border-radius: 99px !important;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+            font-size: 1.1rem !important;
+            text-decoration: none !important;
+            box-shadow: 0 8px 20px rgba(236, 96, 144, 0.3) !important;
+            text-align: center;
+            transition: all 0.3s !important;
+        }
+
+        .btn-kid-sub-action:hover {
+            transform: scale(1.05) !important;
+            box-shadow: 0 12px 25px rgba(236, 96, 144, 0.45) !important;
+            color: #ffffff !important;
+        }
+
+        /* Decorative Elements */
+        .kid-bg-cloud {
+            position: absolute;
+            font-size: 5rem;
+            opacity: 0.12;
+            pointer-events: none;
+            animation: floatCloud 25s linear infinite;
+        }
+        .kid-bg-cloud.c1 { top: 15%; left: -10%; animation-duration: 45s; }
+        .kid-bg-cloud.c2 { bottom: 20%; right: -10%; animation-duration: 35s; animation-delay: -10s; }
+
+        @@keyframes floatCloud {
+            0% { transform: translateX(-150px); }
+            100% { transform: translateX(110vw); }
+        }
+
+        .kid-bg-star {
+            position: absolute;
+            font-size: 2.5rem;
+            color: #f59e0b;
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .kid-bg-star.s1 { top: 15%; right: 12%; animation: orbitRight 14s ease-in-out infinite alternate; }
+        .kid-bg-star.s2 { bottom: 18%; left: 10%; animation: orbitLeft 17s ease-in-out infinite alternate; color: #fbbf24; }
+        .kid-bg-star.s3 { top: 45%; left: 6%; animation: floatAroundVertical 11s ease-in-out infinite alternate; font-size: 1.8rem; color: #fca5a5; }
+        .kid-bg-star.s4 { bottom: 40%; right: 6%; animation: floatAroundHorizontal 15s ease-in-out infinite alternate; font-size: 2rem; color: #38bdf8; }
+        .kid-bg-star.s5 { top: 10%; left: 25%; animation: diagonalFloat 20s ease-in-out infinite alternate; font-size: 1.6rem; color: #c084fc; }
+
+        @@keyframes orbitRight {
+            0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            35% { transform: translate(45px, -70px) rotate(120deg) scale(1.25); }
+            70% { transform: translate(-30px, -120px) rotate(240deg) scale(0.8); }
+            100% { transform: translate(0, 0) rotate(360deg) scale(1); }
+        }
+
+        @@keyframes orbitLeft {
+            0% { transform: translate(0, 0) rotate(360deg) scale(0.9); }
+            40% { transform: translate(-60px, 50px) rotate(180deg) scale(1.3); }
+            80% { transform: translate(40px, -40px) rotate(0deg) scale(0.7); }
+            100% { transform: translate(0, 0) rotate(-360deg) scale(0.9); }
+        }
+
+        @@keyframes floatAroundVertical {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-90px) rotate(180deg); }
+            100% { transform: translateY(0) rotate(360deg); }
+        }
+
+        @@keyframes floatAroundHorizontal {
+            0% { transform: translateX(0) rotate(0deg); }
+            50% { transform: translateX(90px) rotate(-180deg); }
+            100% { transform: translateX(0) rotate(-360deg); }
+        }
+
+        @@keyframes diagonalFloat {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(120px, 90px) rotate(180deg); }
+            100% { transform: translate(0, 0) rotate(360deg); }
+        }
+
+        /* Responsive Media Queries */
+        @@media (max-width: 768px) {
+            .kid-subs-title { font-size: 2.2rem !important; }
+            .kid-subs-sub { font-size: 1.25rem !important; }
+            .kid-sub-card { width: 45%; }
+        }
+
+        @@media (max-width: 480px) {
+            .kid-subs-title { font-size: 1.85rem !important; }
+            .kid-sub-card { width: 100%; }
+        }
+    </style>
+
+    <div class="kid-subs-container">
+        <!-- Floating cloud & star decorations -->
+        <div class="kid-bg-cloud c1">☁️</div>
+        <div class="kid-bg-cloud c2">☁️</div>
+        <div class="kid-bg-star s1">⭐</div>
+        <div class="kid-bg-star s2">⭐</div>
+        <div class="kid-bg-star s3">⭐</div>
+        <div class="kid-bg-star s4">⭐</div>
+        <div class="kid-bg-star s5">⭐</div>
+
+        <div class="kid-breadcrumb">
+            <a asp-controller="Grade" asp-action="Index">🎒 Khối lớp</a>
+            <span>›</span>
+            <span>@(grade?.GradeName ?? "Môn học")</span>
+        </div>
+
+        <div class="kid-subs-header">
+            <h1 class="kid-subs-title">Chọn Môn Học Của Bé</h1>
+            <p class="kid-subs-sub">Bé hãy chọn môn học muốn khám phá hôm nay nhé! 🎈</p>
+        </div>
+
+        <div class="kid-subs-grid">
+            @if (Model != null && Model.Any())
+            {
+                int emojiIdx = 0;
+                string[] emojis = { "📖", "📐", "🔬", "🌍", "🎵", "🎨" };
+                foreach (var s in Model)
+                {
+                    var fallbackEmoji = emojis[emojiIdx % emojis.Length];
+                    emojiIdx++;
+
+                    <div class="kid-sub-card">
+                        <div class="kid-sub-img-wrap">
+                            @if (!string.IsNullOrEmpty(s.Image))
+                            {
+                                <img src="@s.Image" class="kid-sub-img" alt="@s.SubjectName" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                                <div class="kid-sub-img-placeholder" style="display:none;">@fallbackEmoji</div>
+                            }
+                            else
+                            {
+                                <div class="kid-sub-img-placeholder">@fallbackEmoji</div>
+                            }
+                        </div>
+                        <div class="kid-sub-body">
+                            <div>
+                                <h2 class="kid-sub-name">@s.SubjectName</h2>
+                                <p class="kid-sub-desc">@(s.Description ?? "Học tập vui vẻ, khám phá kiến thức mới!")</p>
+                            </div>
+                            <a asp-controller="Chapter" asp-action="Index" asp-route-subjectId="@s.SubjectId" class="btn-kid-sub-action">🚀 Vào Học Ngay</a>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div style="background:rgba(255,255,255,0.85); padding:40px; border-radius:30px; border:3px solid #fbcfe8; text-align:center;">
+                    <span style="font-size:4rem;">🤔</span>
+                    <p style="font-family:'Nunito',sans-serif; font-size:1.2rem; font-weight:800; color:#4f46e5; margin-top:15px;">Chưa tìm thấy môn học nào ở khối lớp này cho bé.</p>
+                </div>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <!-- Clouds -->
+    <div class="kid-bg-cloud c1"></div>
+    <div class="kid-bg-cloud c2"></div>
+
+    <!-- Stars -->
+    <div class="kid-bg-star s1">⭐</div>
+    <div class="kid-bg-star s2">✨</div>
+    <div class="kid-bg-star s3">🌟</div>
+    <div class="kid-bg-star s4">⭐</div>
+    <div class="kid-bg-star s5">✨</div>
+
+    <section class="sub-section">
+        <div class="container">
+            <div class="breadcrumb-bar">
+                <a asp-controller="Grade" asp-action="Index">Khối lớp</a>
+                <span>›</span>
+                <span style="color:#1e1b4b;">@(grade?.GradeName ?? "Môn học")</span>
+            </div>
+            <div class="section-hd">
+                <h2>📖 @(grade?.GradeName ?? "Tất cả") — Môn học</h2>
+                @if (User.IsInRole("Admin") || User.IsInRole("Content Manager"))
+                {
+                    <a asp-action="Create" asp-route-gradeId="@grade?.GradeId" class="btn-add"><i class="fas fa-plus"></i> Thêm môn học</a>
+                }
+            </div>
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="subject-grid">
+                    @foreach (var s in Model)
+                    {
+                        <div class="sub-card">
+                            @if (!string.IsNullOrEmpty(s.Image))
+                            {
+                                <img src="@s.Image" class="sub-img" alt="@s.SubjectName" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                                <div class="sub-img-placeholder" style="display:none;">📚</div>
+                            }
+                            else
+                            {
+                                <div class="sub-img-placeholder">📚</div>
+                            }
+                            <div class="sub-body">
+                                <div class="sub-name">@s.SubjectName</div>
+                                <div class="sub-desc">@(s.Description ?? "Chưa có mô tả môn học.")</div>
+                                <div class="sub-footer">
+                                    @if (s.Status == "Active") { <span class="badge-active">Hoạt động</span> }
+                                    else { <span class="badge-inactive">@(s.Status == "Inactive" ? "Không hoạt động" : s.Status ?? "—")</span> }
+                                    <a asp-controller="Chapter" asp-action="Index" asp-route-subjectId="@s.SubjectId" class="btn-view-ch">Chương học →</a>
+                                </div>
+                                @if (User.IsInRole("Admin") || User.IsInRole("Content Manager"))
+                                {
+                                    <div class="admin-btns">
+                                        <a asp-action="Edit" asp-route-id="@s.SubjectId" class="btn-sm-action btn-edit-sm">✏️ Sửa</a>
+                                        <form asp-action="Delete" asp-route-id="@s.SubjectId" method="post" style="display:inline" onsubmit="return confirm('Xóa môn học này?')">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn-sm-action btn-del-sm">🗑️ Xóa</button>
+                                        </form>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <div style="font-size:3rem;margin-bottom:15px;">📭</div>
+                    <p>Không tìm thấy môn học nào cho khối lớp này.</p>
+                    @if (User.IsInRole("Admin") || User.IsInRole("Content Manager"))
+                    {
+                        <a asp-action="Create" asp-route-gradeId="@grade?.GradeId" class="btn-add" style="display:inline-flex;margin-top:15px;">+ Thêm môn học đầu tiên</a>
+                    }
+                </div>
+            }
+        </div>
+    </section>
+}

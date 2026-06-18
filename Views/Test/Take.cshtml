@@ -1,0 +1,274 @@
+@model POT_System_ASPNET.Controllers.TakeTestViewModel
+@{
+    ViewData["Title"] = "Làm bài kiểm tra: " + Model?.Test?.TestName;
+    Layout = null; // Full-screen test mode
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>@ViewData["Title"]</title>
+    <link href="/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body, button, textarea, input, select { font-family:'Nunito',sans-serif !important; }
+        body { background:linear-gradient(135deg, #e0f2fe 0%, #faf5ff 50%, #fdf2f8 100%); color:#1e1b4b; min-height:100vh; }
+        .test-header { background:rgba(255,255,255,.75); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border-bottom:1px solid rgba(99, 102, 241, 0.1); padding:16px 24px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; }
+        .test-title { font-size:1.1rem; font-weight:800; color:#1e1b4b; }
+        .timer-box { display:flex; align-items:center; gap:8px; background:rgba(236,96,144,.08); padding:8px 20px; border-radius:25px; border:1px solid rgba(236,96,144,.2); color:#ec6090; }
+        .timer { font-size:1.3rem; font-weight:800; color:#ec6090; font-variant-numeric:tabular-nums; }
+        .timer.urgent { color:#ef4444; animation:pulse 1s infinite; }
+        @@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.5;} }
+        .test-body { max-width:860px; margin:0 auto; padding:30px 20px; }
+        .progress-bar-wrap { background:#e2e8f0; border-radius:10px; height:8px; margin-bottom:30px; }
+        .progress-bar-fill { height:100%; background:linear-gradient(135deg,#ec6090,#e75485); border-radius:10px; transition:width .3s ease; }
+        
+        .question-card { background:#ffffff; border:2px solid #e0e7ff; border-radius:16px; padding:28px; margin-bottom:24px; color:#1e1b4b; box-shadow: 0 8px 20px rgba(99, 102, 241, 0.05); }
+        .question-card:hover { border-color:#c084fc; }
+        .q-num { color:#ec6090; font-size:.85rem; font-weight:700; margin-bottom:8px; letter-spacing:.5px; }
+        .q-content { font-size:1rem; font-weight:600; line-height:1.6; color:#1e1b4b; margin-bottom:20px; }
+        
+        .options { display:flex; flex-direction:column; gap:10px; }
+        .option-label { display:flex; align-items:center; gap:12px; padding:12px 16px; background:#f8fafc; border:2px solid #e2e8f0; border-radius:10px; cursor:pointer; transition:all .2s; }
+        .option-label:hover { background:#faf5ff; border-color:#c084fc; }
+        .option-label input[type="radio"] { display:none; }
+        .option-label input[type="radio"]:checked + .option-dot { background:#ec6090; border-color:#ec6090; }
+        .option-label:has(input:checked) { background:#faf5ff; border-color:#a855f7; }
+        .option-dot { width:18px; height:18px; border-radius:50%; border:2px solid #cbd5e1; flex-shrink:0; transition:all .2s; background:#fff; }
+        .option-text { font-size:.95rem; color:#1e1b4b; font-weight:500; }
+        
+        .question-card textarea { background:#ffffff !important; border:2px solid #ddd6fe !important; color:#1e1b4b !important; }
+        .question-card textarea:focus { border-color:#ec6090 !important; outline:none; }
+
+        .submit-wrap { text-align:center; margin-top:30px; }
+        .btn-submit { padding:16px 50px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border:none; border-radius:30px; font-size:1.1rem; font-weight:800; cursor:pointer; transition:all .3s; box-shadow: 0 5px 15px rgba(236, 96, 144, 0.2); }
+        .btn-report-star:hover { transform: scale(1.2) rotate(15deg); }
+        .btn-submit:hover { transform:translateY(-3px); box-shadow:0 12px 30px rgba(236,96,144,.4); }
+        
+        .q-nav { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:30px; }
+        .q-dot { width:32px; height:32px; border-radius:50%; background:#ffffff; border:2px solid #e2e8f0; color:#1e1b4b; font-size:.8rem; font-weight:700; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all .2s; }
+        .q-dot.answered { background:#d1fae5; border-color:#10b981; color:#065f46; }
+        .q-dot.current { background:#faf5ff; border-color:#a855f7; color:#a855f7; }
+
+        /* Bouncy transitions & Hover */
+        .option-label, .btn-submit, .q-dot, .question-card {
+            transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.25s, box-shadow 0.25s, background-color 0.25s !important;
+        }
+        .option-label:hover {
+            transform: scale(1.02) translateY(-2px) !important;
+            box-shadow: 0 8px 15px rgba(99, 102, 241, 0.05) !important;
+        }
+        .q-dot:hover {
+            transform: scale(1.15) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-header">
+        <div class="test-title">📝 @Model?.Test?.TestName</div>
+        <div class="timer-box">
+            <i class="fas fa-clock"></i>
+            <span class="timer" id="timer">@Model?.Test?.Duration:00</span>
+        </div>
+    </div>
+
+    <div class="test-body">
+        <!-- Question nav dots -->
+        <div class="q-nav" id="qNav">
+            @if (Model?.Test?.TestQuestions != null)
+            {
+                int n = 1;
+                foreach (var tq in Model.Test.TestQuestions)
+                {
+                    <div class="q-dot" id="dot-@n" onclick="scrollToQ(@n)">@n</div>
+                    n++;
+                }
+            }
+        </div>
+
+        <!-- Progress bar -->
+        <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
+        </div>
+
+        <form id="testForm" asp-action="Submit" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="attemptId" value="@Model?.AttemptId">
+
+            @if (Model?.Test?.TestQuestions != null)
+            {
+                int qIdx = 1;
+                foreach (var tq in Model.Test.TestQuestions)
+                {
+                    var q = tq.Question;
+                    bool isMc = q?.IsMultipleChoice ?? true;
+                    var options = q?.Answer?.Split(',').Select(o => o.Trim()).Where(o => !string.IsNullOrEmpty(o)).ToList() ?? new List<string>();
+                    
+                    <div class="question-card" id="q-@qIdx">
+                        <div class="q-num">CÂU HỎI @qIdx / @Model.Test.TestQuestions.Count (@(isMc ? "Trắc nghiệm" : "Tự luận"))</div>
+                        <div class="q-content" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 15px;">
+                            <span>@q?.QuestionContent</span>
+                            <button type="button" class="btn-report-star" onclick="toggleReportInline(@q?.QuestionId)" title="Báo cáo lỗi cho câu hỏi này" style="background: none; border: none; padding: 0; cursor: pointer; color: #94a3b8; font-size: 1.25rem; transition: transform 0.2s; outline: none;">
+                                <i class="far fa-star"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Inline Report Form for this question -->
+                        <div id="reportForm-@q?.QuestionId" class="report-box" style="display: none; margin-top: 5px; margin-bottom: 20px; background: rgba(234, 179, 8, 0.05); border: 1px solid rgba(234, 179, 8, 0.2); border-radius: 12px; padding: 15px;">
+                            <div style="font-size: 0.85rem; color: #eab308; font-weight: 700; margin-bottom: 8px;">
+                                <i class="fas fa-exclamation-triangle"></i> Báo cáo lỗi cho câu hỏi này
+                            </div>
+                            <div class="d-flex gap-2">
+                                <input type="text" id="reportReason-@q?.QuestionId" class="form-control" style="font-size: 0.85rem; padding: 6px 12px; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 8px; flex: 1;" placeholder="Mô tả lỗi (ví dụ: đáp án sai, sai chính tả...)" />
+                                <button type="button" class="btn btn-sm" onclick="submitReportAjax(@q?.QuestionId)" style="background: #eab308; color: #0f172a; font-weight: 700; border-radius: 8px; border: none; padding: 6px 15px; font-size: 0.85rem; cursor: pointer;">Gửi</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="toggleReportInline(@q?.QuestionId)" style="border-radius: 8px; font-size: 0.85rem; padding: 6px 12px; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff; cursor: pointer;">Hủy</button>
+                            </div>
+                        </div>
+                        
+                        @if (isMc)
+                        {
+                            <div class="options">
+                                @foreach (var opt in options)
+                                {
+                                    <label class="option-label" onclick="markAnswered(@qIdx)">
+                                        <input type="radio" name="q_@q!.QuestionId" value="@opt">
+                                        <div class="option-dot"></div>
+                                        <span class="option-text">@opt</span>
+                                    </label>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <textarea name="q_@q!.QuestionId" class="form-control" rows="4" placeholder="Nhập câu trả lời tự luận của con tại đây..." oninput="markAnsweredText(@qIdx, this)" style="background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.15); color:#fff; border-radius:10px; padding:15px; width:100%;"></textarea>
+                        }
+                    </div>
+                    qIdx++;
+                }
+            }
+
+            <div class="submit-wrap">
+                <button type="button" class="btn-submit" onclick="submitTest()">✅ Nộp bài</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const totalTime = @(Model?.Test?.Duration ?? 60) * 60;
+        let remaining = totalTime;
+        const timerEl = document.getElementById('timer');
+        const totalQ = @(Model?.Test?.TestQuestions?.Count ?? 0);
+        let answeredCount = 0;
+
+        const t = setInterval(() => {
+            remaining--;
+            const m = Math.floor(remaining / 60).toString().padStart(2, '0');
+            const s = (remaining % 60).toString().padStart(2, '0');
+            timerEl.textContent = m + ':' + s;
+            if (remaining <= 300) timerEl.classList.add('urgent');
+            if (remaining <= 0) { clearInterval(t); submitTest(); }
+        }, 1000);
+
+        function markAnswered(n) {
+            const dot = document.getElementById('dot-' + n);
+            if (!dot.classList.contains('answered')) {
+                dot.classList.add('answered');
+                answeredCount++;
+                document.getElementById('progressBar').style.width = (answeredCount / totalQ * 100) + '%';
+            }
+        }
+
+        function markAnsweredText(n, textarea) {
+            const dot = document.getElementById('dot-' + n);
+            const val = textarea.value.trim();
+            if (val.length > 0) {
+                if (!dot.classList.contains('answered')) {
+                    dot.classList.add('answered');
+                    answeredCount++;
+                    document.getElementById('progressBar').style.width = (answeredCount / totalQ * 100) + '%';
+                }
+            } else {
+                if (dot.classList.contains('answered')) {
+                    dot.classList.remove('answered');
+                    answeredCount--;
+                    document.getElementById('progressBar').style.width = (answeredCount / totalQ * 100) + '%';
+                }
+            }
+        }
+
+        function scrollToQ(n) {
+            document.getElementById('q-' + n).scrollIntoView({ behavior:'smooth', block:'center' });
+        }
+
+        function submitTest() {
+            const unanswered = totalQ - answeredCount;
+            if (unanswered > 0 && !confirm(`Bạn còn ${unanswered} câu chưa trả lời. Bạn có chắc chắn muốn nộp bài không?`)) return;
+            clearInterval(t);
+            document.getElementById('testForm').submit();
+        }
+
+        window.addEventListener('beforeunload', e => {
+            if (remaining > 0) { e.preventDefault(); e.returnValue = ''; }
+        });
+
+        function toggleReportInline(qId) {
+            const form = document.getElementById(`reportForm-${qId}`);
+            if (form) {
+                const isHidden = form.style.display === 'none';
+                form.style.display = isHidden ? 'block' : 'none';
+                
+                // Toggle star icon styling
+                const starBtn = form.previousElementSibling.querySelector('.btn-report-star i');
+                if (starBtn) {
+                    if (isHidden) {
+                        starBtn.className = 'fas fa-star'; // Filled star
+                        starBtn.style.color = '#eab308';
+                    } else {
+                        starBtn.className = 'far fa-star'; // Hollow star
+                        starBtn.style.color = '#94a3b8';
+                    }
+                }
+            }
+        }
+
+        async function submitReportAjax(qId) {
+            const reasonInput = document.getElementById(`reportReason-${qId}`);
+            if (!reasonInput || !reasonInput.value.trim()) {
+                alert('Vui lòng nhập lý do báo cáo lỗi.');
+                return;
+            }
+
+            const reason = reasonInput.value.trim();
+            try {
+                const response = await fetch('/Test/ReportAjax', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({ questionId: qId, reason: reason })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert(data.message);
+                    const form = document.getElementById(`reportForm-${qId}`);
+                    if (form) {
+                        form.innerHTML = `<div style="font-size: 0.85rem; color: #10b981; font-weight: 700;"><i class="fas fa-check-circle"></i> Đã gửi báo cáo lỗi thành công! Cảm ơn con.</div>`;
+                        setTimeout(() => {
+                            form.style.display = 'none';
+                        }, 3000);
+                    }
+                } else {
+                    alert(data.message || 'Có lỗi xảy ra khi gửi báo cáo.');
+                }
+            } catch (e) {
+                alert('Không thể kết nối đến máy chủ. Vui lòng thử lại sau.');
+            }
+        }
+    </script>
+</body>
+</html>

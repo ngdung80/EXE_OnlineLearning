@@ -1,0 +1,214 @@
+@model IEnumerable<POT_System_ASPNET.Models.CertificateViewModel>
+
+@{
+    ViewData["Title"] = "Danh sách Chứng chỉ Hoàn thành";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+<style>
+    .certificate-section {
+        padding: 120px 0 80px;
+        background: linear-gradient(135deg, #fdf2f8 0%, #f5f3ff 100%);
+        min-height: 85vh;
+        font-family: 'Nunito', sans-serif;
+    }
+    .page-title {
+        font-weight: 900;
+        background: linear-gradient(135deg, #e75485 0%, #7c3aed 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-size: 2.6rem;
+        margin-bottom: 8px;
+    }
+    .page-subtitle {
+        color: #4b5563;
+        font-size: 1.15rem;
+        font-weight: 700;
+        margin-bottom: 40px;
+    }
+    .glass-card {
+        background: rgba(255, 255, 255, 0.88);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 2px solid #fbcfe8 !important;
+        border-radius: 32px !important;
+        box-shadow: 0 15px 35px rgba(236, 96, 144, 0.05);
+    }
+    .btn-gradient-primary {
+        background: linear-gradient(135deg, #ec6090 0%, #7c3aed 100%) !important;
+        border: none !important;
+        color: white !important;
+        font-weight: 800;
+        border-radius: 24px !important;
+        box-shadow: 0 8px 20px rgba(236, 96, 144, 0.25);
+        transition: all 0.3s ease;
+    }
+    .btn-gradient-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 25px rgba(236, 96, 144, 0.35);
+        color: white !important;
+    }
+    .btn-outline-gradient {
+        border: 2px solid #7c3aed !important;
+        color: #7c3aed !important;
+        font-weight: 800;
+        border-radius: 20px !important;
+        transition: all 0.3s ease;
+        background: transparent;
+    }
+    .btn-outline-gradient:hover {
+        background: linear-gradient(135deg, #ec6090 0%, #7c3aed 100%) !important;
+        border-color: transparent !important;
+        color: white !important;
+        transform: translateY(-2px);
+    }
+    .form-control-custom {
+        border: 2px solid #fbcfe8 !important;
+        border-radius: 16px !important;
+        font-weight: 600;
+        color: #1e1b4b !important;
+        padding: 11px 16px !important;
+    }
+    .form-control-custom:focus {
+        border-color: #ec6090 !important;
+        box-shadow: 0 0 0 3px rgba(236, 96, 144, 0.15) !important;
+    }
+</style>
+
+<div class="container-fluid certificate-section">
+    <div class="container">
+        <!-- Title Header -->
+        <div class="text-center">
+            <h1 class="page-title">
+                🎓 Chứng Chỉ Hoàn Thành Chương Học
+            </h1>
+            <p class="page-subtitle">
+                Nhận chứng chỉ chuyên nghiệp cho từng chương học (Unit) sau khi hoàn thành đầy đủ lộ trình.
+            </p>
+        </div>
+
+        @if (ViewBag.NeedsUpgrade == true)
+        {
+            <!-- Promotional Card for Non-Premium Users -->
+            <div class="card p-5 border-0 text-center mb-4 glass-card">
+                <div style="font-size: 5rem; margin-bottom: 20px;">🔒</div>
+                <h2 style="font-weight: 900; color: #ec6090;">YÊU CẦU GÓI HỌC CAO CẤP</h2>
+                <p style="color: #1e1b4b; font-size: 1.15rem; font-weight: 700; max-width: 650px; margin: 15px auto 25px; line-height: 1.7;">
+                    Để nhận được chứng chỉ hoàn thành cho mỗi chương học (Unit), học sinh cần sở hữu <span style="color: #ec6090; font-weight: 900;">Gói Cao Cấp 499.000đ (6 Tháng)</span>.
+                </p>
+                <div style="background: rgba(244, 63, 94, 0.05); border: 2px dashed #fda4af; padding: 20px; border-radius: 20px; max-width: 600px; margin: 0 auto 30px; text-align: left;">
+                    <div style="color: #e11d48; font-weight: 800; margin-bottom: 8px; font-size: 1.05rem;">⚠️ Thông tin chi tiết:</div>
+                    <ul style="color: #4b5563; font-weight: 700; font-size: 0.95rem; padding-left: 20px; margin: 0; line-height: 1.6;">
+                        <li>Gói Cơ Bản 99.000đ (1 Tháng) <span style="color: #ef4444;">không bao gồm</span> tính năng cấp chứng chỉ khóa học.</li>
+                        <li>Gói Cao Cấp 499.000đ (6 Tháng) sẽ <span style="color: #10b981;">tự động được cấp chứng chỉ</span> ngay sau khi bé hoàn thành đầy đủ tất cả bài học trong mỗi chương (Unit).</li>
+                    </ul>
+                </div>
+                @if (User.IsInRole("Parent"))
+                {
+                    <div class="text-center">
+                        <a href="/Package/List" class="btn btn-gradient-primary px-5 py-3">
+                            🚀 Xem các gói học để nâng cấp ngay
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <p style="color: #6b7280; font-weight: 700; font-size: 0.95rem;">
+                        * Vui lòng liên hệ Phụ huynh của bé để thực hiện mua gói học 6/499k để được cấp chứng chỉ.
+                    </p>
+                }
+            </div>
+        }
+        else
+        {
+            <!-- Filter Card -->
+            <div class="card p-4 border-0 mb-4 glass-card">
+                <form method="get" action="/Certificate" class="row g-3 align-items-end">
+                    <div class="col-md-5">
+                        <label class="form-label" style="font-weight: 800; color: #7c3aed;">Tìm tên học sinh</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0" style="border-radius: 16px 0 0 16px; border: 2px solid #fbcfe8;">
+                                <i class="fa fa-search text-muted"></i>
+                            </span>
+                            <input type="text" name="studentName" value="@ViewBag.SearchName" class="form-control form-control-custom border-start-0" placeholder="Nhập tên hoặc tài khoản..." style="border-radius: 0 16px 16px 0 !important;" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" style="font-weight: 800; color: #7c3aed;">Lọc theo khối lớp</label>
+                        <select name="gradeId" class="form-select form-control-custom" style="padding: 11px 16px !important;">
+                            <option value="">Tất cả khối lớp</option>
+                            @foreach (var grade in ViewBag.Grades)
+                            {
+                                if (ViewBag.SelectedGradeId == grade.GradeId)
+                                {
+                                    <option value="@grade.GradeId" selected>@grade.GradeName</option>
+                                }
+                                else
+                                {
+                                    <option value="@grade.GradeId">@grade.GradeName</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-gradient-primary w-100 py-3">
+                            Lọc kết quả
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Certificate Grid / List -->
+            @if (Model != null && Model.Any())
+            {
+                <div class="row g-4">
+                    @foreach (var item in Model)
+                    {
+                        <div class="col-lg-4 col-md-6">
+                            <div class="card h-100 border-0 overflow-hidden glass-card" style="transition: transform 0.3s, box-shadow 0.3s; cursor: pointer; padding: 0 !important;" onmouseover="this.style.transform='translateY(-5px)';" onmouseout="this.style.transform='none';">
+                                <!-- Certificate Card Badge Header -->
+                                <div class="p-4 text-center" style="background: linear-gradient(135deg, #fdf2f8 0%, #f5f3ff 100%); border-bottom: 2px dashed #fbcfe8;">
+                                    <div style="font-size: 3rem; margin-bottom: 8px;">🎓</div>
+                                    <span class="badge" style="background-color: #ec6090; color: white; padding: 6px 12px; border-radius: 12px; font-weight: 700; font-size: 0.85rem;">
+                                        CHỨNG CHỈ HOÀN THÀNH
+                                    </span>
+                                </div>
+                                
+                                <!-- Card Body -->
+                                <div class="card-body p-4 d-flex flex-column justify-content-between">
+                                    <div class="text-center mb-4">
+                                        <h4 style="font-weight: 900; color: #1e1b4b; margin-bottom: 4px;">@item.StudentName</h4>
+                                        <p style="color: #7c3aed; font-weight: 800; font-size: 0.95rem; margin-bottom: 6px;">Đã hoàn thành: @item.ChapterName</p>
+                                        <span class="badge bg-light text-primary" style="font-weight: 800; font-size: 0.8rem; border: 1px solid #e0e7ff; margin-bottom: 12px; display: inline-block; padding: 5px 10px; border-radius: 8px; color: #7c3aed !important;">@item.GradeName</span>
+                                        
+                                        <div style="font-size: 0.85rem; color: #6b7280; font-weight: 700; margin-top: 5px;">
+                                            📅 Ngày cấp: @item.CompletedDate.ToString("dd/MM/yyyy")
+                                        </div>
+                                    </div>
+                                    
+                                    <a href="/Certificate/Detail?studentId=@item.StudentId&gradeId=@item.GradeId&chapterId=@item.ChapterId" class="btn btn-outline-gradient w-100 py-2">
+                                        👀 Xem chứng chỉ
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <!-- Empty State -->
+                <div class="text-center py-5 glass-card" style="padding: 50px 20px !important;">
+                    <div style="font-size: 4rem; margin-bottom: 16px;">📜</div>
+                    <h3 style="font-weight: 900; color: #1e1b4b;">Chưa có chứng chỉ nào được cấp</h3>
+                    <p style="color: #6b7280; max-width: 500px; margin: 8px auto 0; font-weight: 700; font-size: 0.95rem;">
+                        Chứng chỉ sẽ tự động được cấp khi học sinh sở hữu gói học 6 tháng và hoàn thành đầy đủ tất cả bài học trong mỗi chương (Unit).
+                    </p>
+                </div>
+            }
+        }
+    </div>
+</div>

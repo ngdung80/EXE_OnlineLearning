@@ -1,0 +1,99 @@
+@{
+    ViewData["Title"] = "Đăng nhập";
+    Layout = null; // Login has its own layout
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Đăng nhập - PLO Learning</title>
+    <link href="~/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body { background:#f9e8e8; font-family:'Inter',sans-serif; color:#333; min-height:100vh; margin:0; display:flex; flex-direction:column; justify-content:center; align-items:center; overflow:hidden; position:relative; }
+        .header-area { background:#ffffff; position:fixed; top:0; left:0; width:100%; z-index:1000; padding:15px 0; box-shadow:0 2px 5px rgba(0,0,0,.1); }
+        .main-nav { display:flex; align-items:center; justify-content:space-between; padding:0 15px; }
+        .main-nav .logo img { height:40px; }
+        .main-nav .nav { list-style:none; display:flex; margin:0; padding:0; }
+        .main-nav .nav li { margin-left:20px; }
+        .main-nav .nav li a { color:#e75485; text-decoration:none; font-weight:500; font-size:16px; }
+        .login-container { background:url('/assets/images/cosmic-login-bg.jpg') no-repeat center center; background-size:cover; padding:2.5rem; border-radius:15px; box-shadow:0 4px 6px rgba(0,0,0,.1); width:100%; max-width:450px; text-align:center; animation:fadeIn .5s ease-in; position:relative; overflow:hidden; margin-top:80px; }
+        .login-container::before { content:''; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,.7); z-index:1; }
+        .login-content { position:relative; z-index:2; }
+        .login-content img { width:130px; margin-bottom:4px; }
+        @@keyframes fadeIn { from{opacity:0;transform:translateY(20px);} to{opacity:1;transform:translateY(0);} }
+        .form-group { margin-bottom:1.5rem; text-align:left; }
+        .form-group label { color:#2a0040; font-weight:500; display:block; margin-bottom:.5rem; }
+        .form-control { background:#f9e8e8; border:1px solid #e75485; color:#333; border-radius:8px; padding:12px 15px 12px 40px; width:100%; font-size:16px; transition:all .3s ease; }
+        .form-control:focus { background:#fff; border-color:#d43f6f; box-shadow:0 0 5px rgba(231,84,133,.3); outline:none; }
+        .input-group { position:relative; }
+        .input-group i { position:absolute; left:15px; top:50%; transform:translateY(-50%); color:#e75485; }
+        .btn-primary { background:#e75485; border:none; padding:12px; width:100%; font-weight:600; border-radius:25px; font-size:16px; color:#fff; cursor:pointer; transition:all .3s ease; }
+        .btn-primary:hover { background:#d43f6f; transform:translateY(-2px); }
+        .btn-link { color:#e75485; text-decoration:none; font-size:14px; }
+        .btn-link:hover { color:#d43f6f; }
+        .error-message { color:#d43f6f; font-size:.9rem; margin-top:10px; text-align:center; background:rgba(215,53,89,.1); padding:10px; border-radius:8px; }
+        h2 { color:#2a0040; font-weight:700; margin-bottom:1.5rem; font-size:24px; }
+    </style>
+</head>
+<body>
+    <header class="header-area header-sticky">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <nav class="main-nav">
+                        <a asp-controller="Home" asp-action="Index" class="logo" style="display:flex;align-items:center;gap:8px;text-decoration:none;">
+                            <img src="~/assets/images/logo.png" asp-append-version="true" alt="PLO Logo" style="height:35px;width:35px;object-fit:contain;">
+                            <span class="logo-text" style="font-family:'Inter',sans-serif;font-weight:900;font-size:22px;color:#e75485;text-transform:uppercase;letter-spacing:1px;">PLO</span>
+                        </a>
+                        <ul class="nav">
+                            <li><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                            <li><a asp-controller="Account" asp-action="Register">Đăng ký</a></li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="login-container">
+        <div class="login-content">
+            <h2>Đăng nhập vào PLO <img src="~/assets/images/logo.png" asp-append-version="true" alt="PLO Logo" style="width:40px;height:40px;vertical-align:middle;margin-left:5px;"></h2>
+            
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success text-center" style="font-size: 0.88rem; font-weight: 600; color: #065f46; background-color: #d1fae5; border: 1px solid #6ee7b7; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
+                    @TempData["Success"]
+                </div>
+            }
+
+            <form asp-action="Login" method="post">
+                @Html.AntiForgeryToken()
+                <div class="form-group">
+                    <label>Tên đăng nhập hoặc Email</label>
+                    <div class="input-group">
+                        <i class="fas fa-user"></i>
+                        <input type="text" name="username" id="username" class="form-control" placeholder="Nhập tên đăng nhập hoặc email" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Mật khẩu</label>
+                    <div class="input-group">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" name="password" id="password" class="form-control" placeholder="Nhập mật khẩu" required>
+                    </div>
+                </div>
+                <button type="submit" id="loginBtn" class="btn btn-primary">Đăng nhập</button>
+                <a asp-action="ForgotPassword" class="btn-link d-block mt-2">Quên mật khẩu?</a>
+                <p>Chưa có tài khoản? <a asp-action="Register" class="btn-link">Đăng ký ngay</a></p>
+                @if (ViewBag.Error != null)
+                {
+                    <p class="error-message">@ViewBag.Error</p>
+                }
+            </form>
+        </div>
+    </div>
+</body>
+</html>

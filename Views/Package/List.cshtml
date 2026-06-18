@@ -1,0 +1,247 @@
+@model List<POT_System_ASPNET.Data.Entities.Package>
+@{
+    ViewData["Title"] = "Gói học tập - PLO | Tiếng Anh cho trẻ 6–7 tuổi";
+}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+    .pkg-page { padding:120px 0 90px; background:linear-gradient(150deg,#f9fafb,#fdf2f8); min-height:80vh; }
+    .page-hero { text-align:center; margin-bottom:60px; }
+    .page-hero .tag { display:inline-block; background:linear-gradient(135deg,#fce7f3,#ede9fe); color:#9333ea; font-size:.82rem; font-weight:700; padding:6px 18px; border-radius:999px; margin-bottom:16px; letter-spacing:.5px; }
+    .page-hero h1 { font-family:'Nunito',sans-serif; font-size:2.4rem; font-weight:900; color:#1e1b4b; margin-bottom:12px; }
+    .page-hero p { color:#6b7280; font-size:1rem; max-width:480px; margin:0 auto; line-height:1.65; }
+
+    /* ===== PKG CARDS ===== */
+    .pkg-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:24px; }
+    .pkg-card { background:#fff; border:2px solid #e5e7eb; border-radius:24px; padding:32px 26px; transition:all .3s; display:flex; flex-direction:column; position:relative; }
+    .pkg-card:hover { border-color:#e75485; box-shadow:0 16px 40px rgba(231,84,133,.13); transform:translateY(-5px); }
+    .pkg-card.featured { border-color:#e75485; background:linear-gradient(160deg,#fff1f5 0%,#fff 60%); }
+    .featured-pill { position:absolute; top:-14px; left:50%; transform:translateX(-50%); background:linear-gradient(135deg,#e75485,#ec6090); color:#fff; padding:5px 22px; border-radius:999px; font-size:.75rem; font-weight:700; white-space:nowrap; box-shadow:0 4px 14px rgba(231,84,133,.4); font-family:'Nunito',sans-serif; }
+
+    .pkg-tier { font-size:.76rem; font-weight:700; color:#9333ea; letter-spacing:1px; text-transform:uppercase; margin-bottom:8px; }
+    .pkg-name { font-family:'Nunito',sans-serif; font-size:1.3rem; font-weight:900; color:#1e1b4b; margin-bottom:4px; }
+    .pkg-tagline { font-size:.85rem; color:#6b7280; font-weight:600; margin-bottom:18px; padding-bottom:18px; border-bottom:2px dashed #f3f4f6; line-height:1.5; }
+    .pkg-price { font-family:'Nunito',sans-serif; font-size:2.2rem; font-weight:900; color:#e75485; margin-bottom:4px; }
+    .pkg-price small { font-size:.9rem; font-weight:400; color:#9ca3af; font-family:'Inter',sans-serif; }
+    .pkg-duration { font-size:.82rem; color:#9ca3af; font-weight:600; margin-bottom:20px; }
+
+    /* Feature list */
+    .pkg-features { list-style:none; padding:0; margin:0 0 26px; flex:1; }
+    .pkg-features li { display:flex; align-items:flex-start; gap:10px; padding:9px 0; border-bottom:1px solid #f9fafb; font-size:.87rem; color:#374151; line-height:1.4; }
+    .pkg-features li:last-child { border:none; }
+    .feat-ok { color:#10b981; font-weight:900; flex-shrink:0; margin-top:1px; }
+
+    /* CTA */
+    .btn-buy { display:block; text-align:center; padding:14px 20px; background:linear-gradient(135deg,#e75485,#ec6090); color:#fff; border-radius:999px; text-decoration:none; font-weight:700; font-size:.95rem; transition:all .3s; border:2px solid transparent; cursor:pointer; width:100%; font-family:'Nunito',sans-serif; }
+    .btn-buy:hover { transform:translateY(-2px); box-shadow:0 10px 24px rgba(231,84,133,.4); color:#fff; }
+    .btn-buy.outline { background:transparent; border-color:#e75485; color:#e75485; }
+    .btn-buy.outline:hover { background:#fdf4ff; }
+    .btn-buy:disabled { opacity:.5; cursor:not-allowed; transform:none; }
+
+    /* ===== COMPARE TABLE ===== */
+    .compare-section { margin-top:72px; }
+    .compare-section h2 { font-family:'Nunito',sans-serif; font-size:1.6rem; font-weight:900; color:#1e1b4b; text-align:center; margin-bottom:32px; }
+    .compare-table { width:100%; border-collapse:collapse; background:#fff; border-radius:20px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,.07); }
+    .compare-table th { background:#1e1b4b; color:#fff; padding:16px 20px; font-size:.85rem; font-weight:700; text-align:center; }
+    .compare-table th:first-child { text-align:left; }
+    .compare-table td { padding:14px 20px; font-size:.88rem; border-bottom:1px solid #f3f4f6; text-align:center; color:#374151; }
+    .compare-table td:first-child { text-align:left; font-weight:700; color:#1e1b4b; }
+    .compare-table tr:last-child td { border:none; }
+    .compare-table tr:hover td { background:#fdf4ff; }
+    .ct-yes { color:#10b981; font-weight:800; }
+    .ct-no { color:#d1d5db; }
+    .ct-val { font-weight:700; color:#e75485; }
+
+    /* ===== FAQ ===== */
+    .faq-section { margin-top:72px; }
+    .faq-section h2 { font-family:'Nunito',sans-serif; font-size:1.6rem; font-weight:900; color:#1e1b4b; text-align:center; margin-bottom:32px; }
+    .faq-item { background:#fff; border-radius:16px; padding:20px 24px; margin-bottom:12px; box-shadow:0 2px 10px rgba(0,0,0,.05); }
+    .faq-q { font-weight:700; color:#1e1b4b; font-size:.95rem; margin-bottom:8px; display:flex; align-items:center; gap:8px; }
+    .faq-a { color:#6b7280; font-size:.88rem; line-height:1.65; }
+</style>
+
+<div class="pkg-page">
+    <div class="container">
+        <!-- Hero -->
+        <div class="page-hero">
+            <span class="tag">💎 Gói học tập cho trẻ lớp 1 & lớp 2</span>
+            <h1>Chọn gói học phù hợp<br>cho bé 6–7 tuổi của bạn</h1>
+            <p>Bắt đầu với 7 ngày miễn phí — không cần thẻ tín dụng. Nâng cấp hoặc hủy bất cứ lúc nào.</p>
+        </div>
+
+        @if (TempData["Error"] != null)
+        {
+            <div style="background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;padding:14px 18px;border-radius:14px;margin-bottom:28px;font-weight:600;">
+                @TempData["Error"]
+            </div>
+        }
+
+        <!-- Package Cards -->
+        <div class="pkg-grid">
+            <!-- Free Trial (static) -->
+            <div class="pkg-card">
+                <div class="pkg-tier">🎁 Dùng thử</div>
+                <div class="pkg-name">Free Trial</div>
+                <div class="pkg-tagline">Trải nghiệm PLO không rủi ro — tìm hiểu trước khi quyết định</div>
+                <div class="pkg-price">0đ <small>/ 7 ngày</small></div>
+                <div class="pkg-duration">📅 Hết hạn sau 7 ngày</div>
+                <ul class="pkg-features">
+                    <li><span class="feat-ok">✓</span> 5 bài học mẫu đầy đủ tính năng</li>
+                    <li><span class="feat-ok">✓</span> Báo cáo mẫu cho phụ huynh</li>
+                    <li><span class="feat-ok">✓</span> Mascot con ong & phần thưởng sao</li>
+                    <li><span class="feat-ok">✓</span> Không cần thẻ tín dụng</li>
+                </ul>
+                @if (!User.Identity!.IsAuthenticated)
+                {
+                    <a asp-controller="Account" asp-action="Register" class="btn-buy outline" id="trial-cta">Bắt đầu miễn phí</a>
+                }
+                else if (!User.IsInRole("Parent"))
+                {
+                    <button class="btn-buy" disabled>Chỉ dành cho Phụ huynh</button>
+                }
+            </div>
+
+            @if (Model != null)
+            {
+                foreach (var pkg in Model)
+                {
+                    // Lọc bỏ gói học thử miễn phí khỏi vòng lặp để tránh trùng lặp với card tĩnh phía trên
+                    if (pkg.Price == 0 || pkg.PackageName.Contains("Thử"))
+                    {
+                        continue;
+                    }
+
+                    string tierName = "";
+                    string tagline = "";
+                    string[] features = new string[0];
+                    bool featured = false;
+
+                    if (pkg.PackageName.Contains("Cơ Bản") || pkg.Duration == 1)
+                    {
+                        tierName = "⭐ Gói Cơ Bản";
+                        tagline = "Lộ trình học chính thức 1 tháng";
+                        features = new[] {
+                            "Ứng dụng công nghệ AI tự động điều chỉnh lộ trình học phù hợp với sức học của bé.",
+                            "Hệ thống tự động tạo đề luyện tập với AI và đưa ra gợi ý bài học tại nhà hàng tuần.",
+                            "Gửi báo cáo chi tiết kết quả học tập tự động cho phụ huynh vào cuối tuần."
+                        };
+                    }
+                    else if (pkg.PackageName.Contains("Tiêu Chuẩn") || pkg.Duration == 3)
+                    {
+                        tierName = "🚀 Gói Tiêu Chuẩn";
+                        tagline = "Lộ trình học chính thức 3 tháng";
+                        features = new[] {
+                            "Bao gồm đầy đủ các tính năng tự động của gói Cơ Bản.",
+                            "Nâng cấp hệ thống tự động phân tích kỹ năng nâng cao chuyên sâu cho bé.",
+                            "Tự động cập nhật và tư vấn lộ trình học cá nhân hóa theo tiến độ.",
+                            "Được ưu tiên hỗ trợ kỹ thuật và vận hành từ hệ thống 24/7."
+                        };
+                        featured = true; // Đặt gói Tiêu Chuẩn làm gói phổ biến nhất giống như ảnh
+                    }
+                    else if (pkg.PackageName.Contains("Cao Cấp") || pkg.Duration == 6)
+                    {
+                        tierName = "👑 Gói Cao Cấp";
+                        tagline = "Lộ trình học chính thức 6 tháng";
+                        features = new[] {
+                            "Gói dài hạn nhất, tối ưu trọn bộ lộ trình cá nhân hóa nâng cao trong vòng 6 tháng.",
+                            "Hệ thống báo cáo thông minh, phân tích toàn diện mọi chỉ số học tập dành riêng cho phụ huynh.",
+                            "Tự động cấp Chứng nhận hoàn thành khóa học sau khi bé hoàn thành lộ trình 6 tháng."
+                        };
+                    }
+                    else
+                    {
+                        tierName = pkg.PackageName;
+                        tagline = pkg.Description ?? "";
+                        features = new[] { pkg.Description ?? "" };
+                    }
+
+                    <div class="pkg-card @(featured ? "featured" : "")">
+                        @if (featured) { <div class="featured-pill">⭐ Phổ biến nhất</div> }
+                        <div class="pkg-tier">@tierName</div>
+                        <div class="pkg-name">@pkg.PackageName</div>
+                        <div class="pkg-tagline">@tagline</div>
+                        <div class="pkg-price">@pkg.Price.ToString("N0")đ <small>/ @pkg.Duration tháng</small></div>
+                        <div class="pkg-duration">📅 Hạn sử dụng @pkg.Duration tháng</div>
+                        <ul class="pkg-features">
+                            @foreach (var f in features)
+                            {
+                                <li><span class="feat-ok">✓</span> @f</li>
+                            }
+                        </ul>
+                        @if (User.IsInRole("Parent"))
+                        {
+                            <a asp-controller="Package" asp-action="Purchase" asp-route-packageId="@pkg.PackageId" class="btn-buy @(featured ? "" : "outline")" id="pkg-buy-@pkg.PackageId">
+                                @(featured ? "Mua ngay →" : "Chọn gói này")
+                            </a>
+                        }
+                        else if (!User.Identity!.IsAuthenticated)
+                        {
+                            <a asp-controller="Account" asp-action="Register" class="btn-buy @(featured ? "" : "outline")" id="pkg-reg-@pkg.PackageId">
+                                @(featured ? "Bắt đầu ngay →" : "Đăng ký để mua")
+                            </a>
+                        }
+                        else
+                        {
+                            <button class="btn-buy" disabled>Chỉ dành cho Phụ huynh</button>
+                        }
+                    </div>
+                }
+            }
+        </div>
+
+        <!-- Comparison Table -->
+        <div class="compare-section">
+            <h2>📋 So sánh chi tiết các gói</h2>
+            <div style="overflow-x:auto;">
+                <table class="compare-table">
+                    <thead>
+                        <tr>
+                            <th style="min-width:200px;">Tính năng</th>
+                            <th>Free Trial</th>
+                            <th>Gói Cơ Bản</th>
+                            <th style="background:#c2185b;">Gói Tiêu Chuẩn ⭐</th>
+                            <th>Gói Cao Cấp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Bài học nền tảng</td><td><span class="ct-val">5 bài</span></td><td class="ct-yes">✓ Tất cả</td><td class="ct-yes">✓ Tất cả</td><td class="ct-yes">✓ Tất cả</td></tr>
+                        <tr><td>Mascot & phần thưởng sao</td><td class="ct-yes">✓</td><td class="ct-yes">✓</td><td class="ct-yes">✓</td><td class="ct-yes">✓</td></tr>
+                        <tr><td>Báo cáo cho phụ huynh</td><td><span class="ct-val">Mẫu</span></td><td><span class="ct-val">Cuối tuần</span></td><td class="ct-yes">✓ Tuần đầy đủ</td><td class="ct-yes">✓ Toàn diện thông minh</td></tr>
+                        <tr><td>AI điều chỉnh lộ trình</td><td class="ct-no">—</td><td class="ct-yes">✓ Tự động</td><td class="ct-yes">✓ Tự động</td><td class="ct-yes">✓ Tối ưu nâng cao</td></tr>
+                        <tr><td>Tạo đề luyện tập với AI</td><td class="ct-no">—</td><td class="ct-yes">✓ Hàng tuần</td><td class="ct-yes">✓ Hàng tuần</td><td class="ct-yes">✓ Hàng tuần</td></tr>
+                        <tr><td>Phân tích kỹ năng chuyên sâu</td><td class="ct-no">—</td><td class="ct-no">—</td><td class="ct-yes">✓ Nâng cao</td><td class="ct-yes">✓ Toàn diện</td></tr>
+                        <tr><td>Hỗ trợ kỹ thuật & vận hành</td><td class="ct-no">—</td><td class="ct-no">—</td><td class="ct-yes">✓ Ưu tiên 24/7</td><td class="ct-yes">✓ Ưu tiên 24/7</td></tr>
+                        <tr><td>Chứng nhận hoàn thành</td><td class="ct-no">—</td><td class="ct-no">—</td><td class="ct-no">—</td><td class="ct-yes">✓ Tự động (6 tháng)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="faq-section">
+            <h2>❓ Câu hỏi thường gặp</h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="faq-item">
+                        <div class="faq-q">🎁 7 ngày thử có thực sự miễn phí không?</div>
+                        <div class="faq-a">Có! Dùng thử 7 ngày hoàn toàn miễn phí, không cần nhập thẻ tín dụng. Sau 7 ngày bạn mới cần chọn gói nếu muốn tiếp tục.</div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-q">📊 Phụ huynh nhận báo cáo như thế nào?</div>
+                        <div class="faq-a">Báo cáo được cập nhật hàng tuần, hiển thị ngày học, số từ đã học, điểm kỹ năng và gợi ý giúp con học tốt hơn tại nhà.</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="faq-item">
+                        <div class="faq-q">🔄 Có thể đổi gói hoặc hủy không?</div>
+                        <div class="faq-a">Bạn có thể nâng cấp, hạ xuống hoặc hủy gói bất cứ lúc nào. Không có phí ẩn hay ràng buộc dài hạn.</div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-q">🧒 Gói phù hợp nhất cho trẻ mấy tuổi?</div>
+                        <div class="faq-a">PLO được thiết kế chuyên biệt cho trẻ <strong>6–7 tuổi</strong> (Lớp 1 & Lớp 2). Tất cả nội dung, giao diện và thời lượng bài học được nghiên cứu phù hợp với sự phát triển nhận thức của trẻ ở độ tuổi này. Gói Standard phù hợp nhất vì có AI điều chỉnh lộ trình theo trình độ thực của từng bé.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

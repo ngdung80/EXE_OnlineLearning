@@ -1,0 +1,224 @@
+@model IEnumerable<POT_System_ASPNET.Data.Entities.Transaction>
+
+@{
+    ViewData["Title"] = "Quản lý giao dịch";
+    var walletTransactions = ViewBag.WalletTransactions as List<POT_System_ASPNET.Data.Entities.WalletTransaction> ?? new List<POT_System_ASPNET.Data.Entities.WalletTransaction>();
+}
+
+<div class="container mt-5 mb-5" style="padding-top: 100px;">
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h2 style="color: #e75485; font-weight: 700;">Quản lý Giao Dịch</h2>
+            <p class="text-muted">Xem và duyệt lịch sử giao dịch mua gói học hoặc nạp tiền của phụ huynh.</p>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 10px;">
+            ✓ @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="border-radius: 10px;">
+            ✗ @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Tabs Navigation -->
+    <ul class="nav nav-tabs mb-4" id="transactionTabs" role="tablist" style="border-bottom: 2px solid #fce7f3;">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold" id="packages-tab" data-bs-toggle="tab" data-bs-target="#packages" type="button" role="tab" aria-controls="packages" aria-selected="true" style="color: #e75485; border: none; border-bottom: 3px solid #e75485; background: transparent; padding: 10px 20px;">
+                🛒 Mua gói học (@Model.Count())
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="wallet-tab" data-bs-toggle="tab" data-bs-target="#wallet" type="button" role="tab" aria-controls="wallet" aria-selected="false" style="color: #6b7280; border: none; border-bottom: 3px solid transparent; background: transparent; padding: 10px 20px;">
+                💰 Nạp tiền ví (@walletTransactions.Count)
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="transactionTabsContent">
+        <!-- Tab 1: Packages -->
+        <div class="tab-pane fade show active" id="packages" role="tabpanel" aria-labelledby="packages-tab">
+            <div class="card shadow-sm" style="border-radius: 15px;">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped align-middle">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Mã Giao Dịch</th>
+                                    <th>Người Dùng</th>
+                                    <th>Gói Học</th>
+                                    <th>Số Tiền</th>
+                                    <th>Ngày Giao Dịch</th>
+                                    <th>Trạng Thái</th>
+                                    <th>Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td>#@item.TransactionId</td>
+                                        <td>@(item.User?.Username ?? "N/A")</td>
+                                        <td>@(item.Package?.PackageName ?? "N/A")</td>
+                                        <td class="text-success fw-bold">@String.Format("{0:N0}", item.Amount) đ</td>
+                                        <td>@(item.TransactionDate?.ToString("dd/MM/yyyy HH:mm") ?? "")</td>
+                                        <td>
+                                            @if (item.Status == "Completed")
+                                            {
+                                                <span class="badge bg-success">Thành công</span>
+                                            }
+                                            else if (item.Status == "Pending")
+                                            {
+                                                <span class="badge bg-warning text-dark">Chờ xử lý</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">@item.Status</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="d-flex gap-2">
+                                                @if (item.Status == "Pending")
+                                                {
+                                                    <form asp-action="ApprovePackageTransaction" method="post" style="margin:0;">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="transactionId" value="@item.TransactionId" />
+                                                        <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Duyệt giao dịch này và kích hoạt khóa học cho học sinh?')">Duyệt</button>
+                                                    </form>
+                                                    <form asp-action="CancelPackageTransaction" method="post" style="margin:0;">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="transactionId" value="@item.TransactionId" />
+                                                        <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('Từ chối giao dịch mua gói học này?')">Từ chối</button>
+                                                    </form>
+                                                }
+                                                <form asp-action="DeletePackageTransaction" method="post" style="margin:0;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="transactionId" value="@item.TransactionId" />
+                                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Xóa giao dịch này khỏi lịch sử?')">Xóa</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                                @if (!Model.Any())
+                                {
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted py-4">Không có giao dịch mua gói nào</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Wallet Transactions -->
+        <div class="tab-pane fade" id="wallet" role="tabpanel" aria-labelledby="wallet-tab">
+            <div class="card shadow-sm" style="border-radius: 15px;">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped align-middle">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Mã GD Ví</th>
+                                    <th>Phụ Huynh</th>
+                                    <th>Số Tiền</th>
+                                    <th>Nội Dung</th>
+                                    <th>Ngày Tạo</th>
+                                    <th>Trạng Thái</th>
+                                    <th>Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var wt in walletTransactions)
+                                {
+                                    var parentName = wt.Wallet?.Parent?.FullName ?? wt.Wallet?.Parent?.Username ?? "N/A";
+                                    <tr>
+                                        <td>#@wt.WalletTransactionId</td>
+                                        <td>
+                                            <div><strong>@parentName</strong></div>
+                                            <small class="text-muted">ID: @(wt.Wallet?.ParentId)</small>
+                                        </td>
+                                        <td class="text-primary fw-bold">@String.Format("{0:N0}", wt.Amount) đ</td>
+                                        <td>@wt.Description</td>
+                                        <td>@(wt.CreatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "")</td>
+                                        <td>
+                                            @if (wt.Status == "Completed")
+                                            {
+                                                <span class="badge bg-success">Đã nạp</span>
+                                            }
+                                            else if (wt.Status == "Pending")
+                                            {
+                                                <span class="badge bg-warning text-dark">Chờ duyệt</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">@wt.Status</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="d-flex gap-2">
+                                                @if (wt.Status == "Pending")
+                                                {
+                                                    <form asp-action="ApproveWalletTransaction" method="post" style="margin:0;">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="transactionId" value="@wt.WalletTransactionId" />
+                                                        <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Duyệt giao dịch này và cộng tiền vào ví phụ huynh?')">Duyệt</button>
+                                                    </form>
+                                                    <form asp-action="CancelWalletTransaction" method="post" style="margin:0;">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="transactionId" value="@wt.WalletTransactionId" />
+                                                        <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('Từ chối giao dịch nạp tiền này?')">Từ chối</button>
+                                                    </form>
+                                                }
+                                                <form asp-action="DeleteWalletTransaction" method="post" style="margin:0;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="transactionId" value="@wt.WalletTransactionId" />
+                                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Xóa giao dịch này khỏi lịch sử?')">Xóa</button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                                @if (!walletTransactions.Any())
+                                {
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted py-4">Không có giao dịch nạp tiền nào</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        var triggerTabList = [].slice.call(document.querySelectorAll('#transactionTabs button'))
+        triggerTabList.forEach(function (triggerEl) {
+            triggerEl.addEventListener('click', function (event) {
+                event.preventDefault()
+                triggerTabList.forEach(function (btn) {
+                    btn.style.color = '#6b7280';
+                    btn.style.borderBottom = '3px solid transparent';
+                });
+                this.style.color = '#e75485';
+                this.style.borderBottom = '3px solid #e75485';
+                
+                var tabTrigger = new bootstrap.Tab(this)
+                tabTrigger.show()
+            })
+        })
+    });
+</script>

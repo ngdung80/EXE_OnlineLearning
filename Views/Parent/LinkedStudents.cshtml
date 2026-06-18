@@ -1,0 +1,153 @@
+@model List<POT_System_ASPNET.Data.Entities.User>
+@{
+    ViewData["Title"] = "Học sinh liên kết";
+}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+    .parent-section { padding:80px 0; background:linear-gradient(135deg,#0f172a,#1e293b); min-height:80vh; }
+    .section-hd h2 { color:#ec6090; font-weight:700; margin-bottom:25px; }
+    .student-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:20px; }
+    .student-card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.09); border-radius:18px; padding:28px; text-align:center; transition:all .3s; }
+    .student-card:hover { transform:translateY(-5px); border-color:rgba(236,96,144,.4); box-shadow:0 16px 35px rgba(0,0,0,.25); }
+    .student-avatar { width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid #ec6090; margin:0 auto 14px; display:block; }
+    .student-name { color:#e2e8f0; font-weight:700; font-size:1rem; margin-bottom:4px; }
+    .student-grade { color:#94a3b8; font-size:.83rem; margin-bottom:16px; }
+    .badge-active { display:inline-block; padding:4px 12px; background:rgba(16,185,129,.2); color:#10b981; border-radius:20px; font-size:.78rem; font-weight:600; }
+    .btn-view-progress { display:block; margin-top:14px; padding:9px; background:rgba(236,96,144,.15); color:#ec6090; border-radius:15px; text-decoration:none; font-size:.83rem; font-weight:600; transition:all .2s; }
+    .btn-view-progress:hover { background:rgba(236,96,144,.3); color:#ec6090; }
+    .add-student-card { background:rgba(255,255,255,.03); border:2px dashed rgba(255,255,255,.15); border-radius:18px; padding:28px; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:200px; color:#64748b; cursor:pointer; transition:all .2s; }
+    .add-student-card:hover { border-color:rgba(236,96,144,.4); color:#ec6090; }
+    .add-icon { font-size:2.5rem; margin-bottom:10px; }
+    .empty-state { text-align:center; padding:60px; color:#64748b; }
+</style>
+
+<section class="parent-section">
+    <div class="container">
+        <div class="section-hd"><h2>👨‍👧‍👦 Học sinh liên kết của tôi</h2></div>
+
+        @if (TempData["Error"] != null) {
+            <div style="background:rgba(239,68,68,.15);border:1px solid #ef4444;color:#ef4444;padding:12px;border-radius:10px;margin-bottom:20px;">@TempData["Error"]</div>
+        }
+        @if (TempData["Success"] != null) {
+            <div style="background:rgba(16,185,129,.15);border:1px solid #10b981;color:#10b981;padding:12px;border-radius:10px;margin-bottom:20px;">@TempData["Success"]</div>
+        }
+
+        <div class="student-grid">
+            @if (Model != null && Model.Any())
+            {
+                foreach (var s in Model)
+                {
+                    <div class="student-card">
+                        <img src="@(s.Image ?? "/assets/images/profile-header.jpg")" class="student-avatar" alt="@s.FullName" onerror="this.src='/assets/images/profile-header.jpg'">
+                        <div class="student-name">@s.FullName</div>
+                        <div class="student-grade">@(s.Grade?.GradeName ?? "Chưa phân khối lớp")</div>
+                        <span class="badge-active">Hoạt động</span>
+                        <a asp-controller="Parent" asp-action="StudentProgress" asp-route-studentId="@s.UserId" class="btn-view-progress">📊 Xem tiến trình</a>
+                    </div>
+                }
+            }
+            <div class="add-student-card" data-bs-toggle="modal" data-bs-target="#linkStudentModal">
+                <div class="add-icon">➕</div>
+                <p style="font-weight:600;">Thêm học sinh</p>
+                <p style="font-size:.8rem;margin-top:4px;">Nhập email tài khoản con để liên kết</p>
+            </div>
+        </div>
+
+        @if (Model == null || !Model.Any())
+        {
+            <div class="empty-state">
+                <div style="font-size:3rem;margin-bottom:15px;">👶</div>
+                <p>Chưa có học sinh nào được liên kết. Hãy nhập email của con để bắt đầu theo dõi!</p>
+                <button class="btn" data-bs-toggle="modal" data-bs-target="#linkStudentModal" style="display:inline-block;margin-top:15px;padding:12px 28px;background:linear-gradient(135deg,#ec6090,#e75485);color:#fff;border-radius:25px;border:none;font-weight:700;cursor:pointer;">➕ Liên kết tài khoản con</button>
+            </div>
+        }
+    </div>
+</section>
+
+<!-- Modal Liên kết học sinh -->
+<div class="modal fade" id="linkStudentModal" tabindex="-1" aria-labelledby="linkStudentModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content" style="background:#1e293b; border: 1px solid rgba(255,255,255,.1); border-radius: 20px; color: #e2e8f0;">
+      <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,.06); padding: 20px;">
+        <h5 class="modal-title" id="linkStudentModalLabel" style="color:#ec6090; font-weight:700;"><i class="fas fa-link"></i> Liên kết tài khoản học sinh</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="background-color: transparent; border: none; color: #fff; font-size: 1.25rem;">&times;</button>
+      </div>
+      <form asp-controller="Parent" asp-action="LinkStudent" method="post">
+        @Html.AntiForgeryToken()
+        <div class="modal-body" style="padding: 24px;">
+          <p style="font-size: 0.88rem; color: #94a3b8; margin-bottom: 20px;">Nhập địa chỉ email của con bạn (tài khoản Học sinh đã đăng ký trên hệ thống PLO) để liên kết và theo dõi tiến độ học tập.</p>
+          <div style="margin-bottom:18px;">
+              <label style="color:#e2e8f0; font-weight:600; display:block; margin-bottom:8px;">📧 Email của con</label>
+              <div style="display:grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
+                  <div style="position:relative; width: 100%;">
+                      <i class="fas fa-envelope" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#94a3b8;"></i>
+                      <input type="email" name="studentEmail" id="studentEmail" required style="width:100%; padding:12px 14px 12px 40px; background:rgba(255,255,255,.06); border:2px solid rgba(255,255,255,.1); border-radius:12px; color:#fff; font-family:'Inter',sans-serif; font-size:.95rem;">
+                  </div>
+                  <button type="button" class="btn" id="btnSendLinkCode" onclick="sendLinkCode()" style="background:#ede9fe; color:#7c3aed; border:2px solid #ddd6fe; border-radius:12px; font-weight:700; padding:12px 18px; cursor:pointer;">Gửi mã</button>
+              </div>
+              <span id="linkCodeStatus" style="font-size:.78rem; font-weight:700; display:block; margin-top:6px; min-height:18px;"></span>
+          </div>
+          <div style="margin-bottom:0;">
+              <label style="color:#e2e8f0; font-weight:600; display:block; margin-bottom:8px;">🔑 Mã xác thực email</label>
+              <div style="position:relative;">
+                  <i class="fas fa-key" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#94a3b8;"></i>
+                  <input type="text" name="verificationCode" required placeholder="Nhập mã 6 số" style="width:100%; padding:12px 14px 12px 40px; background:rgba(255,255,255,.06); border:2px solid rgba(255,255,255,.1); border-radius:12px; color:#fff; font-family:'Inter',sans-serif; font-size:.95rem;">
+              </div>
+          </div>
+        </div>
+        <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,.06); padding: 16px 20px; display:flex; gap:10px; justify-content:flex-end;">
+          <button type="button" class="btn" data-bs-dismiss="modal" style="background:rgba(255,255,255,.1); color:#fff; border:none; padding:10px 20px; border-radius:12px; font-weight:600; cursor:pointer;">Hủy bỏ</button>
+          <button type="submit" class="btn" style="background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border:none; padding:10px 20px; border-radius:12px; font-weight:700; cursor:pointer;">Liên kết ngay</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+    <script>
+        async function sendLinkCode() {
+            const emailInput = document.getElementById('studentEmail');
+            const email = emailInput?.value.trim();
+
+            if (!email || !/^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(email)) {
+                alert('Vui lòng nhập email hợp lệ trước.');
+                emailInput?.focus();
+                return;
+            }
+
+            const btn = document.getElementById('btnSendLinkCode');
+            btn.disabled = true; 
+            btn.textContent = 'Đang gửi...';
+            
+            try {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                const res = await fetch('/Parent/SendLinkCode', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                    body: JSON.stringify({ email })
+                });
+                const data = await res.json();
+                const status = document.getElementById('linkCodeStatus');
+                if (data.success) {
+                    status.textContent = '✓ Đã gửi mã! Kiểm tra email của con bạn.';
+                    status.style.color = '#10b981';
+                    let sec = 60;
+                    const timer = setInterval(() => {
+                        btn.textContent = `Gửi lại (${--sec}s)`;
+                        if (sec <= 0) { clearInterval(timer); btn.disabled = false; btn.textContent = 'Gửi mã'; }
+                    }, 1000);
+                } else {
+                    status.textContent = '✗ ' + (data.message || 'Gửi thất bại');
+                    status.style.color = '#ef4444';
+                    btn.disabled = false; btn.textContent = 'Gửi mã';
+                    alert(data.message || 'Gửi mã thất bại. Vui lòng thử lại.');
+                }
+            } catch (err) { 
+                btn.disabled = false; 
+                btn.textContent = 'Gửi mã'; 
+                console.error(err);
+            }
+        }
+    </script>
+}

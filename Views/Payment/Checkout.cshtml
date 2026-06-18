@@ -1,0 +1,55 @@
+@{
+    ViewData["Title"] = "Thanh toán VietQR";
+    int transactionId = ViewBag.TransactionId;
+    double amount = ViewBag.Amount;
+    string orderCode = ViewBag.OrderCode;
+
+    // VietQR Format: https://img.vietqr.io/image/<BANK_ID>-<ACCOUNT_NO>-<TEMPLATE>.png?amount=<AMOUNT>&addInfo=<DESCRIPTION>&accountName=<ACCOUNT_NAME>
+    // BIDV BIN is 970418. STK: 8875468296. Name: Hoang Tuan Dung.
+    string qrUrl = $"https://img.vietqr.io/image/970418-8875468296-compact2.png?amount={amount}&addInfo={orderCode}&accountName=Hoang Tuan Dung";
+}
+
+<div class="container mt-5" style="margin-top: 120px !important; margin-bottom: 50px;">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="card shadow-lg border-0 p-4" style="border-radius: 20px;">
+                <h3 style="color: #ec6090; font-weight: 800; margin-bottom: 20px;">Quét mã thanh toán</h3>
+                
+                <div class="qr-container mb-4" style="background: #f8f9fa; padding: 20px; border-radius: 15px; display: inline-block;">
+                    <img src="@qrUrl" alt="VietQR" style="max-width: 100%; border-radius: 10px;" />
+                </div>
+
+                <div class="transfer-info text-start" style="background: rgba(236,96,144,0.05); padding: 20px; border-radius: 15px; border: 1px solid rgba(236,96,144,0.2);">
+                    <p class="mb-2"><strong>Ngân hàng:</strong> BIDV</p>
+                    <p class="mb-2"><strong>Chủ tài khoản:</strong> HOANG TUAN DUNG</p>
+                    <p class="mb-2"><strong>Số tài khoản:</strong> 8875468296</p>
+                    <p class="mb-2"><strong>Số tiền:</strong> @amount.ToString("N0") VNĐ</p>
+                    <p class="mb-0 text-danger" style="font-weight: bold; font-size: 1.1rem;"><strong>Nội dung:</strong> @orderCode</p>
+                </div>
+
+                <div class="mt-4">
+                    <div class="spinner-border text-primary spinner-border-sm" role="status"></div>
+                    <span class="ms-2" style="font-weight: 600; color: #64748b;">Đang chờ nhận tiền... Vui lòng không đóng trang này.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let isSuccess = false;
+        // Tự động kiểm tra trạng thái mỗi 3 giây
+        const interval = setInterval(function () {
+            fetch('/Payment/CheckPaymentStatus?transactionId=@transactionId')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.isCompleted) {
+                        clearInterval(interval);
+                        isSuccess = true;
+                        window.location.href = '/Payment/Success?transactionId=@transactionId';
+                    }
+                });
+        }, 3000);
+    </script>
+}

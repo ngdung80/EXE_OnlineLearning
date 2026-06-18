@@ -1,0 +1,51 @@
+@model List<POT_System_ASPNET.Data.Entities.User>
+@{
+    ViewData["Title"] = "Chọn học sinh để xem tiến trình";
+    var gradeId = ViewBag.GradeId;
+}
+<style>
+    .select-section { padding: 80px 0; background: linear-gradient(135deg,#f9fafb,#fdf2f8); min-height: 80vh; }
+    .select-card { background: #fff; border-radius: 24px; padding: 40px; box-shadow: 0 8px 32px rgba(0,0,0,.08); max-width: 560px; margin: 0 auto; text-align: center; }
+    .select-card h2 { font-size: 1.5rem; font-weight: 800; color: #1e1b4b; margin-bottom: 8px; }
+    .select-card p { color: #6b7280; font-size: .95rem; margin-bottom: 32px; }
+    .student-btn { display: flex; align-items: center; gap: 16px; padding: 18px 24px; background: #fdf4ff; border: 2px solid #fce7f3; border-radius: 16px; text-decoration: none; margin-bottom: 14px; transition: all .25s; }
+    .student-btn:hover { border-color: #e75485; background: #fff1f5; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(231,84,133,.15); }
+    .stu-avatar { width: 52px; height: 52px; border-radius: 50%; object-fit: cover; border: 3px solid #e75485; flex-shrink: 0; }
+    .stu-avatar-ph { width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg,#fce7f3,#ede9fe); border: 3px solid #e75485; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; flex-shrink: 0; }
+    .stu-info { text-align: left; flex: 1; }
+    .stu-name { font-weight: 800; color: #1e1b4b; font-size: 1rem; }
+    .stu-email { font-size: .82rem; color: #9ca3af; margin-top: 3px; }
+    .stu-arrow { color: #e75485; font-size: 1.2rem; font-weight: 700; }
+    .back-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 24px; color: #6b7280; font-size: .9rem; text-decoration: none; font-weight: 600; }
+    .back-link:hover { color: #e75485; }
+</style>
+
+<section class="select-section">
+    <div class="container">
+        <div class="select-card">
+            <div style="font-size:3rem;margin-bottom:16px;">👨‍👩‍👧‍👦</div>
+            <h2>Chọn học sinh</h2>
+            <p>Có nhiều học sinh trong khối lớp này. Vui lòng chọn con bạn muốn xem tiến trình:</p>
+
+            @foreach (var student in Model)
+            {
+                <a href="/Parent/StudentProgress?studentId=@student.UserId" class="student-btn">
+                    @if (!string.IsNullOrEmpty(student.Image))
+                    {
+                        <img src="@student.Image" class="stu-avatar" alt="@student.FullName"
+                             onerror="this.style.display='none'">
+                    }
+                    else
+                    {
+                        <div class="stu-avatar-ph">👧</div>
+                    }
+                    <div class="stu-info">
+                        <div class="stu-name">@(student.FullName ?? student.Username)</div>
+                        <div class="stu-email">@student.Email</div>
+                    </div>
+                    <div class="stu-arrow">→</div>
+                </a>
+            }
+        </div>
+    </div>
+</section>

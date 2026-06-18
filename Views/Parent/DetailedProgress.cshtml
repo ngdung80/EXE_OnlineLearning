@@ -1,0 +1,566 @@
+@using POT_System_ASPNET.Data.Entities
+@{
+    var children    = ViewBag.Children       as List<User>        ?? new List<User>();
+    var grades      = ViewBag.Grades         as List<Grade>       ?? new List<Grade>();
+    var subjects    = ViewBag.Subjects       as List<Subject>     ?? new List<Subject>();
+    var chapters    = ViewBag.Chapters       as List<Chapter>     ?? new List<Chapter>();
+    var lessons     = ViewBag.Lessons        as List<Lesson>      ?? new List<Lesson>();
+    var selStudent  = ViewBag.SelectedStudent  as User;
+    var selGrade    = ViewBag.SelectedGrade    as Grade;
+    var selSubject  = ViewBag.SelectedSubject  as Subject;
+    var selChapter  = ViewBag.SelectedChapter  as Chapter;
+    var selLesson   = ViewBag.SelectedLesson   as Lesson;
+    var lessonDone  = ViewBag.IsLessonCompleted as bool? ?? false;
+    var doneAt      = ViewBag.CompletedAt       as DateTime?;
+    var attempts    = ViewBag.TestAttempts      as List<TestAttempt> ?? new List<TestAttempt>();
+    ViewData["Title"] = "Tiến Độ Học Tập";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* === BASE === */
+* { box-sizing: border-box; }
+.dp-page {
+    background: linear-gradient(135deg,#fdf2f8 0%,#f5f3ff 100%);
+    min-height: 85vh;
+    padding: 100px 0 80px;
+    font-family: 'Nunito', sans-serif;
+}
+.dp-wrap {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* === BREADCRUMB === */
+.bc-bar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+    background: rgba(255,255,255,.8); backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(255,255,255,.6);
+    padding: 14px 22px; border-radius: 20px;
+    margin-bottom: 28px;
+    box-shadow: 0 4px 20px rgba(231,84,133,.06);
+    animation: fadeUp .5s ease;
+}
+.bc-chip {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-size: .85rem; font-weight: 700; color: #4b5563;
+    background: rgba(255,255,255,.9); padding: 5px 14px;
+    border-radius: 30px; border: 1.5px solid #f3f4f6;
+}
+.bc-chip.active { background: #fdf2f8; border-color: #fbcfe8; color: #e75485; }
+.bc-sep { color: #d1d5db; font-size: .75rem; }
+.bc-edit {
+    background: none; border: none; color: #7c3aed;
+    font-size: .72rem; font-weight: 800; cursor: pointer;
+    text-decoration: underline; padding: 0 4px; line-height:1;
+}
+
+/* === WIZARD CARD === */
+.wiz-card {
+    background: rgba(255,255,255,.92);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 2px solid #fbcfe8; border-radius: 32px;
+    padding: 48px 56px;
+    box-shadow: 0 20px 50px rgba(236,96,144,.07);
+    animation: fadeUp .6s ease;
+    width: 100%;
+}
+
+/* === STEP HEADER – centered, gradient title === */
+.step-hd {
+    text-align: center;
+    margin-bottom: 36px;
+    padding-bottom: 24px;
+    border-bottom: 2px dashed rgba(231,84,133,.18);
+}
+.step-hd h2 {
+    font-size: 2rem; font-weight: 900;
+    background: linear-gradient(135deg, #e75485 0%, #7c3aed 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: inline-flex; align-items: center; gap: 12px;
+    margin: 0 0 10px; justify-content: center; width: 100%;
+}
+.step-hd p { color: #6b7280; font-size: 1rem; margin: 0; font-weight: 600; }
+
+/* === SELECTION GRIDS === */
+.sel-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    align-items: stretch;
+}
+.sel-grid .sel-card {
+    flex: 0 0 220px;
+    max-width: 240px;
+}
+.sel-grid.col3 .sel-card {
+    flex: 0 0 180px;
+    max-width: 200px;
+}
+
+.sel-card {
+    background: #fff; border: 2px solid #ede9fe; border-radius: 24px;
+    padding: 32px 24px; text-align: center;
+    text-decoration: none !important; color: inherit !important;
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+    transition: all .35s cubic-bezier(.175,.885,.32,1.275);
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(124,58,237,.05);
+    position: relative; overflow: hidden;
+}
+.sel-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(231,84,133,.04) 0%, rgba(124,58,237,.04) 100%);
+    opacity: 0; transition: opacity .3s;
+}
+.sel-card:hover::before { opacity: 1; }
+.sel-card:hover {
+    transform: translateY(-8px) scale(1.03);
+    border-color: #e75485;
+    box-shadow: 0 18px 40px rgba(231,84,133,.15);
+}
+.sel-card .icon {
+    font-size: 2.8rem;
+    filter: drop-shadow(0 4px 8px rgba(231,84,133,.25));
+    animation: floatIcon 3s ease-in-out infinite;
+}
+.sel-card h4 {
+    font-weight: 900; font-size: 1.2rem; margin: 0;
+    background: linear-gradient(135deg, #e75485 0%, #7c3aed 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.sel-card p  { font-size: .85rem; color: #6b7280; margin: 0; font-weight: 600; text-align: center; line-height: 1.5; }
+
+/* child card – horizontal layout */
+.child-card {
+    flex: 0 0 280px !important;
+    max-width: 320px !important;
+    flex-direction: row !important; text-align: left !important;
+    align-items: center !important; gap: 18px !important;
+    padding: 20px 26px !important;
+}
+.child-avatar {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: linear-gradient(135deg,#fce7f3,#ede9fe);
+    border: 3px solid #fbcfe8;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem; flex-shrink: 0; overflow: hidden;
+}
+.child-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.child-info h4 { font-size: 1.05rem; font-weight: 900; color: #1e1b4b; margin: 0 0 4px; }
+.child-info span { font-size: .82rem; color: #6b7280; font-weight: 600; }
+
+/* chapter rows – full width, gradient text */
+.chap-list { display: flex; flex-direction: column; gap: 14px; width: 100%; }
+.chap-item {
+    background: #fff; border: 2px solid #ede9fe; border-radius: 20px;
+    padding: 22px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    text-decoration: none !important; color: inherit !important;
+    transition: all .28s ease;
+    box-shadow: 0 3px 10px rgba(124,58,237,.05);
+    width: 100%;
+}
+.chap-item:hover { border-color: #e75485; background: #fff8fa; transform: translateX(8px); box-shadow: 0 10px 28px rgba(231,84,133,.1); }
+.chap-left { display: flex; align-items: center; gap: 18px; }
+.chap-num {
+    width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg,#fce7f3,#ede9fe);
+    color: #e75485; font-weight: 900; font-size: 1.05rem;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 3px 8px rgba(231,84,133,.15);
+}
+.chap-name {
+    font-weight: 800; font-size: 1.15rem;
+    background: linear-gradient(135deg, #1e1b4b 0%, #7c3aed 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.chap-arr { color: #cbd5e1; font-size: 1.1rem; transition: all .2s; flex-shrink: 0; }
+.chap-item:hover .chap-arr { color: #e75485; transform: translateX(6px); }
+
+/* === REPORT === */
+.report-panel { display: flex; flex-direction: column; gap: 24px; }
+.status-box {
+    border-radius: 20px; padding: 22px 28px;
+    display: flex; align-items: flex-start; gap: 16px;
+}
+.status-box.ok  { background: linear-gradient(135deg,#d1fae5,#ecfdf5); border: 1.5px solid #a7f3d0; color: #065f46; }
+.status-box.nok { background: linear-gradient(135deg,#fef3c7,#fffbeb); border: 1.5px solid #fde68a; color: #92400e; }
+.status-box .big-icon { font-size: 2rem; flex-shrink: 0; }
+.status-box h4 { font-size: 1.1rem; font-weight: 900; margin: 0 0 6px; }
+.status-box p  { font-size: .9rem; margin: 0; line-height: 1.55; font-weight: 600; opacity: .9; }
+
+.att-card { background: #fff; border: 1.5px solid #fbcfe8; border-radius: 24px; padding: 28px; }
+.att-card h3 { font-size: 1.2rem; font-weight: 900; color: #1e1b4b; margin: 0 0 20px; display: flex; align-items: center; gap: 10px; }
+.att-table { width: 100%; border-collapse: collapse; }
+.att-table th { font-size: .78rem; font-weight: 800; color: #9ca3af; text-transform: uppercase; letter-spacing: .5px; padding: 10px 14px; border-bottom: 2px solid #f3f4f6; text-align: left; }
+.att-table td { padding: 14px; border-bottom: 1px solid #f9fafb; font-size: .9rem; vertical-align: middle; font-weight: 600; }
+.att-table tr:last-child td { border-bottom: none; }
+.att-table tr:hover td { background: #fdf4ff; }
+.sc { display: inline-block; padding: 5px 13px; border-radius: 12px; font-weight: 900; font-size: .82rem; }
+.sc.hi { background: #d1fae5; color: #065f46; }
+.sc.md { background: #fef3c7; color: #92400e; }
+.sc.lo { background: #fee2e2; color: #991b1b; }
+.advice-box {
+    background: linear-gradient(135deg,#ede9fe,#f5f3ff);
+    border: 1.5px solid #ddd6fe; border-radius: 16px;
+    padding: 18px 22px; display: flex; align-items: center;
+    gap: 12px; color: #5b21b6; margin-top: 20px;
+}
+.advice-box span { font-size: .9rem; font-weight: 700; line-height: 1.5; }
+
+/* === EMPTY STATE === */
+.empty-state { text-align: center; padding: 50px 20px; color: #9ca3af; }
+.empty-state .ei { font-size: 3.2rem; margin-bottom: 14px; }
+.empty-state p { font-weight: 800; font-size: .95rem; margin: 0 0 6px; }
+.empty-state small { font-size: .85rem; }
+
+/* === NAV BUTTONS === */
+.nav-row { display: flex; justify-content: flex-start; align-items: center; margin-top: 28px; }
+.btn-back {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 11px 24px;
+    background: #fff; border: 2px solid #e5e7eb; border-radius: 16px;
+    color: #4b5563; font-weight: 800; font-size: .9rem;
+    text-decoration: none !important;
+    transition: all .2s; font-family: 'Nunito', sans-serif;
+}
+.btn-back:hover { background: #fdf2f8; border-color: #fbcfe8; color: #e75485; }
+
+/* === SPARKLE STARS === */
+.sparkle-wrap { position: relative; }
+.star {
+    position: absolute; pointer-events: none;
+    font-size: 1rem; animation: starFloat 4s ease-in-out infinite;
+    opacity: 0;
+}
+.star:nth-child(1) { top: 10%; left: 5%;  animation-delay: 0s;    font-size: .8rem; }
+.star:nth-child(2) { top: 20%; right: 8%; animation-delay: .7s;   font-size: 1.1rem; }
+.star:nth-child(3) { bottom: 15%; left: 10%; animation-delay: 1.4s; font-size: .7rem; }
+.star:nth-child(4) { bottom: 10%; right: 5%; animation-delay: 2.1s; font-size: .9rem; }
+.star:nth-child(5) { top: 50%; left: 2%;   animation-delay: 2.8s; font-size: .75rem; }
+
+/* === KEYFRAMES === */
+@@keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
+@@keyframes floatIcon { 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-6px); } }
+@@keyframes starFloat {
+    0%   { opacity:0; transform:translateY(0) scale(.6) rotate(0deg); }
+    30%  { opacity:1; }
+    70%  { opacity:.8; }
+    100% { opacity:0; transform:translateY(-40px) scale(1.1) rotate(25deg); }
+}
+
+/* === RESPONSIVE === */
+@@media (max-width: 1024px) {
+    .dp-wrap { padding: 0 20px; }
+    .wiz-card { padding: 40px 36px; }
+    .sel-grid .sel-card { flex: 0 0 200px; }
+}
+@@media (max-width: 768px) {
+    .dp-page { padding: 80px 0 60px; }
+    .wiz-card { padding: 32px 24px; border-radius: 24px; }
+    .step-hd h2 { font-size: 1.5rem; }
+    .sel-grid .sel-card { flex: 0 0 calc(50% - 10px); max-width: none; }
+    .sel-grid.col3 .sel-card { flex: 0 0 calc(50% - 10px); max-width: none; }
+    .child-card { flex: 0 0 100% !important; max-width: 100% !important; }
+    .chap-item { padding: 18px 20px; }
+    .chap-name { font-size: 1rem; }
+    .att-table { font-size: .82rem; }
+    .bc-bar { padding: 12px 16px; }
+}
+@@media (max-width: 480px) {
+    .dp-page { padding: 75px 0 50px; }
+    .dp-wrap { padding: 0 14px; }
+    .wiz-card { padding: 26px 18px; border-radius: 20px; }
+    .step-hd h2 { font-size: 1.3rem; gap: 8px; }
+    .step-hd p { font-size: .9rem; }
+    .sel-grid .sel-card { flex: 0 0 100%; max-width: 100%; }
+    .sel-grid.col3 .sel-card { flex: 0 0 100%; max-width: 100%; }
+    .chap-num { width: 38px; height: 38px; font-size: .9rem; }
+    .chap-name { font-size: .95rem; }
+    .att-table th, .att-table td { padding: 10px 10px; font-size: .8rem; }
+    .bc-chip { font-size: .78rem; padding: 4px 10px; }
+}
+</style>
+
+<div class="dp-page">
+<div class="dp-wrap">
+
+    <!-- Breadcrumb trail -->
+    @if (selStudent != null || selGrade != null || selSubject != null || selChapter != null || selLesson != null)
+    {
+        <div class="bc-bar">
+            @if (selStudent != null)
+            {
+                <span class="bc-chip active">👦 <strong>@selStudent.FullName</strong>
+                    <a href="?" class="bc-edit">✏️</a>
+                </span>
+            }
+            @if (selGrade != null)
+            {
+                <span class="bc-sep">›</span>
+                <span class="bc-chip active">🎒 @selGrade.GradeName
+                    <a href="?studentId=@selStudent?.UserId" class="bc-edit">✏️</a>
+                </span>
+            }
+            @if (selSubject != null)
+            {
+                <span class="bc-sep">›</span>
+                <span class="bc-chip active">📖 @selSubject.SubjectName
+                    <a href="?studentId=@selStudent?.UserId&gradeId=@selGrade?.GradeId" class="bc-edit">✏️</a>
+                </span>
+            }
+            @if (selChapter != null)
+            {
+                <span class="bc-sep">›</span>
+                <span class="bc-chip active">📂 @(selChapter.ChapterName.Length > 18 ? selChapter.ChapterName[..16] + "…" : selChapter.ChapterName)
+                    <a href="?studentId=@selStudent?.UserId&gradeId=@selGrade?.GradeId&subjectId=@selSubject?.SubjectId" class="bc-edit">✏️</a>
+                </span>
+            }
+            @if (selLesson != null)
+            {
+                <span class="bc-sep">›</span>
+                <span class="bc-chip active">📝 @(selLesson.LessonName.Length > 18 ? selLesson.LessonName[..16] + "…" : selLesson.LessonName)
+                    <a href="?studentId=@selStudent?.UserId&gradeId=@selGrade?.GradeId&subjectId=@selSubject?.SubjectId&chapterId=@selChapter?.ChapterId" class="bc-edit">✏️</a>
+                </span>
+            }
+        </div>
+    }
+
+    <!-- Main card -->
+    <div class="wiz-card sparkle-wrap">
+        <!-- Floating stars -->
+        <span class="star">⭐</span>
+        <span class="star">✨</span>
+        <span class="star">🌟</span>
+        <span class="star">⭐</span>
+        <span class="star">✨</span>
+
+        @if (selStudent == null)
+        {
+            <!-- STEP 1: Chọn học sinh -->
+            <div class="step-hd">
+                <h2>👧 Chọn học sinh</h2>
+                <p>Chọn tài khoản của con để theo dõi tiến độ học tập chi tiết.</p>
+            </div>
+            @if (children.Any())
+            {
+                <div class="sel-grid col2">
+                    @foreach (var c in children)
+                    {
+                        <a href="?studentId=@c.UserId" class="sel-card child-card">
+                            <div class="child-avatar">
+                                @if (!string.IsNullOrEmpty(c.Image)) { <img src="@c.Image" alt="@c.FullName"> } else { <text>👧</text> }
+                            </div>
+                            <div class="child-info">
+                                <h4>@c.FullName</h4>
+                                <span>@(c.Grade?.GradeName ?? "Chưa xếp lớp")</span>
+                            </div>
+                        </a>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <div class="ei">👶</div>
+                    <p>Chưa liên kết học sinh nào</p>
+                    <small>Hãy liên kết tài khoản của con để bắt đầu theo dõi.</small><br>
+                    <a asp-controller="Parent" asp-action="LinkedStudents" class="btn-back" style="margin-top:18px; background:#e75485; border-color:#e75485; color:#fff; display:inline-flex;">➕ Liên kết ngay</a>
+                </div>
+            }
+        }
+        else if (selGrade == null)
+        {
+            <!-- STEP 2: Chọn khối lớp -->
+            <div class="step-hd">
+                <h2>🎒 Chọn khối lớp</h2>
+                <p>Xem tiến trình của <strong>@selStudent.FullName</strong> trong khối lớp nào?</p>
+            </div>
+            <div class="sel-grid col2">
+                @foreach (var g in grades)
+                {
+                    <a href="?studentId=@selStudent.UserId&gradeId=@g.GradeId" class="sel-card">
+                        <span class="icon">🎒</span>
+                        <h4>@g.GradeName</h4>
+                        <p>@g.Description</p>
+                    </a>
+                }
+            </div>
+        }
+        else if (selSubject == null)
+        {
+            <!-- STEP 3: Chọn môn học -->
+            <div class="step-hd">
+                <h2>📖 Chọn môn học</h2>
+                <p>Chương trình <strong>@selGrade.GradeName</strong> – chọn môn bạn muốn xem.</p>
+            </div>
+            @if (subjects.Any())
+            {
+                <div class="sel-grid col2">
+                    @foreach (var s in subjects)
+                    {
+                        <a href="?studentId=@selStudent.UserId&gradeId=@selGrade.GradeId&subjectId=@s.SubjectId" class="sel-card">
+                            <span class="icon">@(s.SubjectName.Contains("Anh") ? "🇬🇧" : "📚")</span>
+                            <h4>@s.SubjectName</h4>
+                        </a>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state"><div class="ei">📭</div><p>Chưa có môn học nào</p></div>
+            }
+        }
+        else if (selChapter == null)
+        {
+            <!-- STEP 4: Chọn chương -->
+            <div class="step-hd">
+                <h2>📂 Chọn chương học</h2>
+                <p>Môn <strong>@selSubject.SubjectName</strong> – chọn chương muốn xem báo cáo.</p>
+            </div>
+            @if (chapters.Any())
+            {
+                <div class="chap-list">
+                    @for (int i = 0; i < chapters.Count; i++)
+                    {
+                        var ch = chapters[i];
+                        <a href="?studentId=@selStudent.UserId&gradeId=@selGrade.GradeId&subjectId=@selSubject.SubjectId&chapterId=@ch.ChapterId" class="chap-item">
+                            <div class="chap-left">
+                                <span class="chap-num">@(i+1)</span>
+                                <span class="chap-name">@ch.ChapterName</span>
+                            </div>
+                            <i class="fa fa-arrow-right chap-arr"></i>
+                        </a>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state"><div class="ei">📂</div><p>Chưa có chương học nào</p></div>
+            }
+        }
+        else if (selLesson == null)
+        {
+            <!-- STEP 5: Chọn bài học -->
+            <div class="step-hd">
+                <h2>📝 Chọn bài học</h2>
+                <p><strong>@selChapter.ChapterName</strong> – chọn bài học để xem chi tiết tiến độ.</p>
+            </div>
+            @if (lessons.Any())
+            {
+                <div class="sel-grid col3">
+                    @foreach (var l in lessons)
+                    {
+                        <a href="?studentId=@selStudent.UserId&gradeId=@selGrade.GradeId&subjectId=@selSubject.SubjectId&chapterId=@selChapter.ChapterId&lessonId=@l.LessonId" class="sel-card">
+                            <span class="icon">📄</span>
+                            <h4 style="font-size:.9rem;">@l.LessonName</h4>
+                        </a>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state"><div class="ei">📄</div><p>Chưa có bài học nào</p></div>
+            }
+        }
+        else
+        {
+            <!-- STEP 6: Báo cáo tiến độ bài học -->
+            <div class="step-hd">
+                <h2>📊 Báo cáo: @selLesson.LessonName</h2>
+                <p>@selGrade.GradeName &nbsp;›&nbsp; @selSubject.SubjectName &nbsp;›&nbsp; @selChapter.ChapterName</p>
+            </div>
+
+            <div class="report-panel">
+                <!-- Trạng thái hoàn thành bài lý thuyết -->
+                @if (lessonDone)
+                {
+                    <div class="status-box ok">
+                        <span class="big-icon">🎉</span>
+                        <div>
+                            <h4>Con đã hoàn thành bài học này!</h4>
+                            <p>Bé <strong>@selStudent.FullName</strong> đã học xong lý thuyết vào <strong>@(doneAt?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</strong>. Bố mẹ hãy tiếp tục khuyến khích con nhé! 🌟</p>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="status-box nok">
+                        <span class="big-icon">⏳</span>
+                        <div>
+                            <h4>Con chưa hoàn thành bài học này</h4>
+                            <p>Bé <strong>@selStudent.FullName</strong> chưa học xong phần lý thuyết. Bố mẹ hãy nhắc bé vào học để nắm vững kiến thức nhé!</p>
+                        </div>
+                    </div>
+                }
+
+                <!-- Kết quả kiểm tra -->
+                <div class="att-card">
+                    <h3><i class="fa fa-list-check" style="color:#7c3aed;"></i> Kết quả luyện tập & kiểm tra</h3>
+
+                    @if (attempts.Any())
+                    {
+                        <div style="overflow-x:auto;">
+                            <table class="att-table">
+                                <thead><tr>
+                                    <th>Đề kiểm tra</th>
+                                    <th>Điểm số</th>
+                                    <th>Số câu đúng</th>
+                                    <th>Ngày làm</th>
+                                    <th>Thời lượng</th>
+                                    <th>Chi tiết</th>
+                                </tr></thead>
+                                <tbody>
+                                @foreach (var a in attempts)
+                                {
+                                    var sc = (a.Score ?? 0) >= 8 ? "hi" : (a.Score ?? 0) >= 5 ? "md" : "lo";
+                                    var dur = (a.EndTime.HasValue && a.StartTime.HasValue) ? (a.EndTime.Value - a.StartTime.Value).ToString(@"mm\:ss") : "—";
+                                    <tr>
+                                        <td>@a.Test?.TestName</td>
+                                        <td>@if (a.Score.HasValue) { <span class="sc @sc">@a.Score.Value.ToString("0.0") / 10</span> } else { <em style="color:#9ca3af;">Đang làm…</em> }</td>
+                                        <td>@(a.CorrectAnswers.HasValue && a.TotalQuestions.HasValue ? $"{a.CorrectAnswers}/{a.TotalQuestions} câu" : "—")</td>
+                                        <td style="color:#6b7280; font-size:.85rem;">@(a.StartTime?.ToString("dd/MM/yyyy HH:mm") ?? "—")</td>
+                                        <td style="color:#6b7280; font-size:.85rem;">@dur</td>
+                                        <td><a asp-controller="Test" asp-action="Result" asp-route-attemptId="@a.AttemptId" style="background:rgba(124,58,237,.08); color:#7c3aed; border:1px solid rgba(124,58,237,.2); border-radius:10px; font-weight:800; font-size:.8rem; padding:5px 12px; text-decoration:none; display:inline-flex; align-items:center; gap:5px;"><i class="fa fa-eye"></i> Xem</a></td>
+                                    </tr>
+                                }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        var best = attempts.Max(x => x.Score ?? 0);
+                        var adviceText = best >= 8 ? "Bé nắm bài rất chắc, tuyệt vời! 🏆"
+                                       : best >= 5 ? "Bé hiểu bài khá, hãy ôn lại các câu sai."
+                                       : "Bé cần thêm sự hỗ trợ, bố mẹ hãy ôn tập cùng con nhé.";
+                        <div class="advice-box">
+                            <span style="font-size:1.3rem;">💡</span>
+                            <span>
+                                Bé <strong>@selStudent.FullName</strong> đã làm <strong>@attempts.Count</strong> bài kiểm tra.
+                                Điểm cao nhất: <strong>@best.ToString("0.0")/10</strong>. @adviceText
+                            </span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <div class="ei">✏️</div>
+                            <p>Con chưa làm bài kiểm tra nào của bài học này</p>
+                            <small>Khuyên con hoàn thành bài lý thuyết rồi vào luyện tập để ghi nhận kết quả.</small>
+                        </div>
+                    }
+                </div>
+            </div>
+
+        }
+
+    </div><!-- /wiz-card -->
+</div><!-- /dp-wrap -->
+</div><!-- /dp-page -->

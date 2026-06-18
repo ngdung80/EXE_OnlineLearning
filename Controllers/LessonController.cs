@@ -1,0 +1,290 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using POT_System_ASPNET.Services;
+using POT_System_ASPNET.Data;
+using POT_System_ASPNET.Data.Entities;
+using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
+
+namespace POT_System_ASPNET.Controllers;
+
+[Authorize]
+public class LessonController : Controller
+{
+    private readonly ILessonService _lessonService;
+    private readonly IChapterService _chapterService;
+    private readonly ISubjectService _subjectService;
+    private readonly IGradeService _gradeService;
+    private readonly AppDbContext _db;
+    private readonly IStudentPackageService _studentPackageService;
+
+    public LessonController(ILessonService lessonService, IChapterService chapterService,
+        ISubjectService subjectService, IGradeService gradeService, AppDbContext db, IStudentPackageService studentPackageService)
+    {
+        _lessonService = lessonService;
+        _chapterService = chapterService;
+        _subjectService = subjectService;
+        _gradeService = gradeService;
+        _db = db;
+        _studentPackageService = studentPackageService;
+    }
+
+    public async Task<IActionResult> Index(string? name, int? gradeId, int? subjectId, int? chapterId, string? status, int page = 1)
+    {
+        const int pageSize = 10;
+        var isAdminOrStaff = User.IsInRole("Admin") || User.IsInRole("Content Manager") || User.IsInRole("Content Approver");
+
+        if (!isAdminOrStaff)
+        {
+            status = "Active"; // Force active only for Student and Parent
+        }
+
+        if (User.IsInRole("Student"))
+        {
+            var studentId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+            if (chapterId.HasValue)
+            {
+                var chapter = await _chapterService.GetByIdAsync(chapterId.Value);
+                if (chapter == null) return NotFound();
+                
+                var hasAccess = await _studentPackageService.StudentHasAccessToSubjectAsync(studentId, chapter.SubjectId);
+                if (!hasAccess)
+                {
+                    return RedirectToAction("AccessDenied", "Account");
+                }
+            }
+            else if (subjectId.HasValue)
+            {
+                var hasAccess = await _studentPackageService.StudentHasAccessToSubjectAsync(studentId, subjectId.Value);
+                if (!hasAccess)
+                {
+                    return RedirectToAction("AccessDenied", "Account");
+                }
+            }
+        }
+
+        ViewBag.Grades = isAdminOrStaff ? await _gradeService.GetAllAsync() : await _gradeService.GetActiveAsync();
+        
+        var rawSubjects = subjectId.HasValue ? await _subjectService.GetByGradeIdAsync(gradeId ?? 0) : new List<Subject>();
+        ViewBag.Subjects = isAdminOrStaff ? rawSubjects : rawSubjects.Where(s => s.Status == "Active").ToList();
+        
+        var rawChapters = chapterId.HasValue ? await _chapterService.GetBySubjectIdAsync(subjectId ?? 0) : new List<Chapter>();
+        ViewBag.Chapters = isAdminOrStaff ? rawChapters : rawChapters.Where(c => c.Status == "Active").ToList();
+
+        ViewBag.Filter = new { name, gradeId, subjectId, chapterId, status, page };
+
+        var lessons = await _lessonService.SearchAsync(name, gradeId, subjectId, chapterId, status, page, pageSize);
+        var total = await _lessonService.CountAsync(name, gradeId, subjectId, chapterId, status);
+
+        if (User.IsInRole("Student"))
+        {
+            var studentId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+            var studentPackages = await _studentPackageService.GetByStudentIdAsync(studentId);
+            var activeSubjectIds = studentPackages
+                .Where(sp => sp.Status == "Active" && sp.EndDate >= DateOnly.FromDateTime(DateTime.Now))
+                .Select(sp => sp.SubjectId)
+                .Where(id => id.HasValue)
+                .Select(id => id!.Value)
+                .ToList();
+            
+            lessons = lessons.Where(l => activeSubjectIds.Contains(l.Chapter.SubjectId)).ToList();
+            total = lessons.Count;
+        }
+
+        ViewBag.TotalPages = (int)Math.Ceiling((double)total / pageSize);
+        ViewBag.CurrentPage = page;
+
+        if (chapterId.HasValue)
+        {
+            ViewBag.Chapter = await _chapterService.GetByIdAsync(chapterId.Value);
+        }
+
+        return View(lessons);
+    }
+
+    [Authorize(Roles = "Admin,Content Manager,Content Approver")]
+    [HttpGet]
+    public async Task<IActionResult> Create()
+    {
+        ViewBag.Grades = await _gradeService.GetAllAsync();
+        ViewBag.Chapters = new List<Chapter>();
+        return View();
+    }
+
+    [Authorize(Roles = "Admin,Content Manager,Content Approver")]
+    [HttpPost]
+    public async Task<IActionResult> Create(Lesson lesson, IFormFile? lessonFile, IFormFile? imageFile)
+    {
+        if (imageFile != null && imageFile.Length > 0)
+        {
+            var dir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "lessons");
+            Directory.CreateDirectory(dir);
+            var fn = $"{Guid.NewGuid()}{Path.GetExtension(imageFile.FileName)}";
+            using var s = new FileStream(Path.Combine(dir, fn), FileMode.Create);
+            await imageFile.CopyToAsync(s);
+            lesson.ImageUrl = $"/uploads/lessons/{fn}";
+        }
+        if (lessonFile != null && lessonFile.Length > 0)
+        {
+            var dir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "files");
+            Directory.CreateDirectory(dir);
+            var fn = $"{Guid.NewGuid()}{Path.GetExtension(lessonFile.FileName)}";
+            using var s = new FileStream(Path.Combine(dir, fn), FileMode.Create);
+            await lessonFile.CopyToAsync(s);
+            lesson.FileUrl = $"/uploads/files/{fn}";
+        }
+        lesson.Status = "Active";
+        await _lessonService.AddAsync(lesson);
+        TempData["Success"] = "Lesson added successfully.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    [Authorize(Roles = "Admin,Content Manager,Content Approver")]
+    [HttpGet]
+    public async Task<IActionResult> Edit(int id)
+    {
+        var lesson = await _lessonService.GetByIdAsync(id);
+        if (lesson == null) return NotFound();
+        ViewBag.Grades = await _gradeService.GetAllAsync();
+        ViewBag.Chapters = await _chapterService.GetAllAsync();
+        return View(lesson);
+    }
+
+    [Authorize(Roles = "Admin,Content Manager,Content Approver")]
+    [HttpPost]
+    public async Task<IActionResult> Edit(Lesson lesson, IFormFile? imageFile, IFormFile? lessonFile)
+    {
+        var existing = await _lessonService.GetByIdAsync(lesson.LessonId);
+        if (existing == null) return NotFound();
+
+        existing.LessonName = lesson.LessonName;
+        existing.ChapterId = lesson.ChapterId;
+        existing.ContentText = lesson.ContentText;
+        existing.FileUrl = lesson.FileUrl;
+        existing.VocabularyJson = lesson.VocabularyJson;
+
+        if (imageFile != null && imageFile.Length > 0)
+        {
+            var dir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "lessons");
+            Directory.CreateDirectory(dir);
+            var fn = $"{Guid.NewGuid()}{Path.GetExtension(imageFile.FileName)}";
+            using var s = new FileStream(Path.Combine(dir, fn), FileMode.Create);
+            await imageFile.CopyToAsync(s);
+            existing.ImageUrl = $"/uploads/lessons/{fn}";
+        }
+        if (lessonFile != null && lessonFile.Length > 0)
+        {
+            var dir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "files");
+            Directory.CreateDirectory(dir);
+            var fn = $"{Guid.NewGuid()}{Path.GetExtension(lessonFile.FileName)}";
+            using var s = new FileStream(Path.Combine(dir, fn), FileMode.Create);
+            await lessonFile.CopyToAsync(s);
+            existing.FileUrl = $"/uploads/files/{fn}";
+        }
+
+        await _lessonService.UpdateAsync(existing);
+        TempData["Success"] = "Lesson updated.";
+        return RedirectToAction(nameof(Index));
+    }
+
+    [Authorize(Roles = "Admin,Content Manager,Content Approver")]
+    [HttpPost]
+    public async Task<IActionResult> SetInactive(int id) { await _lessonService.SetInactiveAsync(id); return RedirectToAction(nameof(Index)); }
+
+    [Authorize(Roles = "Admin,Content Manager,Content Approver")]
+    [HttpPost]
+    public async Task<IActionResult> Recover(int id) { await _lessonService.RecoverAsync(id); return RedirectToAction(nameof(Index)); }
+
+    [Authorize(Roles = "Admin,Content Manager,Content Approver")]
+    [HttpPost]
+    public async Task<IActionResult> Delete(int id) { await _lessonService.DeleteAsync(id); return RedirectToAction(nameof(Index)); }
+
+    [AllowAnonymous]
+    public async Task<IActionResult> Detail(int id)
+    {
+        var lesson = await _lessonService.GetByIdAsync(id);
+        if (lesson == null) return NotFound();
+
+        bool isCompleted = false;
+        if (User.Identity?.IsAuthenticated == true && User.IsInRole("Student"))
+        {
+            var studentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var hasAccess = await _studentPackageService.StudentHasAccessToSubjectAsync(studentId, lesson.Chapter.SubjectId);
+            if (!hasAccess)
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
+            isCompleted = await _db.StudentLessonProgresses.AnyAsync(p => p.StudentId == studentId && p.LessonId == id);
+        }
+        ViewBag.IsCompleted = isCompleted;
+        return View(lesson);
+    }
+
+    // Student gamified learning screen
+    [Authorize(Roles = "Student,Parent")]
+    public async Task<IActionResult> StudentLearn(int id)
+    {
+        var lesson = await _lessonService.GetByIdAsync(id);
+        if (lesson == null) return NotFound();
+
+        if (User.IsInRole("Student"))
+        {
+            var studentId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
+            var hasAccess = await _studentPackageService.StudentHasAccessToSubjectAsync(studentId, lesson.Chapter.SubjectId);
+            if (!hasAccess)
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
+        }
+        return View(lesson);
+    }
+
+    // Approver list
+    [Authorize(Roles = "Admin,Content Approver")]
+    public async Task<IActionResult> PendingApproval(string? name, int? gradeId, int? subjectId, int? chapterId, int page = 1)
+    {
+        const int pageSize = 10;
+        var lessons = await _lessonService.SearchAsync(name, gradeId, subjectId, chapterId, "Pending", page, pageSize);
+        var total = await _lessonService.CountAsync(name, gradeId, subjectId, chapterId, "Pending");
+        ViewBag.TotalPages = (int)Math.Ceiling((double)total / pageSize);
+        ViewBag.CurrentPage = page;
+        return View(lessons);
+    }
+
+    [Authorize(Roles = "Admin,Content Approver")]
+    [HttpPost]
+    public async Task<IActionResult> Approve(int id)
+    {
+        var lesson = await _lessonService.GetByIdAsync(id);
+        if (lesson != null) { lesson.Status = "Active"; await _lessonService.UpdateAsync(lesson); }
+        return RedirectToAction(nameof(PendingApproval));
+    }
+
+    [Authorize(Roles = "Admin,Content Approver")]
+    [HttpPost]
+    public async Task<IActionResult> Reject(int id, string reason)
+    {
+        var lesson = await _lessonService.GetByIdAsync(id);
+        if (lesson != null) { lesson.Status = "Rejected"; await _lessonService.UpdateAsync(lesson); }
+        return RedirectToAction(nameof(PendingApproval));
+    }
+
+    [Authorize(Roles = "Student")]
+    [HttpPost]
+    public async Task<IActionResult> CompleteLesson(int lessonId)
+    {
+        var studentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var exists = await _db.StudentLessonProgresses.AnyAsync(p => p.StudentId == studentId && p.LessonId == lessonId);
+        if (!exists)
+        {
+            _db.StudentLessonProgresses.Add(new StudentLessonProgress
+            {
+                StudentId = studentId,
+                LessonId = lessonId,
+                CompletedAt = DateTime.Now
+            });
+            await _db.SaveChangesAsync();
+        }
+        return Json(new { success = true });
+    }
+}

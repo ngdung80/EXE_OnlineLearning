@@ -1,0 +1,281 @@
+@{
+    ViewData["Title"] = "Quản lý thu nhập";
+}
+
+<style>
+    body {
+        background-color: #f0f4fa; /* Màu nền xanh nhạt giống ảnh */
+    }
+    .revenue-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding-top: 100px;
+        padding-bottom: 50px;
+    }
+    .page-title {
+        color: #2c3e50;
+        font-weight: 700;
+        text-align: center;
+        font-size: 26px;
+        text-transform: uppercase;
+        margin-bottom: 15px;
+    }
+    .total-revenue {
+        color: #3498db;
+        text-align: center;
+        font-size: 18px;
+        margin-bottom: 40px;
+        font-weight: 500;
+    }
+    .filter-card {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        margin-bottom: 40px;
+        width: fit-content;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .chart-card {
+        background: white;
+        border-radius: 12px;
+        padding: 40px 30px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .filter-label {
+        font-weight: 600;
+        color: #333;
+        font-size: 15px;
+    }
+    .btn-filter {
+        background-color: #3498db;
+        color: white;
+        border: none;
+        padding: 6px 24px;
+        border-radius: 6px;
+        font-weight: 600;
+        transition: background 0.3s;
+    }
+    .btn-filter:hover {
+        background-color: #2980b9;
+    }
+    .form-select-custom {
+        padding: 6px 30px 6px 12px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        outline: none;
+    }
+</style>
+
+<div class="revenue-container">
+    <h2 class="page-title">QUẢN LÝ THU NHẬP</h2>
+    <p class="total-revenue">Tổng doanh thu từ trước đến nay: @String.Format("{0:N1}", ViewBag.TotalRevenue) VNĐ</p>
+
+    <div class="filter-card">
+        <span class="filter-label">Năm:</span>
+        <select id="yearSelect" class="form-select-custom">
+            @for (int y = 2020; y <= DateTime.Now.Year; y++)
+            {
+                if (y == DateTime.Now.Year) {
+                    <option value="@y" selected>@y</option>
+                } else {
+                    <option value="@y">@y</option>
+                }
+            }
+        </select>
+
+        <span class="filter-label ms-3">Tháng:</span>
+        <select id="monthSelect" class="form-select-custom">
+            <option value="0">Tất cả tháng</option>
+            @for (int m = 1; m <= 12; m++)
+            {
+                <option value="@m">Tháng @m</option>
+            }
+        </select>
+
+        <span class="filter-label ms-3">Ngày:</span>
+        <select id="daySelect" class="form-select-custom">
+            <option value="0">Tất cả ngày</option>
+            @for (int d = 1; d <= 31; d++)
+            {
+                <option value="@d">Ngày @d</option>
+            }
+        </select>
+        
+        <button id="btnFilter" class="btn-filter ms-3">🔎 Lọc</button>
+    </div>
+
+    <div class="chart-card">
+        <canvas id="revenueChart" width="800" height="400"></canvas>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let revenueChartInstance = null;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initial load
+            loadChartData(new Date().getFullYear(), 0, 0);
+
+            // Listeners for dynamic days dropdown update
+            document.getElementById('yearSelect').addEventListener('change', updateDaysDropdown);
+            document.getElementById('monthSelect').addEventListener('change', updateDaysDropdown);
+
+            document.getElementById('btnFilter').addEventListener('click', function() {
+                const year = document.getElementById('yearSelect').value;
+                const month = document.getElementById('monthSelect').value;
+                const day = document.getElementById('daySelect').value;
+                loadChartData(year, month, day);
+            });
+        });
+
+        function updateDaysDropdown() {
+            const year = parseInt(document.getElementById('yearSelect').value);
+            const month = parseInt(document.getElementById('monthSelect').value);
+            const daySelect = document.getElementById('daySelect');
+            const prevSelectedDay = daySelect.value;
+            
+            // Clear all options except "Tất cả ngày"
+            daySelect.options.length = 1;
+
+            if (month > 0) {
+                const daysInMonth = new Date(year, month, 0).getDate();
+                for (let d = 1; d <= daysInMonth; d++) {
+                    const opt = document.createElement('option');
+                    opt.value = d;
+                    opt.textContent = `Ngày ${d}`;
+                    daySelect.appendChild(opt);
+                }
+                if (parseInt(prevSelectedDay) <= daysInMonth) {
+                    daySelect.value = prevSelectedDay;
+                } else {
+                    daySelect.value = "0";
+                }
+            } else {
+                for (let d = 1; d <= 31; d++) {
+                    const opt = document.createElement('option');
+                    opt.value = d;
+                    opt.textContent = `Ngày ${d}`;
+                    daySelect.appendChild(opt);
+                }
+                daySelect.value = "0";
+            }
+        }
+
+        function loadChartData(year, month, day) {
+            let url = `/Revenue/GetRevenueData?year=${year}`;
+            if (month > 0) url += `&month=${month}`;
+            if (day > 0) url += `&day=${day}`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const labels = data.map(item => item.label);
+                    const revenueData = data.map(item => item.totalRevenue);
+
+                    const ctx = document.getElementById('revenueChart').getContext('2d');
+                    
+                    if (revenueChartInstance) {
+                        revenueChartInstance.destroy();
+                    }
+
+                    // Dynamically set label text based on filters selected
+                    let datasetLabel = 'Doanh thu theo tháng (VNĐ)';
+                    let xAxisTitle = 'Tháng';
+                    if (parseInt(month) > 0 && parseInt(day) > 0) {
+                        datasetLabel = 'Doanh thu theo giờ (VNĐ)';
+                        xAxisTitle = 'Giờ';
+                    } else if (parseInt(month) > 0) {
+                        datasetLabel = 'Doanh thu theo ngày (VNĐ)';
+                        xAxisTitle = 'Ngày';
+                    }
+
+                    revenueChartInstance = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [
+                                {
+                                    label: datasetLabel,
+                                    data: revenueData,
+                                    backgroundColor: 'rgba(52, 152, 219, 0.6)', // matching theme color (#3498db)
+                                    borderColor: 'rgba(52, 152, 219, 1)',
+                                    borderWidth: 1,
+                                    barPercentage: 0.6
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Doanh thu (VNĐ)',
+                                        color: '#666',
+                                        font: {
+                                            size: 14
+                                        }
+                                    },
+                                    ticks: {
+                                        callback: function(value) {
+                                            return value.toLocaleString('vi-VN') + ' đ';
+                                        }
+                                    },
+                                    grid: {
+                                        color: '#eee'
+                                    }
+                                },
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: xAxisTitle,
+                                        color: '#666',
+                                        font: {
+                                            size: 14
+                                        }
+                                    },
+                                    grid: {
+                                        display: false
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: true,
+                                    position: 'top',
+                                    labels: {
+                                        boxWidth: 40,
+                                        boxHeight: 15
+                                    }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            let label = context.dataset.label || '';
+                                            if (label) {
+                                                label += ': ';
+                                            }
+                                            if (context.parsed.y !== null) {
+                                                label += context.parsed.y.toLocaleString('vi-VN') + ' đ';
+                                            }
+                                            return label;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                })
+                .catch(error => console.error('Error fetching revenue data:', error));
+        }
+    </script>
+}

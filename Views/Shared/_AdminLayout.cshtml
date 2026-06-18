@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>@ViewData["Title"] - PLO Admin Portal</title>
+    
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Bootstrap CSS -->
+    <link href="~/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        /* Base Styles: PLO Signature Light Theme */
+        body {
+            background: linear-gradient(135deg, #fff7ed 0%, #faf5ff 50%, #fff1f2 100%) !important;
+            color: #4c1d95 !important;
+            font-family: 'Inter', sans-serif !important;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Custom Scrollbar in Purple Tint */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #fff7ed;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #ddd6fe;
+            border-radius: 99px;
+            border: 2px solid #fff7ed;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #c084fc;
+        }
+
+        /* Layout Container */
+        .admin-layout {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Sidebar Styling (Bright Glassmorphism with Pink/Purple Tint) */
+        .sidebar {
+            width: 280px;
+            background: rgba(255, 255, 255, 0.8) !important;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-right: 1px solid rgba(231, 84, 133, 0.15) !important;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 16px 12px;
+            transition: all 0.3s ease;
+            max-height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            padding: 8px 4px;
+            margin-bottom: 12px;
+        }
+
+        .sidebar-brand img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+            filter: drop-shadow(0 0 6px rgba(231, 84, 133, 0.2));
+        }
+
+        .sidebar-brand-text {
+            font-size: 18px;
+            font-weight: 900;
+            color: #e75485 !important;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            text-shadow: 0 0 8px rgba(231, 84, 133, 0.15);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding-right: 2px;
+        }
+
+        .sidebar-menu li a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            color: #6d28d9 !important;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 13px;
+            border-radius: 8px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sidebar-menu li a i {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        /* Active / Hover Links */
+        .sidebar-menu li a:hover {
+            color: #db2777 !important;
+            background: rgba(231, 84, 133, 0.05) !important;
+        }
+
+        .sidebar-menu li a:hover i {
+            transform: translateX(2px);
+        }
+
+        .sidebar-menu li a.active-link {
+            color: #fff !important;
+            background: linear-gradient(135deg, #7c3aed 0%, #e75485 100%) !important;
+            border-left: 3px solid #e75485;
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.15);
+            font-weight: 600;
+        }
+
+        .sidebar-menu li a.active-link i {
+            color: #fff !important;
+            filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.4));
+        }
+
+        /* Sidebar Profile */
+        .sidebar-profile {
+            background: rgba(255, 255, 255, 0.6) !important;
+            border: 1px solid rgba(124, 58, 237, 0.1) !important;
+            border-radius: 12px;
+            padding: 8px 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .sidebar-profile img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e75485;
+            box-shadow: 0 0 8px rgba(231, 84, 133, 0.2);
+        }
+
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .profile-name {
+            font-weight: 600;
+            font-size: 13px;
+            color: #2e1065 !important;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .profile-role {
+            font-size: 10px;
+            color: #e75485 !important;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Main Content Container */
+        .main-content {
+            flex-grow: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+        }
+
+        /* Top Header */
+        .top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(124, 58, 237, 0.1);
+        }
+
+        .header-greeting h1 {
+            font-size: 26px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #7c3aed 0%, #e75485 100%) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            margin: 0 0 4px 0;
+            letter-spacing: -0.5px;
+        }
+
+        .header-greeting p {
+            color: #6d28d9 !important;
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .status-badge-pulse {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(16, 185, 129, 0.08);
+            color: #059669;
+            border: 1px solid rgba(16, 185, 129, 0.15);
+            padding: 6px 14px;
+            border-radius: 99px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #10b981;
+            animation: pulse-dot 2s infinite;
+        }
+
+        @@keyframes pulse-dot {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        /* -------------------------------------------------------------
+           GLOBAL CSS OVERRIDES FOR CHILD VIEWS (RETROFITTING STYLES)
+        ------------------------------------------------------------- */
+        
+        /* Reset containers & spacing inside views */
+        .user-section, .admin-section, .mgmt-section, .sub-section, .ch-section, .lesson-section, .revenue-container, 
+        .container, .detail-section, .form-section, .edit-section {
+            padding: 0 !important;
+            margin: 0 !important;
+            max-width: 100% !important;
+            background: transparent !important;
+            min-height: auto !important;
+        }
+
+        /* Retheming headings inside views */
+        .section-hd, .mgmt-header, .page-header, .row.mb-4 {
+            margin-bottom: 25px !important;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-hd h2, .mgmt-header h2, .page-header h1, .page-title, .row.mb-4 h2 {
+            font-size: 24px !important;
+            font-weight: 800 !important;
+            background: linear-gradient(135deg, #7c3aed 0%, #e75485 100%) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            margin: 0 !important;
+            text-transform: none !important;
+        }
+
+        .total-revenue {
+            color: #7c3aed !important;
+            font-size: 15px !important;
+            font-weight: 600 !important;
+            margin-bottom: 25px !important;
+            text-align: left !important;
+        }
+
+        .text-muted, .text-muted.py-4 {
+            color: #7c3aed !important;
+            opacity: 0.7;
+        }
+
+        /* Glassmorphism Cards & Tables Container */
+        .table-card, .admin-card, .chart-card, .card, .sub-card, .ch-item, .lesson-card {
+            background: rgba(255, 255, 255, 0.85) !important;
+            backdrop-filter: blur(16px) !important;
+            -webkit-backdrop-filter: blur(16px) !important;
+            border: 1px solid rgba(124, 58, 237, 0.08) !important;
+            border-radius: 16px !important;
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.04) !important;
+            padding: 24px !important;
+            margin-bottom: 20px !important;
+            overflow: visible !important;
+            color: #4c1d95 !important;
+        }
+
+        .sub-name, .ch-name, .lesson-name {
+            color: #2e1065 !important;
+            font-weight: 700 !important;
+            font-size: 1.1rem !important;
+            margin-bottom: 8px !important;
+        }
+
+        .sub-desc, .ch-desc, .lesson-content {
+            color: #6d28d9 !important;
+            opacity: 0.8;
+            font-size: 0.875rem !important;
+            line-height: 1.5 !important;
+        }
+
+        .ch-num {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(231, 84, 133, 0.1)) !important;
+            color: #7c3aed !important;
+            font-weight: 800 !important;
+        }
+
+        .breadcrumb-bar {
+            color: #6d28d9 !important;
+            opacity: 0.7;
+            font-size: 0.875rem !important;
+            margin-bottom: 20px !important;
+        }
+
+        .breadcrumb-bar a {
+            color: #e75485 !important;
+            text-decoration: none !important;
+            font-weight: 600 !important;
+        }
+
+        .breadcrumb-bar a:hover {
+            text-decoration: underline !important;
+        }
+
+        .breadcrumb-bar span {
+            color: #7c3aed !important;
+        }
+
+        .card-body {
+            padding: 0 !important;
+        }
+
+        /* Flex footers spacing & wrapping */
+        .sub-footer, .lesson-footer {
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            gap: 12px !important;
+            margin-top: 15px !important;
+            margin-bottom: 12px !important;
+            flex-wrap: wrap !important;
+        }
+
+        .btn-view-ch, .btn-lessons, .btn-read {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            white-space: nowrap !important;
+            padding: 8px 16px !important;
+            background: rgba(231, 84, 133, 0.08) !important;
+            color: #e75485 !important;
+            border-radius: 99px !important;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            text-decoration: none !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .btn-view-ch:hover, .btn-lessons:hover, .btn-read:hover {
+            background: rgba(231, 84, 133, 0.15) !important;
+            color: #db2777 !important;
+        }
+
+        /* Glassmorphic Filters Panel */
+        .filters, .filter-card {
+            background: rgba(255, 255, 255, 0.55) !important;
+            border: 1px solid rgba(124, 58, 237, 0.08) !important;
+            border-radius: 12px !important;
+            padding: 16px !important;
+            margin-bottom: 25px !important;
+            box-shadow: none !important;
+            width: 100% !important;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .filter-label, .form-label {
+            color: #4c1d95 !important;
+            font-weight: 600 !important;
+            font-size: 13px !important;
+        }
+
+        /* Form Fields & Dropdowns styling */
+        .filter-input, .filter-select, .form-select-custom, .form-control, select, input[type="text"], input[type="number"], input[type="date"], textarea {
+            background: rgba(255, 255, 255, 0.9) !important;
+            border: 1px solid rgba(124, 58, 237, 0.15) !important;
+            color: #2e1065 !important;
+            border-radius: 8px !important;
+            padding: 10px 14px !important;
+            font-size: 14px !important;
+            transition: all 0.3s ease !important;
+            height: auto !important;
+        }
+
+        .filter-input:focus, .filter-select:focus, .form-select-custom:focus, .form-control:focus, select:focus, input:focus, textarea:focus {
+            border-color: #e75485 !important;
+            box-shadow: 0 0 0 3px rgba(231, 84, 133, 0.15) !important;
+            background: #ffffff !important;
+            outline: none !important;
+        }
+
+        .filter-select option, select option {
+            background: #ffffff !important;
+            color: #2e1065 !important;
+        }
+
+        /* Styled Tables */
+        .table {
+            color: #4c1d95 !important;
+            background: transparent !important;
+            margin: 0 !important;
+        }
+
+        .table thead th {
+            background: rgba(124, 58, 237, 0.05) !important;
+            color: #7c3aed !important;
+            font-weight: 600 !important;
+            font-size: 13px !important;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: none !important;
+            padding: 14px 16px !important;
+        }
+
+        .table tbody tr {
+            border-bottom: 1px solid rgba(124, 58, 237, 0.05) !important;
+            background: transparent !important;
+            transition: background 0.2s ease !important;
+        }
+
+        .table tbody tr:hover {
+            background: rgba(231, 84, 133, 0.02) !important;
+        }
+
+        .table tbody td {
+            padding: 14px 16px !important;
+            border: none !important;
+            color: #4c1d95 !important;
+            vertical-align: middle !important;
+            font-size: 14px !important;
+        }
+
+        /* Buttons & Controls */
+        .btn-add, .btn-filter, .btn-submit, #btnFilter, .btn-primary {
+            background: linear-gradient(135deg, #7c3aed 0%, #e75485 100%) !important;
+            border: none !important;
+            color: #fff !important;
+            font-weight: 600 !important;
+            padding: 10px 24px !important;
+            border-radius: 99px !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            box-shadow: 0 4px 14px rgba(231, 84, 133, 0.2) !important;
+            font-size: 14px !important;
+            cursor: pointer !important;
+            text-decoration: none !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+        }
+
+        .btn-add:hover, .btn-filter:hover, .btn-submit:hover, #btnFilter:hover, .btn-primary:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(231, 84, 133, 0.35) !important;
+            color: #fff !important;
+        }
+
+        /* Smaller Action Buttons */
+        .btn-edit-sm, .btn-edit, .btn-toggle, .btn-success {
+            background: rgba(124, 58, 237, 0.08) !important;
+            color: #7c3aed !important;
+            border: 1px solid rgba(124, 58, 237, 0.2) !important;
+            font-weight: 600 !important;
+            border-radius: 8px !important;
+            padding: 6px 14px !important;
+            font-size: 13px !important;
+            transition: all 0.2s ease !important;
+            text-decoration: none !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 4px !important;
+        }
+
+        .btn-edit-sm:hover, .btn-edit:hover, .btn-toggle:hover, .btn-success:hover {
+            background: rgba(124, 58, 237, 0.15) !important;
+            color: #6d28d9 !important;
+        }
+
+        .btn-del-sm, .btn-delete, .btn-del, .btn-danger {
+            background: rgba(239, 68, 68, 0.08) !important;
+            color: #ef4444 !important;
+            border: 1px solid rgba(239, 68, 68, 0.2) !important;
+            font-weight: 600 !important;
+            border-radius: 8px !important;
+            padding: 6px 14px !important;
+            font-size: 13px !important;
+            transition: all 0.2s ease !important;
+            text-decoration: none !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 4px !important;
+        }
+
+        .btn-del-sm:hover, .btn-delete:hover, .btn-del:hover, .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.15) !important;
+            color: #dc2626 !important;
+        }
+
+        /* Custom Dropdown on Bootstrap tab buttons */
+        .nav-tabs {
+            border-bottom: 1px solid rgba(124, 58, 237, 0.1) !important;
+        }
+
+        .nav-tabs .nav-link {
+            border: none !important;
+            color: #7c3aed !important;
+            opacity: 0.7;
+            background: transparent !important;
+            padding: 12px 20px !important;
+            font-size: 14px !important;
+            border-bottom: 2px solid transparent !important;
+            transition: all 0.3s !important;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: #e75485 !important;
+            opacity: 1;
+            border-bottom: 2px solid #e75485 !important;
+            background: transparent !important;
+        }
+
+        /* Badges styles */
+        .badge, .badge-role, .badge-status, .badge-active, .badge-inactive, .badge-pending, .status-active, .status-inactive {
+            font-size: 12px !important;
+            font-weight: 600 !important;
+            padding: 6px 14px !important;
+            border-radius: 99px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            line-height: 1.2 !important;
+            white-space: nowrap !important;
+        }
+
+        /* Role & Status specific badges colors */
+        .role-admin, .bg-danger, .badge.bg-danger {
+            background: rgba(239, 68, 68, 0.08) !important;
+            color: #ef4444 !important;
+            border: 1px solid rgba(239, 68, 68, 0.15) !important;
+        }
+
+        .role-student, .bg-primary, .badge.bg-primary {
+            background: rgba(59, 130, 246, 0.08) !important;
+            color: #2563eb !important;
+            border: 1px solid rgba(59, 130, 246, 0.15) !important;
+        }
+
+        .role-parent, .bg-success, .badge.bg-success, .badge-active, .status-active {
+            background: rgba(16, 185, 129, 0.08) !important;
+            color: #059669 !important;
+            border: 1px solid rgba(16, 185, 129, 0.15) !important;
+        }
+
+        .role-cm, .bg-warning, .badge.bg-warning, .badge-inactive, .status-inactive {
+            background: rgba(245, 158, 11, 0.08) !important;
+            color: #d97706 !important;
+            border: 1px solid rgba(245, 158, 11, 0.15) !important;
+        }
+
+        /* User List Specifics */
+        .user-avatar {
+            border: 2px solid #e75485 !important;
+            box-shadow: 0 0 8px rgba(231, 84, 133, 0.15) !important;
+        }
+
+        /* Pagers */
+        .pager {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 25px;
+        }
+
+        .pager a {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(124, 58, 237, 0.1);
+            color: #4c1d95;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s !important;
+        }
+
+        .pager a:hover {
+            background: rgba(124, 58, 237, 0.05);
+            color: #7c3aed;
+        }
+
+        .pager a.active {
+            background: linear-gradient(135deg, #7c3aed 0%, #e75485 100%) !important;
+            border: none !important;
+            color: #fff !important;
+        }
+
+        /* Success & Error custom Alerts */
+        .success-msg, .alert-success, .alert-danger, .alert {
+            background: rgba(16, 185, 129, 0.08) !important;
+            border: 1px solid rgba(16, 185, 129, 0.15) !important;
+            color: #059669 !important;
+            padding: 14px 20px !important;
+            border-radius: 12px !important;
+            font-weight: 500 !important;
+            margin-bottom: 25px !important;
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.08) !important;
+            border: 1px solid rgba(239, 68, 68, 0.15) !important;
+            color: #ef4444 !important;
+        }
+
+        /* -------------------------------------------------------------
+           RESPONSIVE BREAKPOINTS & PADDING ADJUSTMENTS
+        ------------------------------------------------------------- */
+        @@media (min-width: 1200px) {
+            .sidebar {
+                width: 280px;
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 280px;
+                width: calc(100% - 280px);
+                padding: 40px;
+            }
+            .menu-toggle-btn {
+                display: none !important;
+            }
+        }
+
+        @@media (max-width: 1199px) and (min-width: 992px) {
+            .sidebar {
+                width: 260px;
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 260px;
+                width: calc(100% - 260px);
+                padding: 30px;
+            }
+            .menu-toggle-btn {
+                display: none !important;
+            }
+        }
+
+        @@media (max-width: 991px) {
+            .sidebar {
+                width: 260px;
+                transform: translateX(-100%);
+            }
+            .sidebar.active-sidebar {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                padding: 24px;
+            }
+            .menu-toggle-btn {
+                display: inline-block !important;
+            }
+        }
+
+        @@media (max-width: 575px) {
+            .main-content {
+                padding: 16px;
+            }
+            .top-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            .header-stats {
+                width: 100%;
+                justify-content: flex-start;
+            }
+            /* Table responsive wrapping */
+            .table-card {
+                padding: 16px !important;
+            }
+            .table {
+                display: block;
+                width: 100%;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .section-hd, .mgmt-header, .page-header, .row.mb-4 {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+        }
+
+        .menu-toggle-btn {
+            display: none;
+            background: rgba(124, 58, 237, 0.05);
+            border: 1px solid rgba(124, 58, 237, 0.15);
+            color: #7c3aed;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+    @RenderSection("Styles", required: false)
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="adminSidebar">
+            <div>
+                <!-- Brand logo -->
+                <a asp-controller="Home" asp-action="Index" class="sidebar-brand">
+                    <img src="/assets/images/logo.png" asp-append-version="true" alt="PLO Logo" onerror="this.src='/assets/images/logo.png'">
+                    <span class="sidebar-brand-text">PLO Admin</span>
+                </a>
+
+                <!-- Sidebar navigation menu -->
+                <ul class="sidebar-menu">
+                    <li>
+                        <a href="/Home/Index" id="nav-home">
+                            <i class="fa-solid fa-chart-pie"></i>
+                            <span>Trang chủ</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/Grade" id="nav-grade">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                            <span>Quản lý Khối lớp</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/Subject" id="nav-subject">
+                            <i class="fa-solid fa-book"></i>
+                            <span>Quản lý Môn học</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/Chapter" id="nav-chapter">
+                            <i class="fa-solid fa-folder-open"></i>
+                            <span>Quản lý Chương học</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/Lesson" id="nav-lesson">
+                            <i class="fa-solid fa-file-signature"></i>
+                            <span>Quản lý Bài học</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/Package" id="nav-package">
+                            <i class="fa-solid fa-cubes"></i>
+                            <span>Quản lý Gói học</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/User" id="nav-user">
+                            <i class="fa-solid fa-users-gear"></i>
+                            <span>Quản lý Người dùng</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/Revenue" id="nav-revenue">
+                            <i class="fa-solid fa-sack-dollar"></i>
+                            <span>Quản lý Thu nhập</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/Transaction" id="nav-transaction">
+                            <i class="fa-solid fa-receipt"></i>
+                            <span>Quản lý Giao dịch</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/Certificate" id="nav-certificate">
+                            <i class="fa-solid fa-certificate"></i>
+                            <span>Quản lý Chứng chỉ</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Profile Info Footer -->
+            <div>
+                <div class="sidebar-profile">
+                    <img src="@(User.FindFirst("Image")?.Value ?? "/assets/images/profile-header.jpg")" alt="Admin Avatar" onerror="this.src='/assets/images/profile-header.jpg'">
+                    <div class="profile-info">
+                        <span class="profile-name">@User.FindFirst("FullName")?.Value</span>
+                        <span class="profile-role">Quản trị viên</span>
+                    </div>
+                </div>
+                <ul class="sidebar-menu" style="margin-top: 10px;">
+                    <li>
+                        <a asp-controller="Account" asp-action="Logout" style="color: #dc2626; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.1);">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                            <span>Đăng xuất</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main Body Wrapper -->
+        <main class="main-content">
+            <!-- Top Header Navbar -->
+            <div class="top-header">
+                <div class="header-greeting">
+                    <button class="menu-toggle-btn me-3" id="sidebarToggle">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h1>Hệ Thống Quản Trị</h1>
+                    <p>Chào mừng trở lại, @User.FindFirst("FullName")?.Value!</p>
+                </div>
+                <div class="header-stats">
+                    <div class="status-badge-pulse">
+                        <span class="status-dot"></span>
+                        <span>Máy chủ hoạt động</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Render views body wrapping in responsive container -->
+            <div class="main-body-container">
+                @RenderBody()
+            </div>
+        </main>
+    </div>
+
+    <!-- Core Scripts -->
+    <script src="~/vendor/jquery/jquery.min.js"></script>
+    <script src="~/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Sidebar active links highlighter
+        document.addEventListener('DOMContentLoaded', function () {
+            const currentPath = window.location.pathname.toLowerCase();
+            const menuLinks = document.querySelectorAll('.sidebar-menu li a');
+            
+            menuLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (href) {
+                    const cleanHref = href.toLowerCase();
+                    if (currentPath === cleanHref || (cleanHref !== '/' && cleanHref !== '/home/index' && currentPath.startsWith(cleanHref))) {
+                        link.classList.add('active-link');
+                    }
+                }
+            });
+
+            // Toggle sidebar on mobile
+            const toggleBtn = document.getElementById('sidebarToggle');
+            const sidebar = document.getElementById('adminSidebar');
+            
+            if (toggleBtn && sidebar) {
+                toggleBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    sidebar.classList.toggle('active-sidebar');
+                });
+                
+                document.addEventListener('click', function(e) {
+                    if (!sidebar.contains(e.target) && e.target !== toggleBtn) {
+                        sidebar.classList.remove('active-sidebar');
+                    }
+                });
+            }
+        });
+    </script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,553 @@
+@model POT_System_ASPNET.Data.Entities.Lesson
+@{
+    ViewData["Title"] = "Thêm bài học";
+}
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+    .form-section {
+        padding: 140px 0 80px;
+        background: transparent !important;
+        min-height: 80vh;
+        position: relative;
+        overflow: hidden;
+        font-family: 'Nunito', sans-serif !important;
+        color: #1e1b4b;
+    }
+    .form-section *:not(i):not(.fa) {
+        font-family: 'Nunito', sans-serif !important;
+    }
+
+    .form-card {
+        background: rgba(255, 255, 255, 0.88) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        border: 4px solid #fbcfe8 !important;
+        border-radius: 35px !important;
+        overflow: hidden !important;
+        box-shadow: 0 15px 35px rgba(236, 96, 144, 0.08) !important;
+        position: relative;
+        z-index: 10;
+        padding: 40px;
+        color: #1e1b4b !important;
+    }
+
+    .form-card h2 { color:#ec6090; font-weight:900; margin-bottom:30px; font-size:2.2rem; }
+    .form-label { color:#4f46e5; font-size:.95rem; font-weight: 800; }
+    
+    .form-control, .form-select { 
+        background:#ffffff !important; 
+        border: 2px solid #e5e7eb !important; 
+        color:#1e1b4b !important; 
+        border-radius:15px !important; 
+        padding:12px 15px !important; 
+        width:100%; 
+        font-size:14px; 
+        transition:all .3s; 
+        font-weight: 700; 
+    }
+    .form-control:focus, .form-select:focus { 
+        background:#fff !important; 
+        border-color:#ec6090 !important; 
+        box-shadow: 0 0 0 4px rgba(236, 96, 144, 0.1) !important; 
+        outline:none; 
+        color:#1e1b4b !important; 
+    }
+    .form-control::placeholder { color:#a5b4fc; }
+    .form-select option { background:#ffffff; color: #1e1b4b; }
+    
+    .btn-save { padding:12px 30px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff !important; border:none; border-radius:25px; font-weight:800; cursor:pointer; transition:all .3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 5px 15px rgba(236, 96, 144, 0.2); }
+    .btn-save:hover { transform:translateY(-2px) scale(1.02); box-shadow:0 8px 20px rgba(236,96,144,.4); }
+    
+    .btn-cancel { display:inline-block; padding:12px 30px; background:transparent; color:#ec6090 !important; border:2px solid #ec6090; border-radius:25px; text-decoration:none; font-weight:800; transition:all .3s; }
+    .btn-cancel:hover { background: rgba(236, 96, 144, 0.05); transform: translateY(-1px); }
+
+    .kid-bg-cloud {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 100px;
+        pointer-events: none;
+        z-index: 1;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.02);
+    }
+    .kid-bg-cloud::before, .kid-bg-cloud::after {
+        content: '';
+        position: absolute;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 50%;
+    }
+    .kid-bg-cloud.c1 {
+        width: 120px; height: 40px; top: 12%; left: 8%;
+        animation: floatCloud 24s linear infinite;
+    }
+    .kid-bg-cloud.c1::before { width: 50px; height: 50px; top: -25px; left: 15px; }
+    .kid-bg-cloud.c1::after { width: 70px; height: 70px; top: -35px; right: 15px; }
+
+    .kid-bg-cloud.c2 {
+        width: 160px; height: 50px; bottom: 15%; right: 8%;
+        animation: floatCloudReverse 28s linear infinite;
+    }
+    .kid-bg-cloud.c2::before { width: 70px; height: 70px; top: -35px; left: 20px; }
+    .kid-bg-cloud.c2::after { width: 90px; height: 90px; top: -45px; right: 20px; }
+
+    @@keyframes floatCloud {
+        0% { transform: translateX(0); }
+        50% { transform: translateX(50px); }
+        100% { transform: translateX(0); }
+    }
+    @@keyframes floatCloudReverse {
+        0% { transform: translateX(0); }
+        50% { transform: translateX(-50px); }
+        100% { transform: translateX(0); }
+    }
+
+    .kid-bg-star {
+        position: absolute;
+        font-size: 2.5rem;
+        color: #f59e0b;
+        opacity: 0.35;
+        pointer-events: none;
+        z-index: 5;
+    }
+    .kid-bg-star.s1 { top: 15%; right: 12%; animation: orbitRight 14s ease-in-out infinite alternate; }
+    .kid-bg-star.s2 { bottom: 18%; left: 10%; animation: orbitLeft 17s ease-in-out infinite alternate; color: #fbbf24; }
+    .kid-bg-star.s3 { top: 45%; left: 6%; animation: floatAroundVertical 11s ease-in-out infinite alternate; font-size: 1.8rem; color: #fca5a5; }
+    .kid-bg-star.s4 { bottom: 40%; right: 6%; animation: floatAroundHorizontal 15s ease-in-out infinite alternate; font-size: 2rem; color: #38bdf8; }
+    .kid-bg-star.s5 { top: 10%; left: 25%; animation: diagonalFloat 20s ease-in-out infinite alternate; font-size: 1.6rem; color: #c084fc; }
+
+    @@keyframes orbitRight {
+        0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+        35% { transform: translate(45px, -70px) rotate(120deg) scale(1.25); }
+        70% { transform: translate(-30px, -120px) rotate(240deg) scale(0.8); }
+        100% { transform: translate(0, 0) rotate(360deg) scale(1); }
+    }
+    @@keyframes orbitLeft {
+        0% { transform: translate(0, 0) rotate(360deg) scale(0.9); }
+        40% { transform: translate(-60px, 50px) rotate(180deg) scale(1.3); }
+        80% { transform: translate(40px, -40px) rotate(0deg) scale(0.7); }
+        100% { transform: translate(0, 0) rotate(-360deg) scale(0.9); }
+    }
+    @@keyframes floatAroundVertical {
+        0% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-90px) rotate(180deg); }
+        100% { transform: translateY(0) rotate(360deg); }
+    }
+    @@keyframes floatAroundHorizontal {
+        0% { transform: translateX(0) rotate(0deg); }
+        50% { transform: translateX(90px) rotate(-180deg); }
+        100% { transform: translateX(0) rotate(-360deg); }
+    }
+    @@keyframes diagonalFloat {
+        0% { transform: translate(0, 0) rotate(0deg); }
+        50% { transform: translate(80px, 80px) rotate(180deg); }
+        100% { transform: translate(0, 0) rotate(360deg); }
+    }
+</style>
+
+<!-- Clouds -->
+<div class="kid-bg-cloud c1"></div>
+<div class="kid-bg-cloud c2"></div>
+
+<!-- Stars -->
+<div class="kid-bg-star s1">⭐</div>
+<div class="kid-bg-star s2">✨</div>
+<div class="kid-bg-star s3">🌟</div>
+<div class="kid-bg-star s4">⭐</div>
+<div class="kid-bg-star s5">✨</div>
+
+<section class="form-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="form-card">
+                    <h2>Thêm bài học mới</h2>
+                    <form asp-action="Create" method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Khối lớp *</label>
+                                <select id="gradeSelect" class="form-select" required>
+                                    <option value="">-- Chọn khối lớp --</option>
+                                    @if (ViewBag.Grades != null)
+                                    {
+                                        foreach (var grade in (List<POT_System_ASPNET.Data.Entities.Grade>)ViewBag.Grades)
+                                        {
+                                            <option value="@grade.GradeId" selected="@(ViewBag.SelectedGradeId != null && (int)ViewBag.SelectedGradeId == grade.GradeId)">@grade.GradeName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Môn học *</label>
+                                <select id="subjectSelect" class="form-select" required disabled>
+                                    <option value="">-- Chọn môn học --</option>
+                                    @if (ViewBag.Subjects != null)
+                                    {
+                                        foreach (var subject in (List<POT_System_ASPNET.Data.Entities.Subject>)ViewBag.Subjects)
+                                        {
+                                            <option value="@subject.SubjectId" selected="@(ViewBag.SelectedSubjectId != null && (int)ViewBag.SelectedSubjectId == subject.SubjectId)">@subject.SubjectName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Chương học *</label>
+                                <select id="chapterSelect" name="ChapterId" class="form-select" required disabled>
+                                    <option value="">-- Chọn chương học --</option>
+                                    @if (ViewBag.Chapters != null)
+                                    {
+                                        foreach (var chapter in (List<POT_System_ASPNET.Data.Entities.Chapter>)ViewBag.Chapters)
+                                        {
+                                            <option value="@chapter.ChapterId" selected="@(ViewBag.SelectedChapterId != null && (int)ViewBag.SelectedChapterId == chapter.ChapterId)">@chapter.ChapterName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Tên bài học *</label>
+                            <input type="text" name="LessonName" class="form-control" placeholder="Ví dụ: Giới thiệu về Đạo hàm" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Nội dung bài học</label>
+                            <textarea name="ContentText" class="form-control" rows="8" placeholder="Nhập nội dung bài học hoặc văn bản tại đây..."></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Ảnh bìa</label>
+                            <input type="file" name="imageFile" class="form-control" accept="image/*">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Link video học tập (YouTube hoặc link file trực tiếp)</label>
+                            <input type="text" name="FileUrl" class="form-control" placeholder="Dán link YouTube hoặc đường dẫn file cục bộ từ máy tính của bạn">
+                        </div>
+
+                        <!-- Vocabulary Editor Section -->
+                        <div class="mb-4">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                                <label class="form-label" style="font-weight:900; color:#ec6090; font-size:1.2rem; margin:0;">📚 Danh sách từ mới của bài học</label>
+                                <button type="button" class="btn-sm-action" onclick="addVocabularyRow()" style="padding:10px 20px; background:linear-gradient(135deg,#a855f7,#7c3aed); color:#fff !important; border:none; border-radius:20px; font-weight:800; cursor:pointer; box-shadow: 0 4px 10px rgba(168, 85, 247, 0.25);">+ Thêm từ mới</button>
+                            </div>
+                            
+                            <div id="vocab-container" style="display:flex; flex-direction:column; gap:12px;">
+                                <!-- Dynamically rendered -->
+                            </div>
+                            
+                            <input type="hidden" id="VocabularyJson" name="VocabularyJson" value="" />
+                        </div>
+
+                        <!-- Emoji datalist for suggestion -->
+                        <datalist id="emoji-list">
+                            <option value="🍎">🍎 Quả táo</option>
+                            <option value="🍌">🍌 Quả chuối</option>
+                            <option value="🍊">🍊 Quả cam</option>
+                            <option value="🐱">🐱 Con mèo</option>
+                            <option value="🐶">🐶 Con chó</option>
+                            <option value="🐟">🐟 Con cá</option>
+                            <option value="🦁">🦁 Sư tử</option>
+                            <option value="🐸">🐸 Con ếch</option>
+                            <option value="🐒">🐒 Con khỉ</option>
+                            <option value="🚗">🚗 Ô tô</option>
+                            <option value="✈️">✈️ Máy bay</option>
+                            <option value="⚽">⚽ Bóng đá</option>
+                            <option value="📚">📚 Quyển sách</option>
+                            <option value="✏️">✏️ Bút chì</option>
+                            <option value="🏫">🏫 Trường học</option>
+                            <option value="🎈">🎈 Bóng bay</option>
+                            <option value="🧸">🧸 Gấu bông</option>
+                            <option value="🍕">🍕 Bánh Pizza</option>
+                            <option value="🎂">🎂 Bánh kem</option>
+                            <option value="☀️">☀️ Mặt trời</option>
+                            <option value="🌧️">🌧️ Cơn mưa</option>
+                            <option value="🌈">🌈 Cầu vồng</option>
+                            <option value="⭐">⭐ Ngôi sao</option>
+                        </datalist>
+
+                        <div class="d-flex gap-3 mt-4">
+                            <button type="submit" class="btn-save">💾 Lưu bài học</button>
+                            <a asp-action="Index" class="btn-cancel">← Hủy</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        const gradeSelect = document.getElementById('gradeSelect');
+        const subjectSelect = document.getElementById('subjectSelect');
+        const chapterSelect = document.getElementById('chapterSelect');
+
+        gradeSelect.addEventListener('change', async function() {
+            const gradeId = this.value;
+            subjectSelect.innerHTML = '<option value="">-- Chọn môn học --</option>';
+            chapterSelect.innerHTML = '<option value="">-- Chọn chương học --</option>';
+            subjectSelect.disabled = true;
+            chapterSelect.disabled = true;
+
+            if (!gradeId) return;
+
+            try {
+                const response = await fetch(`/Subject/GetByGrade?gradeId=${gradeId}`);
+                if (response.ok) {
+                    const subjects = await response.json();
+                    subjects.forEach(sub => {
+                        const opt = document.createElement('option');
+                        opt.value = sub.subjectId;
+                        opt.textContent = sub.subjectName;
+                        subjectSelect.appendChild(opt);
+                    });
+                    subjectSelect.disabled = false;
+                }
+            } catch (err) {
+                console.error("Error loading subjects:", err);
+            }
+        });
+
+        subjectSelect.addEventListener('change', async function() {
+            const subjectId = this.value;
+            chapterSelect.innerHTML = '<option value="">-- Chọn chương học --</option>';
+            chapterSelect.disabled = true;
+
+            if (!subjectId) return;
+
+            try {
+                const response = await fetch(`/Chapter/GetBySubject?subjectId=${subjectId}`);
+                if (response.ok) {
+                    const chapters = await response.json();
+                    chapters.forEach(ch => {
+                        const opt = document.createElement('option');
+                        opt.value = ch.chapterId;
+                        opt.textContent = ch.chapterName;
+                        chapterSelect.appendChild(opt);
+                    });
+                    chapterSelect.disabled = false;
+                }
+            } catch (err) {
+                console.error("Error loading chapters:", err);
+            }
+        });
+
+        // ===== VOCABULARY MANAGER =====
+        const emojiMap = {
+            // Animals
+            "cat": "🐱", "mèo": "🐱",
+            "dog": "🐶", "chó": "🐶",
+            "fish": "🐟", "cá": "🐟",
+            "bird": "🐦", "chim": "🐦",
+            "lion": "🦁", "sư tử": "🦁",
+            "tiger": "🐯", "hổ": "🐯", "cọp": "🐯",
+            "monkey": "🐒", "khỉ": "🐒",
+            "rabbit": "🐰", "thỏ": "🐰",
+            "elephant": "🐘", "voi": "🐘",
+            "bear": "🧸", "gấu": "🧸",
+            "bee": "🐝", "ong": "🐝",
+            "ant": "🐜", "kiến": "🐜",
+            "frog": "🐸", "ếch": "🐸",
+            "duck": "🦆", "vịt": "🦆",
+            "chicken": "🐔", "gà": "🐔",
+            "pig": "🐷", "heo": "🐷", "lợn": "🐷",
+            "cow": "🐮", "bò": "🐮",
+            "sheep": "🐑", "cừu": "🐑",
+            "horse": "🐴", "ngựa": "🐴",
+            "butterfly": "🦋", "bướm": "🦋",
+            "spider": "🕷️", "nhện": "🕷️",
+            
+            // Fruits & Food
+            "apple": "🍎", "táo": "🍎",
+            "banana": "🍌", "chuối": "🍌",
+            "orange": "🍊", "cam": "🍊",
+            "watermelon": "🍉", "dưa hấu": "🍉",
+            "grape": "🍇", "nho": "🍇",
+            "strawberry": "🍓", "dâu": "🍓",
+            "mango": "🥭", "xoài": "🥭",
+            "coconut": "🥥", "dừa": "🥥",
+            "pizza": "🍕", "pizza": "🍕",
+            "cake": "🎂", "bánh": "🎂",
+            "egg": "🥚", "trứng": "🥚",
+            "milk": "🥛", "sữa": "🥛",
+            "bread": "🍞", "bánh mì": "🍞",
+            "rice": "🍚", "cơm": "🍚",
+            "ice cream": "🍦", "kem": "🍦",
+            "candy": "🍬", "kẹo": "🍬",
+            
+            // School & Study
+            "book": "📚", "sách": "📚",
+            "pencil": "✏️", "bút": "✏️", "pen": "✏️",
+            "ruler": "📏", "thước": "📏",
+            "bag": "🎒", "cặp": "🎒", "balo": "🎒",
+            "school": "🏫", "trường": "🏫",
+            "star": "⭐", "sao": "⭐",
+            "heart": "❤️", "tim": "❤️",
+            
+            // Objects & Vehicles
+            "car": "🚗", "ô tô": "🚗", "xe": "🚗",
+            "plane": "✈️", "máy bay": "✈️",
+            "train": "🚂", "tàu": "🚂",
+            "ball": "⚽", "bóng": "⚽", "football": "⚽",
+            "balloon": "🎈", "bóng bay": "🎈",
+            "bicycle": "🚲", "xe đạp": "🚲",
+            "clock": "⏰", "đồng hồ": "⏰", "time": "⏰",
+            "house": "🏠", "nhà": "🏠",
+            "sun": "☀️", "mặt trời": "☀️",
+            "rain": "🌧️", "mưa": "🌧️",
+            "rainbow": "🌈", "cầu vồng": "🌈",
+            "flower": "🌸", "hoa": "🌸",
+            "tree": "🌳", "cây": "🌳"
+        };
+
+        let vocabList = [];
+
+        function renderVocabRows() {
+            const container = document.getElementById('vocab-container');
+            container.innerHTML = '';
+            
+            if (vocabList.length === 0) {
+                container.innerHTML = `<div id="vocab-empty-msg" style="color:#4f46e5; font-size:0.95rem; padding:25px; text-align:center; background:rgba(236,96,144,0.03); border:2px dashed #fbcfe8; border-radius:20px; font-weight:800;">Chưa có từ mới nào. Hãy nhấn "+ Thêm từ mới" để bắt đầu!</div>`;
+                return;
+            }
+            
+            vocabList.forEach((item, index) => {
+                const row = document.createElement('div');
+                row.className = 'vocab-row';
+                row.style = 'background:#ffffff; border:3px solid #fbcfe8; padding:20px; border-radius:20px; margin-bottom:15px; display:flex; flex-direction:column; gap:12px; box-shadow: 0 5px 15px rgba(236,96,144,0.03);';
+                row.innerHTML = `
+                    <div style="width:100%; display:flex; gap:12px; flex-wrap:wrap;">
+                        <div style="flex:1; min-width:140px;">
+                            <label style="font-size:0.85rem; color:#4f46e5; display:block; margin-bottom:6px; font-weight:800;">Từ mới *</label>
+                            <input type="text" class="form-control" value="${item.word || ''}" oninput="updateVocabValue(${index}, 'word', this.value); suggestEmojiFromWord(${index}, this.value);" placeholder="Ví dụ: Apple" required style="padding:10px 14px; font-size:0.9rem; font-weight:700;">
+                        </div>
+                        <div style="flex:1; min-width:140px;">
+                            <label style="font-size:0.85rem; color:#4f46e5; display:block; margin-bottom:6px; font-weight:800;">Phát âm</label>
+                            <input type="text" class="form-control" value="${item.phonetic || ''}" onchange="updateVocabValue(${index}, 'phonetic', this.value)" placeholder="Ví dụ: /ˈæp.əl/" style="padding:10px 14px; font-size:0.9rem; font-weight:700;">
+                        </div>
+                        <div style="flex:1.2; min-width:160px;">
+                            <label style="font-size:0.85rem; color:#ec6090; display:block; margin-bottom:6px; font-weight:800;">Nghĩa đúng (Đáp án đúng) *</label>
+                            <input type="text" class="form-control" value="${item.meaning || ''}" oninput="updateVocabValue(${index}, 'meaning', this.value); suggestEmojiFromWord(${index}, this.value);" placeholder="Ví dụ: Quả táo" required style="padding:10px 14px; font-size:0.9rem; border-color:#ec6090; font-weight:700;">
+                        </div>
+                        <div style="width:140px;">
+                            <label style="font-size:0.85rem; color:#4f46e5; display:block; margin-bottom:6px; font-weight:800;">Emoji / Gợi ý</label>
+                            <input type="text" class="form-control" id="emoji-input-${index}" value="${item.emoji || ''}" oninput="updateVocabValue(${index}, 'emoji', this.value); handleEmojiSearch(${index}, this.value);" placeholder="Nhập từ khóa..." style="padding:10px 14px; text-align:center; font-size:0.9rem; font-weight:700;">
+                            <div id="emoji-suggestions-${index}" style="margin-top:6px; display:flex; flex-wrap:wrap; gap:4px;"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="width:100%; display:flex; gap:12px; flex-wrap:wrap; background:rgba(239,68,68,0.03); padding:15px; border-radius:15px; border: 2px dashed #fca5a5;">
+                        <div style="flex:1; min-width:120px;">
+                            <label style="font-size:0.8rem; color:#ef4444; display:block; margin-bottom:6px; font-weight:800;">Nghĩa sai (Nhiễu 1) *</label>
+                            <input type="text" class="form-control" value="${item.wrong1 || ''}" onchange="updateVocabValue(${index}, 'wrong1', this.value)" placeholder="Ví dụ: Quả cam" required style="padding:8px 12px; font-size:0.85rem; border-color:rgba(239,68,68,0.2); font-weight:700;">
+                        </div>
+                        <div style="flex:1; min-width:120px;">
+                            <label style="font-size:0.8rem; color:#ef4444; display:block; margin-bottom:6px; font-weight:800;">Nghĩa sai (Nhiễu 2) *</label>
+                            <input type="text" class="form-control" value="${item.wrong2 || ''}" onchange="updateVocabValue(${index}, 'wrong2', this.value)" placeholder="Ví dụ: Quả chuối" required style="padding:8px 12px; font-size:0.85rem; border-color:rgba(239,68,68,0.2); font-weight:700;">
+                        </div>
+                        <div style="flex:1; min-width:120px;">
+                            <label style="font-size:0.8rem; color:#ef4444; display:block; margin-bottom:6px; font-weight:800;">Nghĩa sai (Nhiễu 3) *</label>
+                            <input type="text" class="form-control" value="${item.wrong3 || ''}" onchange="updateVocabValue(${index}, 'wrong3', this.value)" placeholder="Ví dụ: Con mèo" required style="padding:8px 12px; font-size:0.85rem; border-color:rgba(239,68,68,0.2); font-weight:700;">
+                        </div>
+                    </div>
+                    
+                    <div style="width:100%; display:flex; justify-content:space-between; align-items:center; border-top:2px dashed #fbcfe8; padding-top:12px; margin-top:6px;">
+                        <button type="button" onclick="removeVocabRow(${index})" style="background:#fef2f2; color:#ef4444; border:2px solid #fee2e2; padding:8px 18px; border-radius:15px; cursor:pointer; font-weight:800; font-size:0.85rem; margin-left:auto; transition:all .2s;">
+                            🗑️ Xóa từ này
+                        </button>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function addVocabularyRow() {
+            vocabList.push({ word: '', phonetic: '', meaning: '', wrong1: '', wrong2: '', wrong3: '', emoji: '' });
+            renderVocabRows();
+            updateHiddenInput();
+        }
+
+        function removeVocabRow(index) {
+            vocabList.splice(index, 1);
+            renderVocabRows();
+            updateHiddenInput();
+        }
+
+        function updateVocabValue(index, field, value) {
+            vocabList[index][field] = value;
+            updateHiddenInput();
+        }
+
+        function updateVocabEmoji(index, emoji) {
+            vocabList[index]['emoji'] = emoji;
+            const input = document.getElementById(`emoji-input-${index}`);
+            if (input) input.value = emoji;
+            updateHiddenInput();
+        }
+
+        function suggestEmojiFromWord(index, wordValue) {
+            if (!wordValue) return;
+            const cleanWord = wordValue.toLowerCase().trim();
+            for (let key in emojiMap) {
+                if (cleanWord === key || cleanWord.includes(key)) {
+                    const emoji = emojiMap[key];
+                    const emojiInput = document.getElementById(`emoji-input-${index}`);
+                    if (emojiInput && !emojiInput.value) {
+                        updateVocabEmoji(index, emoji);
+                    }
+                    break;
+                }
+            }
+        }
+
+        function handleEmojiSearch(index, val) {
+            const suggestionsContainer = document.getElementById(`emoji-suggestions-${index}`);
+            if (!suggestionsContainer) return;
+            
+            if (!val || val.trim() === '') {
+                suggestionsContainer.innerHTML = '';
+                return;
+            }
+            
+            const cleanVal = val.toLowerCase().trim();
+            
+            // Check if exact match to a key in dictionary, if so replace it immediately
+            if (emojiMap[cleanVal]) {
+                const emoji = emojiMap[cleanVal];
+                updateVocabEmoji(index, emoji);
+                suggestionsContainer.innerHTML = '';
+                return;
+            }
+            
+            const matches = new Set();
+            for (let key in emojiMap) {
+                if (key.includes(cleanVal)) {
+                    matches.add(emojiMap[key]);
+                }
+            }
+            
+            suggestionsContainer.innerHTML = '';
+            if (matches.size > 0) {
+                matches.forEach(emoji => {
+                    const span = document.createElement('span');
+                    span.style = 'cursor:pointer; margin-right:5px; font-size:1.2rem; background:#f3f4f6; border: 1px solid #e5e7eb; padding:4px 8px; border-radius:8px; display:inline-block; transition: all 0.2s;';
+                    span.textContent = emoji;
+                    span.onclick = () => {
+                        updateVocabEmoji(index, emoji);
+                        suggestionsContainer.innerHTML = '';
+                    };
+                    suggestionsContainer.appendChild(span);
+                });
+            }
+        }
+
+        function updateHiddenInput() {
+            document.getElementById('VocabularyJson').value = JSON.stringify(vocabList);
+        }
+
+        // Initialize empty state
+        renderVocabRows();
+    </script>
+}

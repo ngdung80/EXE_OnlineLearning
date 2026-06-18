@@ -1,0 +1,88 @@
+@{
+    ViewData["Title"] = "Đăng nhập Admin";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale">
+    <title>Đăng nhập Admin – PLO Learning</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:'Inter',sans-serif; background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%); min-height:100vh; display:flex; align-items:center; justify-content:center; }
+        .admin-card { background:rgba(255,255,255,.06); backdrop-filter:blur(20px); border:1px solid rgba(255,255,255,.1); border-radius:24px; padding:48px 40px; width:100%; max-width:420px; box-shadow:0 24px 60px rgba(0,0,0,.5); }
+        .logo-wrap { text-align:center; margin-bottom:30px; }
+        .logo-wrap .icon { width:64px; height:64px; background:linear-gradient(135deg,#ef4444,#dc2626); border-radius:16px; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; font-size:28px; }
+        .logo-wrap h1 { color:#fff; font-size:1.4rem; font-weight:700; }
+        .logo-wrap p { color:#64748b; font-size:.85rem; margin-top:4px; }
+        .badge { display:inline-block; padding:4px 14px; background:rgba(239,68,68,.2); color:#f87171; border-radius:20px; font-size:.78rem; font-weight:600; letter-spacing:.5px; margin-top:8px; }
+        .form-group { margin-bottom:20px; }
+        .form-label { display:block; color:#94a3b8; font-size:.85rem; margin-bottom:8px; font-weight:500; }
+        .input-wrap { position:relative; }
+        .input-wrap i.icon-left { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#475569; font-size:.9rem; }
+        .input-wrap input { width:100%; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); color:#fff; border-radius:12px; padding:13px 14px 13px 40px; font-size:.92rem; font-family:'Inter',sans-serif; transition:all .3s; }
+        .input-wrap input:focus { background:rgba(255,255,255,.1); border-color:#ef4444; outline:none; box-shadow:0 0 0 3px rgba(239,68,68,.15); }
+        .input-wrap input::placeholder { color:#475569; }
+        .input-wrap .toggle-pwd { position:absolute; right:14px; top:50%; transform:translateY(-50%); color:#475569; cursor:pointer; font-size:.9rem; background:none; border:none; }
+        .btn-login { width:100%; padding:14px; background:linear-gradient(135deg,#ef4444,#dc2626); color:#fff; border:none; border-radius:12px; font-size:1rem; font-weight:700; font-family:'Inter',sans-serif; cursor:pointer; transition:all .3s; margin-top:8px; letter-spacing:.3px; }
+        .btn-login:hover { transform:translateY(-2px); box-shadow:0 10px 25px rgba(239,68,68,.4); }
+        .btn-login:active { transform:translateY(0); }
+        .error-msg { background:rgba(239,68,68,.15); border:1px solid rgba(239,68,68,.4); color:#f87171; padding:12px 16px; border-radius:10px; font-size:.88rem; margin-bottom:20px; display:flex; align-items:center; gap:8px; }
+        .back-link { display:block; text-align:center; margin-top:20px; color:#64748b; font-size:.85rem; text-decoration:none; transition:color .2s; }
+        .back-link:hover { color:#94a3b8; }
+        .divider { border:none; border-top:1px solid rgba(255,255,255,.08); margin:20px 0; }
+        .security-note { display:flex; align-items:center; gap:8px; color:#475569; font-size:.78rem; justify-content:center; }
+        .security-note i { color:#22c55e; }
+    </style>
+</head>
+<body>
+    <div class="admin-card">
+        <div class="logo-wrap">
+            <div class="icon">🛡️</div>
+            <h1>Cổng quản trị</h1>
+            <p>Personalized Learning Online</p>
+            <span class="badge">🔒 TRUY CẬP HẠN CHẾ</span>
+        </div>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="error-msg"><i class="fas fa-exclamation-triangle"></i> @ViewBag.Error</div>
+        }
+
+        <form asp-action="LoginAdmin" method="post">
+            @Html.AntiForgeryToken()
+            <div class="form-group">
+                <label class="form-label">Tên đăng nhập Admin</label>
+                <div class="input-wrap">
+                    <i class="fas fa-user icon-left"></i>
+                    <input type="text" name="username" id="adminUser" placeholder="Nhập tên đăng nhập admin" autocomplete="username" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Mật khẩu</label>
+                <div class="input-wrap">
+                    <i class="fas fa-lock icon-left"></i>
+                    <input type="password" name="password" id="adminPwd" placeholder="Nhập mật khẩu admin" autocomplete="current-password" required>
+                    <button type="button" class="toggle-pwd" onclick="togglePwd()"><i class="fas fa-eye" id="eyeIcon"></i></button>
+                </div>
+            </div>
+            <button type="submit" class="btn-login">🛡️ Đăng nhập Admin</button>
+        </form>
+
+        <hr class="divider">
+        <div class="security-note"><i class="fas fa-shield-alt"></i> Được bảo vệ bởi xác thực bảo mật</div>
+        <a href="/Account/Login" class="back-link">← Quay lại đăng nhập thông thường</a>
+    </div>
+    <script>
+        function togglePwd() {
+            const inp = document.getElementById('adminPwd');
+            const icon = document.getElementById('eyeIcon');
+            inp.type = inp.type === 'password' ? 'text' : 'password';
+            icon.className = inp.type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+        }
+    </script>
+</body>
+</html>

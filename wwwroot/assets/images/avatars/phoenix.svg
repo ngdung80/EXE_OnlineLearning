@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <linearGradient id="phoenixGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ec6090" />
+      <stop offset="50%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#ef4444" />
+    </linearGradient>
+  </defs>
+  <circle cx="50" cy="50" r="48" fill="#1e1b4b" stroke="url(#phoenixGrad)" stroke-width="3"/>
+  <path d="M50 25 C30 25 15 45 15 65 C35 60 45 55 50 45 C55 55 65 60 85 65 C85 45 70 25 50 25 Z" fill="url(#phoenixGrad)"/>
+  <path d="M50 20 C46 20 44 26 50 32 C56 26 54 20 50 20 Z" fill="#fff"/>
+  <polygon points="50,30 47,35 53,35" fill="#fbbf24"/>
+  <circle cx="48" cy="25" r="1.5" fill="#000"/>
+  <circle cx="52" cy="25" r="1.5" fill="#000"/>
+  <path d="M40 70 L50 85 L60 70 L50 78 Z" fill="#f59e0b"/>
+</svg>

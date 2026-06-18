@@ -1,0 +1,1308 @@
+@model POT_System_ASPNET.Data.Entities.Lesson
+@{
+    #pragma warning disable CS8602
+    ViewData["Title"] = Model?.LessonName ?? "Chi tiết bài học";
+
+    bool isVideo = false;
+    string videoType = "";
+    string embedUrl = "";
+    if (!string.IsNullOrEmpty(Model?.FileUrl))
+    {
+        var url = Model.FileUrl.Trim();
+        if (url.Contains("youtube.com") || url.Contains("youtu.be"))
+        {
+            isVideo = true;
+            videoType = "youtube";
+            string videoId = "";
+            if (url.Contains("v="))
+            {
+                int vIdx = url.IndexOf("v=");
+                int ampIdx = url.IndexOf("&", vIdx);
+                if (ampIdx == -1) videoId = url.Substring(vIdx + 2);
+                else videoId = url.Substring(vIdx + 2, ampIdx - (vIdx + 2));
+            }
+            else if (url.Contains("youtu.be/"))
+            {
+                int slashIdx = url.LastIndexOf("/");
+                videoId = url.Substring(slashIdx + 1);
+                if (videoId.Contains("?"))
+                {
+                    videoId = videoId.Substring(0, videoId.IndexOf("?"));
+                }
+            }
+            embedUrl = "https://www.youtube.com/embed/" + videoId;
+        }
+        else if (url.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase) || 
+                 url.EndsWith(".webm", StringComparison.OrdinalIgnoreCase) || 
+                 url.EndsWith(".ogg", StringComparison.OrdinalIgnoreCase) ||
+                 url.EndsWith(".mov", StringComparison.OrdinalIgnoreCase))
+        {
+            isVideo = true;
+            videoType = "direct";
+        }
+    }
+}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+@if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Student"))
+{
+    <style>
+        @@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap');
+
+        .detail-section {
+            padding: 120px 0 80px;
+            background: transparent !important;
+            min-height: 80vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .breadcrumb-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6366f1 !important;
+            font-size: 1.1rem !important;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 800 !important;
+            position: relative;
+            z-index: 10;
+        }
+
+        .breadcrumb-bar a {
+            color: #ec6090 !important;
+            text-decoration: none !important;
+        }
+
+        .breadcrumb-bar span {
+            color: #4f46e5 !important;
+        }
+
+        .lesson-card {
+            background: rgba(255, 255, 255, 0.88) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 4px solid #fbcfe8 !important;
+            border-radius: 35px !important;
+            padding: 40px !important;
+            color: #1e1b4b !important;
+            box-shadow: 0 15px 35px rgba(236, 96, 144, 0.08) !important;
+            position: relative;
+            z-index: 10;
+        }
+
+        .lesson-card h1 {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+            font-size: 2.2rem !important;
+            background: linear-gradient(135deg, #ec6090 0%, #a855f7 50%, #4f46e5 100%) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            margin-bottom: 15px !important;
+            display: inline-block;
+        }
+
+        .lesson-meta {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .meta-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px !important;
+            background: rgba(236, 96, 144, 0.06) !important;
+            border: 2px solid #fbcfe8 !important;
+            border-radius: 20px !important;
+            font-size: .95rem !important;
+            color: #ec6090 !important;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 800 !important;
+        }
+
+        .lesson-content {
+            color: #475569 !important;
+            line-height: 1.8;
+            font-size: 1.15rem !important;
+            margin-bottom: 30px;
+            white-space: pre-wrap;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 700 !important;
+        }
+
+        .divider {
+            border: none;
+            border-top: 3px dashed #fbcfe8 !important;
+            margin: 30px 0;
+        }
+
+        .file-section h4, .related-tests h4 {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+            font-size: 1.35rem !important;
+            color: #ec6090 !important;
+            margin-bottom: 15px;
+        }
+
+        .file-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px !important;
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%) !important;
+            color: #ffffff !important;
+            border-radius: 99px !important;
+            text-decoration: none !important;
+            font-weight: 900 !important;
+            font-family: 'Nunito', sans-serif !important;
+            box-shadow: 0 6px 15px rgba(59, 130, 246, 0.25) !important;
+            transition: all 0.3s !important;
+        }
+
+        .file-link:hover {
+            transform: scale(1.05) !important;
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4) !important;
+            color: #ffffff !important;
+        }
+
+        .lesson-img {
+            max-width: 100%;
+            border-radius: 25px !important;
+            border: 4px solid #fbcfe8 !important;
+            margin-bottom: 25px;
+        }
+
+        .test-mini {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px !important;
+            background: rgba(236, 96, 144, 0.03) !important;
+            border: 2px solid #fbcfe8 !important;
+            border-radius: 20px !important;
+            margin-bottom: 10px;
+        }
+
+        .test-mini-name {
+            color: #1e1b4b !important;
+            font-size: 1.05rem !important;
+            font-weight: 800 !important;
+            font-family: 'Nunito', sans-serif !important;
+        }
+
+        .btn-take-mini {
+            padding: 8px 18px !important;
+            background: linear-gradient(135deg, #ec6090, #e75485) !important;
+            color: #fff !important;
+            border-radius: 99px !important;
+            text-decoration: none !important;
+            font-size: .9rem !important;
+            font-weight: 900 !important;
+            font-family: 'Nunito', sans-serif !important;
+            box-shadow: 0 4px 12px rgba(236, 96, 144, 0.25) !important;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 22px !important;
+            background: transparent !important;
+            border: 2px solid #ec6090 !important;
+            color: #ec6090 !important;
+            border-radius: 99px !important;
+            text-decoration: none !important;
+            font-weight: 900 !important;
+            font-family: 'Nunito', sans-serif !important;
+            font-size: 1rem !important;
+            transition: all 0.2s !important;
+            margin-top: 15px;
+        }
+
+        .back-btn:hover {
+            background: rgba(236, 96, 144, 0.08) !important;
+            color: #ec6090 !important;
+        }
+
+        /* AI Quiz Widget Styles */
+        .ai-quiz-widget {
+            background: rgba(255, 255, 255, 0.88) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 4px solid #fbcfe8 !important;
+            border-radius: 35px !important;
+            padding: 30px !important;
+            color: #1e1b4b !important;
+            box-shadow: 0 15px 35px rgba(236, 96, 144, 0.08) !important;
+            position: relative;
+            z-index: 10;
+        }
+
+        .quiz-option-btn {
+            width: 100%;
+            text-align: left;
+            padding: 14px 18px !important;
+            background: rgba(236, 96, 144, 0.02) !important;
+            border: 2px solid #fbcfe8 !important;
+            border-radius: 18px !important;
+            color: #1e1b4b !important;
+            font-size: 1.05rem !important;
+            font-weight: 800 !important;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Nunito', sans-serif !important;
+        }
+
+        .quiz-option-btn:hover:not(:disabled) {
+            background: rgba(168, 85, 247, 0.08) !important;
+            border-color: #a855f7 !important;
+            color: #1e1b4b !important;
+            transform: translateY(-2px) !important;
+        }
+
+        .quiz-option-btn.correct {
+            background: rgba(16, 185, 129, 0.1) !important;
+            border-color: #10b981 !important;
+            color: #10b981 !important;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.1) !important;
+        }
+
+        .quiz-option-btn.incorrect {
+            background: rgba(239, 68, 68, 0.1) !important;
+            border-color: #ef4444 !important;
+            color: #ef4444 !important;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.1) !important;
+        }
+
+        /* Decorative Elements */
+        .kid-bg-cloud {
+            position: absolute;
+            font-size: 5rem;
+            opacity: 0.12;
+            pointer-events: none;
+            animation: floatCloud 25s linear infinite;
+        }
+        .kid-bg-cloud.c1 { top: 15%; left: -10%; animation-duration: 45s; }
+        .kid-bg-cloud.c2 { bottom: 20%; right: -10%; animation-duration: 35s; animation-delay: -10s; }
+
+        @@keyframes floatCloud {
+            0% { transform: translateX(-150px); }
+            100% { transform: translateX(110vw); }
+        }
+
+        .kid-bg-star {
+            position: absolute;
+            font-size: 2.5rem;
+            color: #f59e0b;
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .kid-bg-star.s1 { top: 15%; right: 12%; animation: orbitRight 14s ease-in-out infinite alternate; }
+        .kid-bg-star.s2 { bottom: 18%; left: 10%; animation: orbitLeft 17s ease-in-out infinite alternate; color: #fbbf24; }
+        .kid-bg-star.s3 { top: 45%; left: 6%; animation: floatAroundVertical 11s ease-in-out infinite alternate; font-size: 1.8rem; color: #fca5a5; }
+        .kid-bg-star.s4 { bottom: 40%; right: 6%; animation: floatAroundHorizontal 15s ease-in-out infinite alternate; font-size: 2rem; color: #38bdf8; }
+        .kid-bg-star.s5 { top: 10%; left: 25%; animation: diagonalFloat 20s ease-in-out infinite alternate; font-size: 1.6rem; color: #c084fc; }
+
+        @@keyframes orbitRight {
+            0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            35% { transform: translate(45px, -70px) rotate(120deg) scale(1.25); }
+            70% { transform: translate(-30px, -120px) rotate(240deg) scale(0.8); }
+            100% { transform: translate(0, 0) rotate(360deg) scale(1); }
+        }
+
+        @@keyframes orbitLeft {
+            0% { transform: translate(0, 0) rotate(360deg) scale(0.9); }
+            40% { transform: translate(-60px, 50px) rotate(180deg) scale(1.3); }
+            80% { transform: translate(40px, -40px) rotate(0deg) scale(0.7); }
+            100% { transform: translate(0, 0) rotate(-360deg) scale(0.9); }
+        }
+
+        @@keyframes floatAroundVertical {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-90px) rotate(180deg); }
+            100% { transform: translateY(0) rotate(360deg); }
+        }
+
+        @@keyframes floatAroundHorizontal {
+            0% { transform: translateX(0) rotate(0deg); }
+            50% { transform: translateX(90px) rotate(-180deg); }
+            100% { transform: translateX(0) rotate(-360deg); }
+        }
+
+        @@keyframes diagonalFloat {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(120px, 90px) rotate(180deg); }
+            100% { transform: translate(0, 0) rotate(360deg); }
+        }
+
+        @@keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* AI quiz widget text overrides for kids */
+        .ai-quiz-widget h4 {
+            color: #a855f7 !important;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+        }
+
+        .ai-quiz-widget small {
+            color: #4f46e5 !important;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 800 !important;
+        }
+
+        #quiz-init-screen p {
+            color: #475569 !important;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 700 !important;
+        }
+
+        #btn-ask-ai:disabled {
+            background: #cbd5e1 !important;
+            color: #64748b !important;
+            border: 2px solid #94a3b8 !important;
+            box-shadow: none !important;
+        }
+
+        #quiz-question-content {
+            color: #1e1b4b !important;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+        }
+
+        #quiz-score-badge {
+            background: rgba(236, 96, 144, 0.06) !important;
+            border: 2px solid #fbcfe8 !important;
+            color: #4f46e5 !important;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 800 !important;
+            padding: 6px 16px !important;
+            border-radius: 20px !important;
+        }
+
+        #quiz-feedback-title {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+        }
+
+        #quiz-explanation-text {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 700 !important;
+            color: #475569 !important;
+        }
+
+        /* Pagination buttons for kids */
+        .btn-page {
+            width: 40px;
+            height: 40px;
+            border-radius: 50% !important;
+            border: 2px solid #fbcfe8 !important;
+            background: rgba(255,255,255,0.9) !important;
+            color: #ec6090 !important;
+            font-size: 1.1rem !important;
+            font-weight: 900 !important;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(236,96,144,0.1) !important;
+            transition: all 0.2s !important;
+        }
+
+        .btn-page:hover:not(:disabled) {
+            transform: scale(1.1) !important;
+            background: #ec6090 !important;
+            color: #ffffff !important;
+            border-color: #ec6090 !important;
+        }
+
+        .btn-page:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+    </style>
+}
+else
+{
+    <style>
+        .detail-section {
+            padding: 140px 0 80px;
+            background: transparent !important;
+            min-height: 80vh;
+            position: relative;
+            overflow: hidden;
+            font-family: 'Nunito', sans-serif !important;
+            color: #1e1b4b;
+        }
+        .detail-section *:not(i):not(.fa) {
+            font-family: 'Nunito', sans-serif !important;
+        }
+
+        .breadcrumb-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #4f46e5 !important;
+            font-size: 1.1rem !important;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 800 !important;
+            position: relative;
+            z-index: 10;
+        }
+        .breadcrumb-bar a {
+            color: #ec6090 !important;
+            text-decoration: none !important;
+        }
+
+        .lesson-card {
+            background: rgba(255, 255, 255, 0.88) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 4px solid #fbcfe8 !important;
+            border-radius: 35px !important;
+            padding: 40px !important;
+            color: #1e1b4b !important;
+            box-shadow: 0 15px 35px rgba(236, 96, 144, 0.08) !important;
+            position: relative;
+            z-index: 10;
+        }
+        .lesson-card h1 {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+            font-size: 2.2rem !important;
+            color: #ec6090 !important;
+            margin-bottom: 15px !important;
+        }
+
+        .lesson-meta {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+        .meta-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px !important;
+            background: rgba(236, 96, 144, 0.06) !important;
+            border: 2px solid #fbcfe8 !important;
+            border-radius: 20px !important;
+            font-size: .95rem !important;
+            color: #ec6090 !important;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 800 !important;
+        }
+
+        .lesson-content {
+            color: #475569 !important;
+            line-height: 1.8;
+            font-size: 1.15rem !important;
+            margin-bottom: 30px;
+            white-space: pre-wrap;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 700 !important;
+        }
+
+        .divider {
+            border: none;
+            border-top: 3px dashed #fbcfe8 !important;
+            margin: 30px 0;
+        }
+
+        .file-section h4 {
+            color: #ec6090 !important;
+            margin-bottom: 12px;
+            font-weight: 900 !important;
+            font-family: 'Nunito', sans-serif !important;
+        }
+        .file-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px !important;
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%) !important;
+            color: #ffffff !important;
+            border-radius: 99px !important;
+            text-decoration: none !important;
+            font-weight: 900 !important;
+            font-family: 'Nunito', sans-serif !important;
+            box-shadow: 0 6px 15px rgba(59, 130, 246, 0.25) !important;
+            transition: all 0.3s !important;
+        }
+        .file-link:hover {
+            transform: scale(1.05) !important;
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4) !important;
+            color: #ffffff !important;
+        }
+
+        .lesson-img {
+            max-width: 100%;
+            border-radius: 25px !important;
+            border: 4px solid #fbcfe8 !important;
+            margin-bottom: 25px;
+        }
+
+        .related-tests {
+            margin-top: 30px;
+        }
+        .related-tests h4 {
+            color: #ec6090 !important;
+            margin-bottom: 15px;
+            font-weight: 900 !important;
+            font-family: 'Nunito', sans-serif !important;
+        }
+
+        .test-mini {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px !important;
+            background: rgba(236, 96, 144, 0.03) !important;
+            border: 2px solid #fbcfe8 !important;
+            border-radius: 20px !important;
+            margin-bottom: 10px;
+        }
+        .test-mini-name {
+            color: #1e1b4b !important;
+            font-size: 1.05rem !important;
+            font-weight: 800 !important;
+            font-family: 'Nunito', sans-serif !important;
+        }
+
+        .btn-take-mini {
+            padding: 8px 18px !important;
+            background: linear-gradient(135deg, #ec6090, #e75485) !important;
+            color: #fff !important;
+            border-radius: 99px !important;
+            text-decoration: none !important;
+            font-size: .9rem !important;
+            font-weight: 900 !important;
+            font-family: 'Nunito', sans-serif !important;
+            box-shadow: 0 4px 12px rgba(236, 96, 144, 0.25) !important;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 22px !important;
+            background: transparent !important;
+            border: 2px solid #ec6090 !important;
+            color: #ec6090 !important;
+            border-radius: 99px !important;
+            text-decoration: none !important;
+            font-weight: 900 !important;
+            font-family: 'Nunito', sans-serif !important;
+            font-size: 1rem !important;
+            transition: all 0.2s !important;
+            margin-top: 15px;
+        }
+        .back-btn:hover {
+            background: rgba(236, 96, 144, 0.08) !important;
+            color: #ec6090 !important;
+        }
+
+        /* Pagination buttons */
+        .btn-page {
+            width: 40px;
+            height: 40px;
+            border-radius: 50% !important;
+            border: 2px solid #fbcfe8 !important;
+            background: rgba(255,255,255,0.9) !important;
+            color: #ec6090 !important;
+            font-size: 1.1rem !important;
+            font-weight: 900 !important;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(236,96,144,0.1) !important;
+            transition: all 0.2s !important;
+        }
+        .btn-page:hover:not(:disabled) {
+            transform: scale(1.1) !important;
+            background: #ec6090 !important;
+            color: #ffffff !important;
+            border-color: #ec6090 !important;
+        }
+        .btn-page:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+    </style>
+}
+
+<section class="detail-section">
+    <div class="container">
+        <!-- Floating cloud & star decorations -->
+        @if (User.IsInRole("Student"))
+        {
+            <div class="kid-bg-cloud c1">☁️</div>
+            <div class="kid-bg-cloud c2">☁️</div>
+            <div class="kid-bg-star s1">⭐</div>
+            <div class="kid-bg-star s2">⭐</div>
+            <div class="kid-bg-star s3">⭐</div>
+            <div class="kid-bg-star s4">⭐</div>
+            <div class="kid-bg-star s5">⭐</div>
+        }
+
+        <div class="breadcrumb-bar">
+            <a asp-controller="Grade" asp-action="Index">Khối lớp</a>
+            <span>›</span>
+            <a asp-controller="Chapter" asp-action="Index" asp-route-subjectId="@Model?.Chapter?.SubjectId">@Model?.Chapter?.Subject?.SubjectName</a>
+            <span>›</span>
+            <a asp-controller="Lesson" asp-action="Index" asp-route-chapterId="@Model?.ChapterId">@Model?.Chapter?.ChapterName</a>
+            <span>›</span>
+            <span style="color:#e2e8f0;">@Model?.LessonName</span>
+        </div>
+
+        <div class="row">
+            @if (User.IsInRole("Student"))
+            {
+                <!-- Left Column for Video & Content -->
+                <div class="col-lg-8 mb-4">
+                    <div class="lesson-card">
+                        <h1>@Model?.LessonName</h1>
+                        <div class="lesson-meta">
+                            <span class="meta-badge">📚 @(Model?.Chapter?.Subject?.SubjectName ?? "—")</span>
+                            <span class="meta-badge">📑 @(Model?.Chapter?.ChapterName ?? "—")</span>
+                        </div>
+
+                        <!-- Video Player Area -->
+                        @if (isVideo)
+                        {
+                            <div class="video-container" style="position:relative; width:100%; border-radius:16px; overflow:hidden; background:#000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom:25px;">
+                                @if (videoType == "youtube")
+                                {
+                                    <div style="padding-top: 56.25%; position: relative;">
+                                        <iframe id="yt-player" src="@embedUrl?enablejsapi=1" style="position: absolute; top:0; left:0; width:100%; height:100%; border:none;" allowfullscreen></iframe>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div id="video-loading" style="padding: 20px; text-align: center; color: #94a3b8; font-weight: 600;">
+                                        <div style="width:30px; height:30px; border:3px solid rgba(255,255,255,0.1); border-radius:50%; border-top-color:#ec6090; animation:spin 1s linear infinite; margin:0 auto 10px;"></div>
+                                        Đang tải video bài học...
+                                    </div>
+                                    <video id="direct-video" controls controlsList="nodownload" oncontextmenu="return false;" style="width:100%; height:auto; display:none;" ontimeupdate="checkDirectVideoProgress(this)">
+                                        Trình duyệt của con không hỗ trợ xem trực tiếp video này.
+                                    </video>
+                                }
+                            </div>
+                        }
+                        else if (!string.IsNullOrEmpty(Model?.ImageUrl))
+                        {
+                            <img src="@Model.ImageUrl" class="lesson-img" alt="@Model.LessonName">
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model?.ContentText))
+                        {
+                            <div class="lesson-content">@Model.ContentText</div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model?.FileUrl) && !isVideo)
+                        {
+                            <hr class="divider">
+                            <div class="file-section">
+                                <h4>📎 Tài liệu đính kèm</h4>
+                                <a href="@Model.FileUrl" target="_blank" class="file-link">
+                                    <i class="fas fa-download"></i> Tải tài liệu
+                                </a>
+                            </div>
+                        }
+
+                        @if (Model?.Tests != null && Model.Tests.Any())
+                        {
+                            <hr class="divider">
+                            <div class="related-tests">
+                                <h4>📝 Đề luyện tập của bài học này</h4>
+                                <div id="test-list-container">
+                                    @foreach (var t in Model.Tests)
+                                    {
+                                        <div class="test-item-wrapper" style="display: none;">
+                                            <div class="test-mini">
+                                                <div class="test-mini-name">@t.TestName <span style="color:#64748b;font-size:.8rem;">(@t.Duration phút)</span></div>
+                                                <a asp-controller="Test" asp-action="Take" asp-route-id="@t.TestId" class="btn-take-mini">Bắt đầu →</a>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                                @if (Model.Tests.Count > 3)
+                                {
+                                    <div class="test-pagination" style="display: flex; justify-content: center; gap: 15px; margin-top: 15px; align-items: center;">
+                                        <button type="button" id="btn-prev-tests" class="btn-page" onclick="prevTestPage()">◀</button>
+                                        <span id="test-page-info" style="font-family:'Nunito',sans-serif; font-weight:800; color:#ec6090; font-size: 1rem;">1/1</span>
+                                        <button type="button" id="btn-next-tests" class="btn-page" onclick="nextTestPage()">▶</button>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        <hr class="divider">
+                        <div style="text-align:center;padding:8px 0;">
+                            <a asp-controller="Lesson" asp-action="StudentLearn" asp-route-id="@Model?.LessonId"
+                               style="display:inline-block;padding:16px 48px;background:linear-gradient(135deg,#e75485,#ec6090);color:#fff;border-radius:999px;text-decoration:none;font-weight:800;font-size:1.1rem;font-family:'Nunito',sans-serif;box-shadow:0 8px 24px rgba(231,84,133,.4);transition:all .3s;"
+                               id="btn-start-learn">
+                                🐝 Bắt đầu học bài này!
+                            </a>
+                            <p style="color:#94a3b8;font-size:.82rem;margin-top:10px;">Học theo lộ trình 10 phút có gamification</p>
+                            
+                            @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Student"))
+                            {
+                                <div style="margin-top:15px;">
+                                    @if (ViewBag.IsCompleted == true)
+                                    {
+                                        <button type="button" class="btn" style="display:inline-block;padding:10px 30px;background:rgba(16,185,129,0.1);border:2px solid #10b981;color:#10b981;border-radius:999px;font-weight:700;font-size:0.9rem;font-family:'Nunito',sans-serif;" disabled>
+                                            ✔️ Con đã hoàn thành bài học này
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" id="btn-complete-lesson" onclick="completeLessonManual()"
+                                           style="display:inline-block;padding:10px 30px;background:transparent;border:2px solid #10b981;color:#10b981;border-radius:999px;font-weight:700;font-size:0.9rem;font-family:'Nunito',sans-serif;transition:all .3s;cursor:pointer;">
+                                            ✔️ Đánh dấu đã học xong bài này
+                                        </button>
+                                    }
+                                </div>
+                            }
+                        </div>
+
+                        <a asp-action="Index" asp-route-chapterId="@Model?.ChapterId" class="back-btn">← Quay lại danh sách bài học</a>
+                    </div>
+                </div>
+
+                <!-- Right Column for AI Quiz Widget -->
+                <div class="col-lg-4">
+                    <div class="ai-quiz-widget">
+                        <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+                            <span style="font-size:2.2rem;">🤖</span>
+                            <div>
+                                <h4 style="margin:0; color:#c084fc; font-weight:800; font-size:1.1rem; font-family:'Nunito',sans-serif; line-height:1.4;">AI có thể giúp bạn hiểu hơn về bài học</h4>
+                                <small style="color:#94a3b8; font-weight:600;">Xem video xong hãy thử sức nhé!</small>
+                            </div>
+                        </div>
+
+                        <!-- Initial Screen -->
+                        <div id="quiz-init-screen" style="text-align:center; padding:15px 0;">
+                            <p style="color:#cbd5e1; font-size:0.95rem; margin-bottom:15px; font-weight:600; line-height:1.5;">Hãy xem ít nhất 50% video để mở khóa câu hỏi đố vui từ AI nhé!</p>
+                            
+                            <!-- Bảng Phần Thưởng -->
+                            <div style="background:rgba(255,255,255,0.03); border:1.5px dashed rgba(236,96,144,0.3); border-radius:14px; padding:16px; margin-bottom:20px; text-align:left;">
+                                <h5 style="color:#ec6090; font-size:0.88rem; font-weight:800; margin-bottom:10px; text-transform:uppercase; letter-spacing:0.5px;"><i class="fas fa-gift"></i> Quà Tặng Đố Vui AI:</h5>
+                                <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; font-size:0.83rem;">
+                                    <img src="/assets/images/avatars/phoenix.svg" style="width:36px; height:36px; border-radius:50%; background:#1e1b4b;" alt="">
+                                    <div>
+                                        <div style="font-weight:700; color:#fff;">🏆 Đúng 5/5 câu: <span style="color:#fbbf24;">Danh hiệu Vua Thông Thái 👑</span></div>
+                                        <div style="color:#94a3b8; font-size:0.75rem;">Mở khóa Avatar "Phượng Hoàng Lửa 🔥"</div>
+                                    </div>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px; font-size:0.83rem;">
+                                    <img src="/assets/images/avatars/lion.svg" style="width:36px; height:36px; border-radius:50%; background:#2d1a04;" alt="">
+                                    <div>
+                                        <div style="font-weight:700; color:#fff;">⭐ Đúng 3-4/5 câu: <span style="color:#60a5fa;">Chiến Binh Chăm Chỉ 🦁</span></div>
+                                        <div style="color:#94a3b8; font-size:0.75rem;">Mở khóa Avatar "Sư Tử Dũng Cảm 🦁"</div>
+                                    </div>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:10px; font-size:0.83rem;">
+                                    <img src="/assets/images/avatars/dragon.svg" style="width:36px; height:36px; border-radius:50%; background:#061f2d;" alt="">
+                                    <div>
+                                        <div style="font-weight:700; color:#fff;">✨ Đúng 1-2/5 câu: <span style="color:#10b981;">Nhập Môn Tinh Nghịch 🐲</span></div>
+                                        <div style="color:#94a3b8; font-size:0.75rem;">Mở khóa Avatar "Rồng Con Tinh Nghịch 🐲"</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="button" id="btn-ask-ai" class="btn-ask-ai" onclick="loadAISingleQuestion()" style="padding:12px 28px; background:#475569; border:none; color:#94a3b8; font-weight:800; border-radius:30px; cursor:not-allowed; font-family:'Nunito',sans-serif; transition:all 0.2s;" disabled>
+                                🔒 Con hãy xem 50% video để mở khóa!
+                            </button>
+                        </div>
+
+                        <!-- Loading Screen -->
+                        <div id="quiz-loading-screen" style="display:none; text-align:center; padding:30px 0;">
+                            <div style="width:40px; height:40px; border:4px solid rgba(255,255,255,0.1); border-radius:50%; border-top-color:#a855f7; animation:spin 1s linear infinite; margin:0 auto 15px;"></div>
+                            <p style="color:#94a3b8; font-size:0.9rem; font-weight:600;">AI đang soạn câu hỏi cho con...</p>
+                        </div>
+
+                        <!-- Question Screen -->
+                        <div id="quiz-question-screen" style="display:none;">
+                            <div id="quiz-question-content" style="font-weight:700; font-size:1.05rem; margin-bottom:20px; color:#f8fafc; line-height:1.5;"></div>
+                            <div id="quiz-options-container" style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;"></div>
+                            
+                            <!-- Feedback & Explanation -->
+                            <div id="quiz-feedback-box" style="display:none; padding:15px; border-radius:12px; margin-bottom:20px; font-size:0.9rem; font-weight:600; line-height:1.5;">
+                                <div id="quiz-feedback-title" style="font-size:1.1rem; font-weight:800; margin-bottom:5px;"></div>
+                                <div id="quiz-explanation-text"></div>
+                            </div>
+
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span id="quiz-score-badge" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); padding:4px 12px; border-radius:15px; font-size:0.8rem; color:#94a3b8; font-weight:600;">Đã đúng: <span id="quiz-correct-count" style="color:#c084fc;">0</span> câu</span>
+                                <button type="button" id="btn-next-question" onclick="loadAISingleQuestion()" style="display:none; padding:8px 18px; background:linear-gradient(135deg,#ec6090,#e75485); border:none; color:#fff; font-weight:700; border-radius:20px; cursor:pointer; font-size:0.85rem; font-family:'Nunito',sans-serif;">
+                                    Đố câu tiếp theo ➡️
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- Admin/Parent/Content Manager View (Original 1-column layout) -->
+                <div class="col-lg-9 mx-auto">
+                    <div class="lesson-card">
+                        <h1>@Model?.LessonName</h1>
+                        <div class="lesson-meta">
+                            <span class="meta-badge">📚 @(Model?.Chapter?.Subject?.SubjectName ?? "—")</span>
+                            <span class="meta-badge">📑 @(Model?.Chapter?.ChapterName ?? "—")</span>
+                            @if (!string.IsNullOrEmpty(Model?.Status))
+                            {
+                                string statusColor = Model.Status == "Active" ? "#10b981" : Model.Status == "Pending" ? "#eab308" : "#ef4444";
+                                string statusText = Model.Status == "Active" ? "Hoạt động" : Model.Status == "Pending" ? "Chờ duyệt" : "Không hoạt động";
+                                <span class="meta-badge" style="color:@statusColor">● @statusText</span>
+                            }
+                        </div>
+
+                        <!-- Video Player if present for non-students as well to preview -->
+                        @if (isVideo)
+                        {
+                            <div class="video-container" style="position:relative; width:100%; border-radius:16px; overflow:hidden; background:#000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom:25px;">
+                                @if (videoType == "youtube")
+                                {
+                                    <div style="padding-top: 56.25%; position: relative;">
+                                        <iframe src="@embedUrl" style="position: absolute; top:0; left:0; width:100%; height:100%; border:none;" allowfullscreen></iframe>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div id="preview-video-loading" style="padding: 20px; text-align: center; color: #94a3b8; font-weight: 600;">
+                                        <div style="width:30px; height:30px; border:3px solid rgba(255,255,255,0.1); border-radius:50%; border-top-color:#ec6090; animation:spin 1s linear infinite; margin:0 auto 10px;"></div>
+                                        Đang tải video xem trước...
+                                    </div>
+                                    <video id="preview-video" controls controlsList="nodownload" oncontextmenu="return false;" style="width:100%; height:auto; display:none;">
+                                        Trình duyệt không hỗ trợ xem trực tiếp video này.
+                                    </video>
+                                }
+                            </div>
+                        }
+                        else if (!string.IsNullOrEmpty(Model?.ImageUrl))
+                        {
+                            <img src="@Model.ImageUrl" class="lesson-img" alt="@Model.LessonName">
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model?.ContentText))
+                        {
+                            <div class="lesson-content">@Model.ContentText</div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model?.FileUrl) && !isVideo)
+                        {
+                            <hr class="divider">
+                            <div class="file-section">
+                                <h4>📎 Tài liệu đính kèm</h4>
+                                <a href="@Model.FileUrl" target="_blank" class="file-link">
+                                    <i class="fas fa-download"></i> Tải tài liệu
+                                </a>
+                            </div>
+                        }
+
+                        @if (Model?.Tests != null && Model.Tests.Any())
+                        {
+                            <hr class="divider">
+                            <div class="related-tests">
+                                <h4>📝 Đề luyện tập của bài học này</h4>
+                                <div id="test-list-container">
+                                    @foreach (var t in Model.Tests)
+                                    {
+                                        <div class="test-item-wrapper" style="display: none;">
+                                            <div class="test-mini">
+                                                <div class="test-mini-name">@t.TestName <span style="color:#64748b;font-size:.8rem;">(@t.Duration phút)</span></div>
+                                                <a asp-controller="Test" asp-action="Take" asp-route-id="@t.TestId" class="btn-take-mini">Bắt đầu →</a>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                                @if (Model.Tests.Count > 3)
+                                {
+                                    <div class="test-pagination" style="display: flex; justify-content: center; gap: 15px; margin-top: 15px; align-items: center;">
+                                        <button type="button" id="btn-prev-tests" class="btn-page" onclick="prevTestPage()">◀</button>
+                                        <span id="test-page-info" style="font-family:'Nunito',sans-serif; font-weight:800; color:#ec6090; font-size: 1rem;">1/1</span>
+                                        <button type="button" id="btn-next-tests" class="btn-page" onclick="nextTestPage()">▶</button>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        <a asp-action="Index" asp-route-chapterId="@Model?.ChapterId" class="back-btn">← Quay lại danh sách bài học</a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@if (User.IsInRole("Student"))
+{
+    <!-- YouTube IFrame API script -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script>
+        let correctCount = 0;
+        let questionCount = 0;
+        const MAX_QUESTIONS = 5;
+        let currentCorrectAnswer = "";
+        let currentExplanation = "";
+        
+        // Check if there is any video player on screen. If not, bypass the unlock gate immediately.
+        let hasWatchedHalf = !document.getElementById('yt-player') && !document.getElementById('direct-video');
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            if (hasWatchedHalf) {
+                enableAIQuizButton();
+            }
+        });
+
+        function enableAIQuizButton() {
+            const btn = document.getElementById('btn-ask-ai');
+            if (btn) {
+                btn.disabled = false;
+                btn.style.background = 'linear-gradient(135deg,#a855f7,#7c3aed)';
+                btn.style.color = '#fff';
+                btn.style.cursor = 'pointer';
+                btn.style.boxShadow = '0 6px 20px rgba(124,58,237,0.3)';
+                btn.innerHTML = '🤖 AI ơi, đố con 1 câu!';
+            }
+        }
+
+        // Direct Video Progress tracking
+        function checkDirectVideoProgress(video) {
+            if (hasWatchedHalf) return;
+            if (video.duration > 0 && video.currentTime >= video.duration / 2) {
+                hasWatchedHalf = true;
+                enableAIQuizButton();
+            }
+        }
+
+        // YouTube Player API progress tracking
+        var player;
+        var progressInterval;
+        
+        function onYouTubeIframeAPIReady() {
+            if (document.getElementById('yt-player')) {
+                player = new YT.Player('yt-player', {
+                    events: {
+                        'onStateChange': onPlayerStateChange
+                    }
+                });
+            }
+        }
+
+        function onPlayerStateChange(event) {
+            if (event.data == YT.PlayerState.PLAYING) {
+                progressInterval = setInterval(checkYTProgress, 1000);
+            } else {
+                clearInterval(progressInterval);
+            }
+        }
+
+        function checkYTProgress() {
+            if (!player || hasWatchedHalf) return;
+            try {
+                const duration = player.getDuration();
+                const currentTime = player.getCurrentTime();
+                if (duration > 0 && currentTime >= duration / 2) {
+                    hasWatchedHalf = true;
+                    clearInterval(progressInterval);
+                    enableAIQuizButton();
+                }
+            } catch (e) {
+                console.error("Error checking YouTube progress:", e);
+            }
+        }
+        
+        async function loadAISingleQuestion() {
+            if (questionCount >= MAX_QUESTIONS) {
+                alert("Con đã hoàn thành tối đa 5 câu hỏi ôn tập của bài học này!");
+                return;
+            }
+            
+            const existingSummary = document.getElementById('quiz-completion-summary');
+            if (existingSummary) existingSummary.remove();
+
+            document.getElementById('quiz-init-screen').style.display = 'none';
+            document.getElementById('quiz-question-screen').style.display = 'none';
+            document.getElementById('quiz-loading-screen').style.display = 'block';
+            document.getElementById('btn-next-question').style.display = 'none';
+            document.getElementById('quiz-feedback-box').style.display = 'none';
+            
+            try {
+                const response = await fetch('/AI/GenerateSingleQuestion', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ lessonId: @Model.LessonId })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || "Không thể tải câu hỏi.");
+                }
+                
+                const data = await response.json();
+                questionCount++;
+                
+                currentCorrectAnswer = data.correctAnswer;
+                currentExplanation = data.explanation;
+                
+                document.getElementById('quiz-question-content').innerText = `Câu ${questionCount}/${MAX_QUESTIONS}: ${data.questionContent}`;
+                
+                const optionsContainer = document.getElementById('quiz-options-container');
+                optionsContainer.innerHTML = '';
+                
+                data.options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'quiz-option-btn';
+                    btn.innerText = opt;
+                    btn.onclick = () => selectQuizOption(btn, opt);
+                    optionsContainer.appendChild(btn);
+                });
+                
+                document.getElementById('quiz-loading-screen').style.display = 'none';
+                document.getElementById('quiz-question-screen').style.display = 'block';
+            } catch (err) {
+                document.getElementById('quiz-loading-screen').style.display = 'none';
+                document.getElementById('quiz-init-screen').style.display = 'block';
+                alert("Lỗi từ AI: " + err.message);
+            }
+        }
+        
+        function selectQuizOption(selectedBtn, selectedOpt) {
+            const btns = document.querySelectorAll('.quiz-option-btn');
+            btns.forEach(btn => btn.disabled = true);
+            
+            const feedbackBox = document.getElementById('quiz-feedback-box');
+            const feedbackTitle = document.getElementById('quiz-feedback-title');
+            const explanationText = document.getElementById('quiz-explanation-text');
+            
+            const isCorrect = selectedOpt.trim().toLowerCase() === currentCorrectAnswer.trim().toLowerCase() || 
+                              (selectedOpt.length > 2 && currentCorrectAnswer.length > 2 && 
+                               selectedOpt.substring(0, 2).toLowerCase() === currentCorrectAnswer.substring(0, 2).toLowerCase());
+                               
+            if (isCorrect) {
+                selectedBtn.classList.add('correct');
+                feedbackBox.style.background = 'rgba(16, 185, 129, 0.1)';
+                feedbackBox.style.border = '1px solid rgba(16, 185, 129, 0.2)';
+                feedbackTitle.style.color = '#10b981';
+                feedbackTitle.innerHTML = '🎉 Chính xác! Con giỏi lắm!';
+                correctCount++;
+                document.getElementById('quiz-correct-count').innerText = correctCount;
+            } else {
+                selectedBtn.classList.add('incorrect');
+                btns.forEach(btn => {
+                    const optText = btn.innerText;
+                    if (optText.trim().toLowerCase() === currentCorrectAnswer.trim().toLowerCase() ||
+                        (optText.length > 2 && currentCorrectAnswer.length > 2 &&
+                         optText.substring(0, 2).toLowerCase() === currentCorrectAnswer.substring(0, 2).toLowerCase())) {
+                        btn.classList.add('correct');
+                    }
+                });
+                feedbackBox.style.background = 'rgba(239, 68, 68, 0.1)';
+                feedbackBox.style.border = '1px solid rgba(239, 68, 68, 0.2)';
+                feedbackTitle.style.color = '#f87171';
+                feedbackTitle.innerHTML = '💡 Con trả lời chưa đúng rồi, xem gợi ý nhé:';
+            }
+            
+            explanationText.innerText = currentExplanation || "AI khuyên con nên xem kỹ lại bài giảng!";
+            feedbackBox.style.display = 'block';
+            
+            if (questionCount < MAX_QUESTIONS) {
+                document.getElementById('btn-next-question').style.display = 'block';
+            } else {
+                const oldSummary = document.getElementById('quiz-completion-summary');
+                if (oldSummary) oldSummary.remove();
+
+                let rewardHtml = "";
+                let avatarPath = "";
+                let rankName = "";
+                
+                if (correctCount === 5) {
+                    avatarPath = "/assets/images/avatars/phoenix.svg";
+                    rankName = "Vua Thông Thái 👑";
+                } else if (correctCount >= 3) {
+                    avatarPath = "/assets/images/avatars/lion.svg";
+                    rankName = "Chiến Binh Chăm Chỉ 🦁";
+                } else if (correctCount >= 1) {
+                    avatarPath = "/assets/images/avatars/dragon.svg";
+                    rankName = "Nhập Môn Tinh Nghịch 🐲";
+                }
+                
+                if (avatarPath) {
+                    rewardHtml = `
+                        <div style="margin-top: 15px; padding: 12px; background: rgba(16, 185, 129, 0.1); border: 1.5px solid #10b981; border-radius: 10px; display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                            <div style="font-size: 0.82rem; font-weight: 700; color: #10b981;">🎁 ĐÃ MỞ KHÓA AVATAR MỚI!</div>
+                            <img src="${avatarPath}" style="width: 50px; height: 50px; border-radius: 50%; border: 2px solid #10b981;" />
+                            <button type="button" onclick="useUnlockedAvatar('${avatarPath}')" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 18px; padding: 6px 14px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                                Sử dụng Avatar này ngay!
+                            </button>
+                        </div>
+                    `;
+                }
+
+                const summaryDiv = document.createElement('div');
+                summaryDiv.id = 'quiz-completion-summary';
+                summaryDiv.style.marginTop = '20px';
+                summaryDiv.style.padding = '15px';
+                summaryDiv.style.background = 'rgba(168, 85, 247, 0.15)';
+                summaryDiv.style.border = '2px solid #a855f7';
+                summaryDiv.style.borderRadius = '12px';
+                summaryDiv.style.textAlign = 'center';
+                summaryDiv.innerHTML = `
+                    <h5 style="color:#c084fc; font-weight:800; margin-bottom:8px; font-size:1.1rem;">🏆 Đã hoàn thành 5 câu đố AI!</h5>
+                    <p style="margin:0; font-size:0.95rem; font-weight:700;">Hạng của con: <span style="color:#ec6090;">${rankName || "Cố Gắng Hơn 🎯"}</span></p>
+                    <p style="margin:4px 0 0 0; font-size:0.9rem; font-weight:600;">Kết quả học tập: <span style="color:#10b981;">${correctCount}</span> / 5 câu chính xác.</p>
+                    ${rewardHtml}
+                `;
+                document.getElementById('quiz-question-screen').appendChild(summaryDiv);
+            }
+        }
+
+        async function completeLessonManual() {
+            try {
+                const response = await fetch('/Lesson/CompleteLesson?lessonId=' + @(Model?.LessonId ?? 0), {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    alert('Chúc mừng con đã hoàn thành bài học! Bài học đã được mở khóa để con luyện tập.');
+                    const btn = document.getElementById('btn-complete-lesson');
+                    if (btn) {
+                        btn.innerText = '✔️ Con đã hoàn thành bài học này';
+                        btn.style.background = 'rgba(16, 185, 129, 0.1)';
+                        btn.style.borderColor = '#10b981';
+                        btn.style.color = '#10b981';
+                        btn.disabled = true;
+                    }
+                }
+            } catch (err) {
+                console.error("Error completing lesson:", err);
+            }
+        }
+
+        async function useUnlockedAvatar(avatarPath) {
+            try {
+                const response = await fetch('/Account/UpdateAvatar?avatarPath=' + encodeURIComponent(avatarPath), {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert('🎉 Đổi hình đại diện thành công! Trang web sẽ tải lại sau 1 giây.');
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    alert('Lỗi: ' + (data.message || 'Không thể đổi hình đại diện.'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Đã xảy ra lỗi khi kết nối máy chủ.');
+            }
+        }
+    </script>
+}
+
+<script>
+<<<<<<< HEAD
+    let currentTestPage = 1;
+    const testsPerPage = 3;
+
+    window.addEventListener('DOMContentLoaded', () => {
+        initTestPagination();
+    });
+
+    function initTestPagination() {
+        const container = document.getElementById('test-list-container');
+        if (!container) return;
+        const items = container.getElementsByClassName('test-item-wrapper');
+        if (items.length === 0) return;
+
+        showTestPage(1);
+    }
+
+    function showTestPage(page) {
+        const container = document.getElementById('test-list-container');
+        if (!container) return;
+        const items = container.getElementsByClassName('test-item-wrapper');
+        const totalPages = Math.ceil(items.length / testsPerPage);
+
+        if (page < 1) page = 1;
+        if (page > totalPages) page = totalPages;
+
+        currentTestPage = page;
+
+        for (let i = 0; i < items.length; i++) {
+            if (i >= (page - 1) * testsPerPage && i < page * testsPerPage) {
+                items[i].style.display = 'block';
+            } else {
+                items[i].style.display = 'none';
+            }
+        }
+
+        const info = document.getElementById('test-page-info');
+        if (info) {
+            info.innerText = `${page} / ${totalPages}`;
+        }
+
+        const prevBtn = document.getElementById('btn-prev-tests');
+        if (prevBtn) prevBtn.disabled = (page === 1);
+
+        const nextBtn = document.getElementById('btn-next-tests');
+        if (nextBtn) nextBtn.disabled = (page === totalPages);
+    }
+
+    function prevTestPage() {
+        showTestPage(currentTestPage - 1);
+    }
+
+    function nextTestPage() {
+        showTestPage(currentTestPage + 1);
+    }
+</script>
+
+=======
+    document.addEventListener('DOMContentLoaded', function () {
+        const directVideo = document.getElementById('direct-video');
+        const directLoading = document.getElementById('video-loading');
+        const previewVideo = document.getElementById('preview-video');
+        const previewLoading = document.getElementById('preview-video-loading');
+        
+        const videoElement = directVideo || previewVideo;
+        const loadingElement = directLoading || previewLoading;
+        
+        if (videoElement && '@Model.FileUrl') {
+            const videoUrl = '@Model.FileUrl';
+            
+            fetch(videoUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error('Không thể tải video');
+                    return response.blob();
+                })
+                .then(blob => {
+                    const blobUrl = URL.createObjectURL(blob);
+                    videoElement.src = blobUrl;
+                    
+                    if (loadingElement) loadingElement.style.display = 'none';
+                    videoElement.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Security Video Loading Error:', error);
+                    videoElement.src = videoUrl;
+                    if (loadingElement) loadingElement.style.display = 'none';
+                    videoElement.style.display = 'block';
+                });
+        }
+    });
+</script>
+>>>>>>> ee62a85d55fb06b1057f8eabda607e243d866af1
