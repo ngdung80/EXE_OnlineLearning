@@ -83,12 +83,12 @@ public class ParentController : Controller
     private readonly IUserService _userService;
     private readonly ITestAttemptService _testAttemptService;
     private readonly IStudentPackageService _studentPackageService;
-<<<<<<< HEAD
     private readonly IGradeService _gradeService;
     private readonly ISubjectService _subjectService;
     private readonly IChapterService _chapterService;
     private readonly ILessonService _lessonService;
     private readonly AppDbContext _dbContext;
+    private readonly IEmailService _emailService;
 
     public ParentController(IUserService userService, 
         ITestAttemptService testAttemptService, 
@@ -97,26 +97,18 @@ public class ParentController : Controller
         ISubjectService subjectService,
         IChapterService chapterService,
         ILessonService lessonService,
-        AppDbContext dbContext)
-=======
-    private readonly IEmailService _emailService;
-
-    public ParentController(IUserService userService, ITestAttemptService testAttemptService, 
-        IStudentPackageService studentPackageService, IEmailService emailService)
->>>>>>> ee62a85d55fb06b1057f8eabda607e243d866af1
+        AppDbContext dbContext,
+        IEmailService emailService)
     {
         _userService = userService;
         _testAttemptService = testAttemptService;
         _studentPackageService = studentPackageService;
-<<<<<<< HEAD
         _gradeService = gradeService;
         _subjectService = subjectService;
         _chapterService = chapterService;
         _lessonService = lessonService;
         _dbContext = dbContext;
-=======
         _emailService = emailService;
->>>>>>> ee62a85d55fb06b1057f8eabda607e243d866af1
     }
 
     public async Task<IActionResult> LinkedStudents()

@@ -563,16 +563,11 @@
                             bool isPackageManageActive = activeCtrl == "Package" && activeAct != "List";
                         }
                         <ul class="nav">
-<<<<<<< HEAD
                             <li><a asp-controller="Home" asp-action="Index" class="@(isHomeActive ? "active" : "")">Trang chủ</a></li>
                             @if (!User.IsInRole("Parent"))
                             {
                                 <li><a href="/Grade" class="@(isGradeActive ? "active" : "")">Khối lớp</a></li>
                             }
-=======
-                            <li><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
-                            <li><a href="/Grade">Khối lớp</a></li>
->>>>>>> ee62a85d55fb06b1057f8eabda607e243d866af1
 
                             @if (!User.Identity!.IsAuthenticated || User.IsInRole("Parent"))
                             {
