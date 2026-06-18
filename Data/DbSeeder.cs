@@ -310,22 +310,68 @@ public static class DbSeeder
             }
             await db.SaveChangesAsync();
 
-            // 9. Seed Packages mới dành cho phụ huynh mua cho con học
-            db.Packages.AddRange(
-                new Package { PackageName = "Gói Học Thử Miễn Phí", Description = "Dùng thử miễn phí đầy đủ tính năng trong 1 tháng học tập", Price = 0, Duration = 1, Status = "Active" },
-                new Package { PackageName = "Gói Cơ Bản (Lớp 1 & Lớp 2)", Description = "Học tiếng Anh 10 phút mỗi ngày bám sát lộ trình sách giáo khoa trong 1 tháng", Price = 99000, Duration = 1, Status = "Active" },
-                new Package { PackageName = "Gói Tiêu Chuẩn (Lớp 1 & Lớp 2)", Description = "Lộ trình học tập cá nhân hóa + Báo cáo tiến bộ tuần cho phụ huynh trong 3 tháng", Price = 259000, Duration = 3, Status = "Active" },
-                new Package { PackageName = "Gói Cao Cấp (Lớp 1 & Lớp 2)", Description = "Trọn bộ lộ trình cá nhân hóa + Báo cáo thông minh cho phụ huynh + Chứng nhận hoàn thành trong 6 tháng", Price = 499000, Duration = 6, Status = "Active" }
-            );
-            await db.SaveChangesAsync();
-
             // 10. Gán học sinh mẫu cho Grade 1 để dễ test
             var student = await db.Users.FirstOrDefaultAsync(u => u.Username == "student");
             if (student != null)
             {
                 student.GradeId = grade1.GradeId;
                 await db.SaveChangesAsync();
+
+                // 11. Gán gói học cao cấp cho học sinh mẫu để kiểm thử Chứng chỉ
+                var premiumPackage = await db.Packages.FirstOrDefaultAsync(p => p.PackageName.Contains("Cao Cấp"));
+                if (premiumPackage != null)
+                {
+                    var hasStudentPkg = await db.StudentPackages.AnyAsync(sp => sp.StudentId == student.UserId && sp.GradeId == grade1.GradeId);
+                    if (!hasStudentPkg)
+                    {
+                        db.StudentPackages.Add(new StudentPackage
+                        {
+                            StudentId = student.UserId,
+                            PackageId = premiumPackage.PackageId,
+                            GradeId = grade1.GradeId,
+                            StartDate = DateOnly.FromDateTime(DateTime.Now),
+                            EndDate = DateOnly.FromDateTime(DateTime.Now.AddDays(180))
+                        });
+                        await db.SaveChangesAsync();
+                    }
+
+                    // 12. Gán hoàn thành toàn bộ bài học của Unit 1 để tự động cấp chứng chỉ
+                    var unit1Lessons = await db.Lessons.Where(l => l.ChapterId == ch1_1.ChapterId).ToListAsync();
+                    foreach (var les in unit1Lessons)
+                    {
+                        var hasProgress = await db.StudentLessonProgresses.AnyAsync(p => p.StudentId == student.UserId && p.LessonId == les.LessonId);
+                        if (!hasProgress)
+                        {
+                            db.StudentLessonProgresses.Add(new StudentLessonProgress
+                            {
+                                StudentId = student.UserId,
+                                LessonId = les.LessonId,
+                                CompletedAt = DateTime.Now
+                            });
+                        }
+                    }
+                    await db.SaveChangesAsync();
+                }
             }
+        }
+
+        // Seed Packages (always checked and updated to match the 3 packages)
+        var existingPkgs = await db.Packages.ToListAsync();
+        if (existingPkgs.Count != 3 || !existingPkgs.Any(p => p.PackageName.Contains("7 ngày")))
+        {
+            // Clear out conflicting data in correct FK order
+            db.StudentPackages.RemoveRange(await db.StudentPackages.ToListAsync());
+            db.Transactions.RemoveRange(await db.Transactions.ToListAsync());
+            db.WalletTransactions.RemoveRange(await db.WalletTransactions.ToListAsync());
+            db.Packages.RemoveRange(existingPkgs);
+            await db.SaveChangesAsync();
+
+            db.Packages.AddRange(
+                new Package { PackageName = "Gói Học Thử Miễn Phí (7 ngày)", Description = "Dùng thử miễn phí đầy đủ tính năng trong 7 ngày học tập, không bao gồm chứng chỉ hoàn thành.", Price = 0, Duration = 7, Status = "Active" },
+                new Package { PackageName = "Gói Cơ Bản (1 Tháng)", Description = "Học tiếng Anh 10 phút mỗi ngày bám sát lộ trình sách giáo khoa trong 1 tháng (30 ngày), không bao gồm chứng chỉ.", Price = 99000, Duration = 30, Status = "Active" },
+                new Package { PackageName = "Gói Cao Cấp (6 Tháng)", Description = "Trọn bộ lộ trình cá nhân hóa + Báo cáo thông minh cho phụ huynh + Cấp chứng chỉ hoàn thành sau khi hoàn thành khóa học trong 6 tháng (180 ngày).", Price = 499000, Duration = 180, Status = "Active" }
+            );
+            await db.SaveChangesAsync();
         }
     }
 }

@@ -27,7 +27,7 @@ public class VnPayService : IVnPayService
         var vnpay = new VnPayLibrary();
         vnpay.AddRequestData("vnp_Version", "2.1.0");
         vnpay.AddRequestData("vnp_Command", "pay");
-        vnpay.AddRequestData("vnp_TmnCode", _config["VNPay:TmnCode"]);
+        vnpay.AddRequestData("vnp_TmnCode", _config["VNPay:TmnCode"] ?? "");
         vnpay.AddRequestData("vnp_Amount", (model.Amount * 100).ToString()); // Amount in VND * 100
         vnpay.AddRequestData("vnp_CreateDate", model.CreatedDate.ToString("yyyyMMddHHmmss"));
         vnpay.AddRequestData("vnp_CurrCode", "VND");
@@ -35,10 +35,10 @@ public class VnPayService : IVnPayService
         vnpay.AddRequestData("vnp_Locale", "vn");
         vnpay.AddRequestData("vnp_OrderInfo", model.Description);
         vnpay.AddRequestData("vnp_OrderType", "other");
-        vnpay.AddRequestData("vnp_ReturnUrl", _config["VNPay:ReturnUrl"]);
+        vnpay.AddRequestData("vnp_ReturnUrl", _config["VNPay:ReturnUrl"] ?? "");
         vnpay.AddRequestData("vnp_TxnRef", model.OrderId.ToString());
 
-        var paymentUrl = vnpay.CreateRequestUrl(_config["VNPay:Url"], _config["VNPay:HashSecret"]);
+        var paymentUrl = vnpay.CreateRequestUrl(_config["VNPay:Url"] ?? "", _config["VNPay:HashSecret"] ?? "");
 
         return paymentUrl;
     }
@@ -56,11 +56,11 @@ public class VnPayService : IVnPayService
 
         var vnp_orderId = Convert.ToInt64(vnpay.GetResponseData("vnp_TxnRef"));
         var vnp_TransactionId = Convert.ToInt64(vnpay.GetResponseData("vnp_TransactionNo"));
-        var vnp_SecureHash = collections.FirstOrDefault(p => p.Key == "vnp_SecureHash").Value;
+        var vnp_SecureHash = collections.FirstOrDefault(p => p.Key == "vnp_SecureHash").Value.ToString();
         var vnp_ResponseCode = vnpay.GetResponseData("vnp_ResponseCode");
         var vnp_OrderInfo = vnpay.GetResponseData("vnp_OrderInfo");
 
-        bool checkSignature = vnpay.ValidateSignature(vnp_SecureHash, _config["VNPay:HashSecret"]);
+        bool checkSignature = vnpay.ValidateSignature(vnp_SecureHash ?? "", _config["VNPay:HashSecret"] ?? "");
         if (!checkSignature)
         {
             return new VNPayResponseModel
@@ -76,7 +76,7 @@ public class VnPayService : IVnPayService
             OrderDescription = vnp_OrderInfo,
             OrderId = vnp_orderId.ToString(),
             TransactionId = vnp_TransactionId.ToString(),
-            Token = vnp_SecureHash,
+            Token = vnp_SecureHash ?? "",
             VnPayResponseCode = vnp_ResponseCode
         };
     }
@@ -165,7 +165,7 @@ public class VnPayLibrary
 
 public class VnPayCompare : IComparer<string>
 {
-    public int Compare(string x, string y)
+    public int Compare(string? x, string? y)
     {
         if (x == y) return 0;
         if (x == null) return -1;

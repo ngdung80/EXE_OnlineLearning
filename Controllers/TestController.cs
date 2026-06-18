@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace POT_System_ASPNET.Controllers;
 
-[Authorize(Roles = "Student")]
+[Authorize(Roles = "Student,Parent")]
 public class TestController : Controller
 {
     private readonly ITestService _testService;
@@ -28,6 +28,7 @@ public class TestController : Controller
     }
 
     [HttpPost]
+    [Authorize(Roles = "Student")]
     public async Task<IActionResult> Report(int questionId, int attemptId, string reason)
     {
         var studentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
@@ -37,6 +38,7 @@ public class TestController : Controller
     }
 
     [HttpPost]
+    [Authorize(Roles = "Student")]
     public async Task<IActionResult> ReportAjax([FromBody] ReportRequest req)
     {
         if (req == null || req.QuestionId <= 0 || string.IsNullOrWhiteSpace(req.Reason))
@@ -54,6 +56,7 @@ public class TestController : Controller
         public string Reason { get; set; } = null!;
     }
 
+    [Authorize(Roles = "Student")]
     public async Task<IActionResult> List(int? subjectId, string? type, int page = 1)
     {
         const int pageSize = 10;
@@ -65,6 +68,7 @@ public class TestController : Controller
         return View(tests);
     }
 
+    [Authorize(Roles = "Student")]
     public async Task<IActionResult> Take(int id)
     {
         var test = await _testService.GetByIdAsync(id);
@@ -75,6 +79,7 @@ public class TestController : Controller
     }
 
     [HttpPost]
+    [Authorize(Roles = "Student")]
     public async Task<IActionResult> Submit(int attemptId, IFormCollection form)
     {
         var answers = new Dictionary<int, string>();
@@ -87,13 +92,35 @@ public class TestController : Controller
         return RedirectToAction(nameof(Result), new { attemptId });
     }
 
+    [Authorize(Roles = "Student,Parent")]
     public async Task<IActionResult> Result(int attemptId)
     {
         var attempt = await _testAttemptService.GetWithResultsAsync(attemptId);
         if (attempt == null) return NotFound();
+
+        // Security ownership verification
+        if (User.IsInRole("Parent"))
+        {
+            var parentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            var isLinked = await _db.Users.AnyAsync(u => u.UserId == attempt.StudentId && u.ParentId == parentId && !u.Deleted);
+            if (!isLinked)
+            {
+                return Forbid();
+            }
+        }
+        else if (User.IsInRole("Student"))
+        {
+            var studentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+            if (attempt.StudentId != studentId)
+            {
+                return Forbid();
+            }
+        }
+
         return View(attempt);
     }
 
+    [Authorize(Roles = "Student")]
     public async Task<IActionResult> History()
     {
         var studentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
@@ -102,6 +129,7 @@ public class TestController : Controller
     }
 
     [HttpGet]
+    [Authorize(Roles = "Student")]
     public async Task<IActionResult> Practice()
     {
         var studentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
@@ -126,6 +154,7 @@ public class TestController : Controller
     }
 
     [HttpPost]
+    [Authorize(Roles = "Student")]
     public async Task<IActionResult> StartPractice(int lessonId)
     {
         var studentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);

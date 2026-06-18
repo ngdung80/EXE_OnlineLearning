@@ -12,22 +12,16 @@
     <link rel="stylesheet" href="~/assets/css/animate.css">
     <link rel="stylesheet" href="https://unpkg.com/swiper@7/swiper-bundle.min.css"/>
     <style>
-<<<<<<< Updated upstream
-        .main-nav { display: flex; align-items: center; justify-content: space-between; width: 100%; }
-        .main-nav .nav { display:flex; justify-content:flex-end; align-items:center; list-style:none; padding:0; margin:0; gap:12px; flex: 1; flex-wrap: nowrap; }
-        .main-nav .nav li { position:relative; }
-        .main-nav .nav li a { color:#2a0040 !important; text-decoration:none; font-size:14px; display:flex; align-items:center; transition: all .3s; white-space: nowrap; font-weight: 600; }
-=======
         body, p, span, h1, h2, h3, h4, h5, h6, input, select, textarea, button, label, a {
             font-family: 'Inter', sans-serif !important;
         }
         .fa, .fas, .far, .fab, .fa-solid, .fa-regular, .fa-brands {
             font-family: 'Font Awesome 6 Free', 'Font Awesome 5 Free', 'FontAwesome' !important;
         }
-        .main-nav .nav { display:flex; justify-content:flex-start; align-items:center; list-style:none; padding:0; margin:0; gap:25px; }
+        .main-nav { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+        .main-nav .nav { display:flex; justify-content:flex-end; align-items:center; list-style:none; padding:0; margin:0; gap:12px; flex: 1; flex-wrap: nowrap; }
         .main-nav .nav li { position:relative; }
-        .main-nav .nav li a { font-family:'Inter',sans-serif !important; color:#2a0040 !important; text-decoration:none; font-size:16px; display:flex; align-items:center; transition: all .3s; }
->>>>>>> Stashed changes
+        .main-nav .nav li a { color:#2a0040 !important; text-decoration:none; font-size:14px; display:flex; align-items:center; transition: all .3s; white-space: nowrap; font-weight: 600; }
         .background-header .main-nav .nav li a { color:#2a0040 !important; }
         .main-nav .nav .profile-link a { background-color: #ffe6f0 !important; padding: 6px 15px !important; border-radius: 25px !important; color: #d63384 !important; }
         .main-nav .nav li a:hover, .main-nav .nav li a.active { color:#e75485 !important; }        .background-header .main-nav .nav li a:hover, .background-header .main-nav .nav li a.active { color:#e75485 !important; }
@@ -47,10 +41,492 @@
         .admin-section, .user-section, .wallet-section, .form-section, .parent-section, .notif-section, .lesson-section, .detail-section, .mgmt-section, .ch-section, .ai-section, .chat-section, .profile-section, .edit-section, .pwd-section, .denied-section, .result-section, .list-section, .hist-section, .sub-section {
             padding-top: 120px !important;
         }
+
+        /* Student Role Bright Kid Theme Override Rules */
+        /* Student Role Bright Kid Theme Override Rules */
+        body.student-theme {
+            background: linear-gradient(135deg, #e0f2fe 0%, #faf5ff 50%, #fdf2f8 100%) !important;
+            color: #1e1b4b !important;
+        }
+
+        body.student-theme,
+        body.student-theme p,
+        body.student-theme span,
+        body.student-theme h1,
+        body.student-theme h2,
+        body.student-theme h3,
+        body.student-theme h4,
+        body.student-theme h5,
+        body.student-theme h6,
+        body.student-theme input,
+        body.student-theme select,
+        body.student-theme textarea,
+        body.student-theme button,
+        body.student-theme label,
+        body.student-theme a {
+            font-family: 'Nunito', sans-serif !important;
+        }
+
+        body.student-theme a {
+            color: #4f46e5;
+        }
+
+        body.student-theme a:hover {
+            color: #e75e8d;
+        }
+
+        body.student-theme h1, 
+        body.student-theme h2, 
+        body.student-theme h3, 
+        body.student-theme h4, 
+        body.student-theme h5, 
+        body.student-theme h6 {
+            color: #1e1b4b !important;
+        }
+
+        /* Override section backgrounds */
+        body.student-theme .practice-section, 
+        body.student-theme .chat-section, 
+        body.student-theme .list-section, 
+        body.student-theme .hist-section, 
+        body.student-theme .detail-section, 
+        body.student-theme .result-section,
+        body.student-theme .profile-section,
+        body.student-theme .edit-section,
+        body.student-theme .pwd-section {
+            background: transparent !important;
+            color: #1e1b4b !important;
+        }
+
+        /* Page content glassmorphism */
+        body.student-theme .page-content {
+            background-color: rgba(255, 255, 255, 0.7) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 2px solid rgba(99, 102, 241, 0.1) !important;
+            box-shadow: 0 15px 35px rgba(99, 102, 241, 0.05) !important;
+        }
+
+        /* Card structures */
+        body.student-theme .step-card, 
+        body.student-theme .messages-box, 
+        body.student-theme .welcome-msg, 
+        body.student-theme .lesson-card-item, 
+        body.student-theme .item-card, 
+        body.student-theme .list-item, 
+        body.student-theme .table-card, 
+        body.student-theme .result-card, 
+        body.student-theme .stat-box, 
+        body.student-theme .q-review, 
+        body.student-theme .test-card,
+        body.student-theme .filters,
+        body.student-theme .profile-card,
+        body.student-theme .edit-card,
+        body.student-theme .pwd-card {
+            background: rgba(255, 255, 255, 0.88) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 4px solid #fbcfe8 !important;
+            box-shadow: 0 15px 35px rgba(236, 96, 144, 0.08) !important;
+            color: #1e1b4b !important;
+            border-radius: 35px !important;
+        }
+
+        /* Form elements inside student forms */
+        body.student-theme .edit-card label,
+        body.student-theme .pwd-card label,
+        body.student-theme .edit-card .form-label,
+        body.student-theme .pwd-card .form-label {
+            color: #4f46e5 !important;
+            font-weight: 800 !important;
+        }
+
+        body.student-theme .edit-card .form-control,
+        body.student-theme .pwd-card .form-control {
+            background: rgba(255, 255, 255, 0.9) !important;
+            border: 2px solid #fbcfe8 !important;
+            color: #1e1b4b !important;
+            border-radius: 15px !important;
+            font-weight: 700 !important;
+        }
+
+        body.student-theme .edit-card .form-control:focus,
+        body.student-theme .pwd-card .form-control:focus {
+            background: #fff !important;
+            border-color: #ec6090 !important;
+            box-shadow: 0 0 0 3px rgba(236,96,144,.2) !important;
+            color: #1e1b4b !important;
+            outline: none !important;
+        }
+
+        body.student-theme .edit-card .form-control::placeholder,
+        body.student-theme .pwd-card .form-control::placeholder {
+            color: #a5b4fc !important;
+        }
+
+        body.student-theme .pwd-card .req-item {
+            color: #64748b !important;
+            font-weight: 600 !important;
+        }
+
+        body.student-theme .pwd-card .req-ok {
+            color: #10b981 !important;
+        }
+
+        body.student-theme .btn-save {
+            padding: 12px 30px !important;
+            background: linear-gradient(135deg, #ec6090, #e75485) !important;
+            color: #fff !important;
+            border: none !important;
+            border-radius: 25px !important;
+            font-weight: 800 !important;
+            cursor: pointer !important;
+            transition: all .3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+            box-shadow: 0 5px 15px rgba(236, 96, 144, 0.2) !important;
+            display: inline-block !important;
+        }
+
+        body.student-theme .btn-save:hover {
+            transform: translateY(-2px) scale(1.03) !important;
+            box-shadow: 0 8px 20px rgba(236, 96, 144, 0.4) !important;
+        }
+
+        body.student-theme .btn-cancel {
+            padding: 12px 30px !important;
+            background: transparent !important;
+            color: #ec6090 !important;
+            border: 2px solid #ec6090 !important;
+            border-radius: 25px !important;
+            text-decoration: none !important;
+            font-weight: 800 !important;
+            display: inline-block !important;
+            text-align: center !important;
+            transition: all .3s !important;
+        }
+
+        body.student-theme .btn-cancel:hover {
+            background: #ec6090 !important;
+            color: #fff !important;
+            transform: translateY(-2px) !important;
+        }
+
+        body.student-theme .btn-edit {
+            background: linear-gradient(135deg, #ec6090, #e75485) !important;
+            color: #fff !important;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+        }
+        body.student-theme .btn-edit:hover {
+            color: #fff !important;
+            box-shadow: 0 8px 20px rgba(236, 96, 144, 0.4) !important;
+        }
+        body.student-theme .btn-pwd {
+            background: transparent !important;
+            color: #ec6090 !important;
+            border: 2px solid #ec6090 !important;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+        }
+        body.student-theme .btn-pwd:hover {
+            background: #ec6090 !important;
+            color: #fff !important;
+            box-shadow: 0 8px 20px rgba(236, 96, 144, 0.2) !important;
+        }
+
+        /* Locked lesson cards */
+        body.student-theme .lesson-card-item.locked {
+            background: rgba(241, 245, 249, 0.7) !important;
+            border-color: #cbd5e1 !important;
+            opacity: 0.8 !important;
+        }
+
+        /* Completed lesson cards */
+        body.student-theme .lesson-card-item.completed {
+            background: #f0fdf4 !important;
+            border-color: #86efac !important;
+        }
+
+        /* Text colors in cards */
+        body.student-theme .step-title,
+        body.student-theme .item-title,
+        body.student-theme .list-item-title,
+        body.student-theme .lesson-card-name,
+        body.student-theme .test-name,
+        body.student-theme .q-txt,
+        body.student-theme .chat-header h2,
+        body.student-theme .page-title {
+            color: #1e1b4b !important;
+            font-weight: 800 !important;
+        }
+
+        body.student-theme .page-title i {
+            color: #ec6090 !important;
+        }
+
+        body.student-theme .page-subtitle,
+        body.student-theme .lesson-card-desc,
+        body.student-theme .test-meta,
+        body.student-theme .list-item-meta,
+        body.student-theme .chat-header p,
+        body.student-theme .welcome-msg p {
+            color: #4f46e5 !important;
+            opacity: 0.85 !important;
+        }
+
+        /* Step numbers */
+        body.student-theme .step-num {
+            background: linear-gradient(135deg, #ec6090, #e75485) !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 10px rgba(236, 96, 144, 0.3) !important;
+        }
+
+        /* Bouncy transitions & Hover */
+        body.student-theme .item-card, 
+        body.student-theme .list-item, 
+        body.student-theme .lesson-card-item:not(.locked), 
+        body.student-theme .btn-send, 
+        body.student-theme .btn-start-practice, 
+        body.student-theme .quick-btn,
+        body.student-theme .test-card,
+        body.student-theme .btn-take,
+        body.student-theme .btn-back,
+        body.student-theme .btn-filter,
+        body.student-theme .btn-view {
+            transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), border-color 0.25s, box-shadow 0.25s, background-color 0.25s !important;
+        }
+
+        body.student-theme .item-card:hover, 
+        body.student-theme .list-item:hover, 
+        body.student-theme .lesson-card-item.completed:hover,
+        body.student-theme .test-card:hover {
+            transform: translateY(-6px) scale(1.02) !important;
+            border-color: #c084fc !important;
+            box-shadow: 0 15px 30px rgba(168, 85, 247, 0.15) !important;
+            background: #ffffff !important;
+        }
+
+        /* Active states */
+        body.student-theme .item-card.active,
+        body.student-theme .list-item.active {
+            border-color: #a855f7 !important;
+            background: #faf5ff !important;
+            box-shadow: 0 10px 25px rgba(168, 85, 247, 0.15) !important;
+        }
+
+        /* Pulse animation for active card */
+        @@keyframes softPulse {
+            0% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.4); }
+            70% { box-shadow: 0 0 0 8px rgba(168, 85, 247, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0); }
+        }
+        body.student-theme .item-card.active {
+            animation: softPulse 2s infinite !important;
+        }
+
+        /* Icons in cards */
+        body.student-theme .item-card i {
+            color: #ec6090 !important;
+        }
+
+        body.student-theme .item-card.active i {
+            color: #a855f7 !important;
+        }
+
+        /* Table */
+        body.student-theme .table {
+            color: #1e1b4b !important;
+        }
+        body.student-theme .table thead th {
+            background: rgba(236, 96, 144, 0.08) !important;
+            color: #ec6090 !important;
+            font-weight: 700 !important;
+        }
+        body.student-theme .table tbody tr {
+            border-bottom: 1px solid #e2e8f0 !important;
+        }
+        body.student-theme .table tbody tr:hover {
+            background: #faf5ff !important;
+        }
+        body.student-theme .table tbody td {
+            color: #1e1b4b !important;
+        }
+
+        /* Score badges */
+        body.student-theme .score-badge {
+            font-weight: 700 !important;
+        }
+        body.student-theme .score-high {
+            background: #d1fae5 !important;
+            color: #065f46 !important;
+        }
+        body.student-theme .score-mid {
+            background: #fef9c3 !important;
+            color: #854d0e !important;
+        }
+        body.student-theme .score-low {
+            background: #fee2e2 !important;
+            color: #991b1b !important;
+        }
+
+        /* Buttons styling */
+        body.student-theme .btn-start-practice,
+        body.student-theme .btn-take,
+        body.student-theme .btn-back,
+        body.student-theme .btn-send,
+        body.student-theme .btn-filter {
+            background: linear-gradient(135deg, #ec6090, #e75485) !important;
+            color: #ffffff !important;
+            border: none !important;
+            border-radius: 99px !important;
+            font-weight: 700 !important;
+            box-shadow: 0 5px 15px rgba(236, 96, 144, 0.2) !important;
+        }
+
+        body.student-theme .btn-start-practice:hover,
+        body.student-theme .btn-take:hover,
+        body.student-theme .btn-back:hover,
+        body.student-theme .btn-send:hover,
+        body.student-theme .btn-filter:hover {
+            transform: translateY(-3px) scale(1.03) !important;
+            box-shadow: 0 8px 25px rgba(236, 96, 144, 0.35) !important;
+            color: #ffffff !important;
+        }
+
+        body.student-theme .btn-view {
+            background: rgba(99, 102, 241, 0.1) !important;
+            color: #4f46e5 !important;
+            border-radius: 99px !important;
+        }
+        body.student-theme .btn-view:hover {
+            background: #4f46e5 !important;
+            color: #ffffff !important;
+            transform: translateY(-2px) !important;
+        }
+
+        /* Chat view overrides */
+        body.student-theme .bubble.ai {
+            background: #e0f2fe !important;
+            color: #0369a1 !important;
+            border: 1px solid #bae6fd !important;
+            border-radius: 4px 16px 16px 16px !important;
+        }
+        body.student-theme .bubble.user {
+            background: linear-gradient(135deg, #ec6090, #e75485) !important;
+            color: #ffffff !important;
+            border-radius: 16px 4px 16px 16px !important;
+        }
+        body.student-theme .avatar.ai {
+            background: linear-gradient(135deg, #0284c7, #0369a1) !important;
+        }
+        body.student-theme .quick-btn {
+            background: rgba(236, 96, 144, 0.08) !important;
+            border: 2px solid rgba(236, 96, 144, 0.2) !important;
+            color: #ec6090 !important;
+            font-weight: 700 !important;
+        }
+        body.student-theme .quick-btn:hover {
+            background: #ec6090 !important;
+            color: #ffffff !important;
+            transform: translateY(-3px) scale(1.02) !important;
+        }
+        body.student-theme .chat-input-wrap textarea {
+            background: #ffffff !important;
+            border: 2px solid #ddd6fe !important;
+            color: #1e1b4b !important;
+        }
+        body.student-theme .chat-input-wrap textarea:focus {
+            border-color: #ec6090 !important;
+        }
+        body.student-theme .typing {
+            background: rgba(255, 255, 255, 0.8) !important;
+            border: 1px solid #ddd6fe !important;
+        }
+
+        /* Filters */
+        body.student-theme .filter-select {
+            background: #ffffff !important;
+            border: 2px solid #e0e7ff !important;
+            color: #1e1b4b !important;
+        }
+        body.student-theme .filter-select option {
+            background: #ffffff !important;
+            color: #1e1b4b !important;
+        }
+
+        /* Global back button */
+        .btn-global-back {
+            position: fixed;
+            top: 110px;
+            left: 30px;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: #ffffff !important;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, background-color 0.3s, border-color 0.3s !important;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            text-decoration: none !important;
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .btn-global-back.btn-back-hidden {
+            transform: translateX(-150px) !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+        .btn-global-back:not(.btn-back-hidden):hover {
+            transform: translateY(-2px) scale(1.05) !important;
+            background: #ffffff;
+            color: #1e1b4b !important;
+            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.25);
+        }
+
+        /* Student theme overrides */
+        body.student-theme .btn-global-back {
+            background: rgba(255, 255, 255, 0.9) !important;
+            border: 3px solid #fbcfe8 !important;
+            color: #ec6090 !important;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+            box-shadow: 0 8px 20px rgba(236, 96, 144, 0.12) !important;
+        }
+        body.student-theme .btn-global-back:not(.btn-back-hidden):hover {
+            background: #ec6090 !important;
+            border-color: #ec6090 !important;
+            color: #ffffff !important;
+            box-shadow: 0 10px 25px rgba(236, 96, 144, 0.3) !important;
+            transform: translateY(-3px) scale(1.05) !important;
+        }
+
+        @@media (max-width: 991px) {
+            .btn-global-back {
+                top: 90px;
+                left: 15px;
+                padding: 8px 14px;
+                font-size: 0.8rem;
+            }
+        }
+        @@media (max-width: 576px) {
+            .btn-global-back {
+                top: 85px;
+                left: 10px;
+                padding: 8px 10px;
+            }
+            .btn-global-back span {
+                display: none;
+            }
+        }
     </style>
     @RenderSection("Styles", required: false)
 </head>
-<body>
+<body class="@(User.IsInRole("Student") ? "student-theme" : "")">
     <header class="header-area header-sticky">
         <div class="container">
             <div class="row">
@@ -69,33 +545,52 @@
                                 </form>
                             </div>
                         }
+                        @{
+                            var activeCtrl = ViewContext.RouteData.Values["controller"]?.ToString();
+                            var activeAct = ViewContext.RouteData.Values["action"]?.ToString();
+                            
+                            bool isHomeActive = activeCtrl == "Home" && activeAct == "Index";
+                            bool isGradeActive = activeCtrl == "Grade" || activeCtrl == "Subject" || activeCtrl == "Chapter" || activeCtrl == "Lesson";
+                            bool isAIActive = activeCtrl == "AI";
+                            bool isPracticeActive = activeCtrl == "Test" && activeAct == "Practice";
+                            bool isHistoryActive = activeCtrl == "Test" && activeAct == "History";
+                            bool isPackageListActive = activeCtrl == "Package" && activeAct == "List";
+                            
+                            // Admin links
+                            bool isRevenueActive = activeCtrl == "Revenue";
+                            bool isTransactionActive = activeCtrl == "Transaction";
+                            bool isUserActive = activeCtrl == "User";
+                            bool isPackageManageActive = activeCtrl == "Package" && activeAct != "List";
+                        }
                         <ul class="nav">
+<<<<<<< HEAD
+                            <li><a asp-controller="Home" asp-action="Index" class="@(isHomeActive ? "active" : "")">Trang chủ</a></li>
+                            @if (!User.IsInRole("Parent"))
+                            {
+                                <li><a href="/Grade" class="@(isGradeActive ? "active" : "")">Khối lớp</a></li>
+                            }
+=======
                             <li><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
                             <li><a href="/Grade">Khối lớp</a></li>
+>>>>>>> ee62a85d55fb06b1057f8eabda607e243d866af1
 
                             @if (!User.Identity!.IsAuthenticated || User.IsInRole("Parent"))
                             {
-                                <li><a asp-controller="Package" asp-action="List">Gói học</a></li>
+                                <li><a asp-controller="Package" asp-action="List" class="@(isPackageListActive ? "active" : "")">Gói học</a></li>
                             }
 
                             @if (User.IsInRole("Admin"))
                             {
-                                <li><a href="/Revenue">Quản lý thu nhập</a></li>
-                                <li><a href="/Transaction">Quản lý giao dịch</a></li>
-                                <li><a href="/User">Quản lý người dùng</a></li>
-                                <li><a href="/Package">Quản lý gói học</a></li>
+                                <li><a href="/Revenue" class="@(isRevenueActive ? "active" : "")">Quản lý thu nhập</a></li>
+                                <li><a href="/Transaction" class="@(isTransactionActive ? "active" : "")">Quản lý giao dịch</a></li>
+                                <li><a href="/User" class="@(isUserActive ? "active" : "")">Quản lý người dùng</a></li>
+                                <li><a href="/Package" class="@(isPackageManageActive ? "active" : "")">Quản lý gói học</a></li>
                             }
 
                             @if (User.IsInRole("Content Manager"))
                             {
                                 <li><a href="/QuestionReport">Báo cáo câu hỏi</a></li>
-                                <li>
-                                    <a href="#">Ngân hàng câu hỏi</a>
-                                    <div class="dropdown">
-                                        <a href="/Question" style="color:#f6f6f6!important;">Danh sách câu hỏi</a>
-                                        <a href="/Question/Create" style="color:#f6f6f6!important;">Thêm câu hỏi</a>
-                                    </div>
-                                </li>
+                                <li><a href="/Question">Ngân hàng câu hỏi</a></li>
                             }
                             @if (User.IsInRole("Content Approver"))
                             {
@@ -105,21 +600,17 @@
 
                             @if (User.Identity.IsAuthenticated)
                             {
-                                @if (User.IsInRole("Parent"))
-                                {
-                                    <li>
-                                        <a href="#">Ví: @Context.Session.GetString("WalletBalance") đ</a>
-                                        <div class="dropdown">
-                                            <a asp-controller="Wallet" asp-action="Index" style="color:#f6f6f6!important;">Ví của tôi</a>
-                                            <a asp-controller="Parent" asp-action="LinkedStudents" style="color:#f6f6f6!important;">Học sinh liên kết</a>
-                                        </div>
-                                    </li>
-                                }
+                                <li><a href="/Certificate" class="@(activeCtrl == "Certificate" ? "active" : "")">Chứng chỉ</a></li>
+                                 @if (User.IsInRole("Parent"))
+                                 {
+                                     <li><a asp-controller="Parent" asp-action="LinkedStudents" class="@(activeCtrl == "Parent" && activeAct == "LinkedStudents" ? "active" : "")">Học sinh liên kết</a></li>
+                                     <li><a asp-controller="Wallet" asp-action="Index" class="@(activeCtrl == "Wallet" ? "active" : "")">Ví: @Context.Session.GetString("WalletBalance") đ</a></li>
+                                 }
                                 @if (User.IsInRole("Student"))
                                 {
-                                    <li><a asp-controller="AI" asp-action="Chat">Trợ lý AI</a></li>
-                                    <li><a asp-controller="Test" asp-action="Practice">Luyện tập</a></li>
-                                    <li><a asp-controller="Test" asp-action="History">Lịch sử làm bài</a></li>
+                                    <li><a asp-controller="AI" asp-action="Chat" class="@(isAIActive ? "active" : "")">Trợ lý AI</a></li>
+                                    <li><a asp-controller="Test" asp-action="Practice" class="@(isPracticeActive ? "active" : "")">Luyện tập</a></li>
+                                    <li><a asp-controller="Test" asp-action="History" class="@(isHistoryActive ? "active" : "")">Lịch sử làm bài</a></li>
                                 }
                                 <li class="profile-link">
                                     <a asp-controller="Account" asp-action="Profile">
@@ -158,6 +649,13 @@
     @if (TempData["Error"] != null)
     {
         <div class="toast-msg toast-error" id="toastMsg">@TempData["Error"]</div>
+    }
+
+    @if (!(activeCtrl == "Home" && activeAct == "Index"))
+    {
+        <button onclick="goBackOrHome()" class="btn-global-back" title="Quay lại">
+            <i class="fa fa-arrow-left"></i> <span>Quay lại</span>
+        </button>
     }
 
     <main style="display: flow-root;">
@@ -254,6 +752,34 @@
                 if (dropdownParent && dropdownParent !== activeLink) {
                     dropdownParent.classList.add('active');
                 }
+            }
+        });
+
+        // Global smart back function
+        function goBackOrHome() {
+            if (document.referrer && document.referrer.includes(window.location.host)) {
+                window.history.back();
+            } else {
+                window.location.href = '/';
+            }
+        }
+
+        // Hide back button on scroll down, show on scroll up
+        document.addEventListener('DOMContentLoaded', function () {
+            let lastScrollTop = 0;
+            const backBtn = document.querySelector('.btn-global-back');
+            if (backBtn) {
+                window.addEventListener('scroll', function () {
+                    let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                    if (scrollTop > lastScrollTop && scrollTop > 50) {
+                        // Scroll Down
+                        backBtn.classList.add('btn-back-hidden');
+                    } else {
+                        // Scroll Up
+                        backBtn.classList.remove('btn-back-hidden');
+                    }
+                    lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+                }, { passive: true });
             }
         });
     </script>

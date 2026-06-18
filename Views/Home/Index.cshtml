@@ -1,8 +1,1357 @@
-@{
-    ViewData["Title"] = "PLO - Học Tiếng Anh cho trẻ lớp 1 & lớp 2 (6–7 tuổi)";
-}
 @using POT_System_ASPNET.Data.Entities
 @model object
+
+@if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+{
+    ViewData["Title"] = "Bảng Điều Khiển Admin - PLO";
+    <style>
+        .admin-dashboard-hero {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(231, 84, 133, 0.08) 100%) !important;
+            border: 1px solid rgba(124, 58, 237, 0.15) !important;
+            border-radius: 24px !important;
+            padding: 40px !important;
+            margin-bottom: 40px !important;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.02) !important;
+        }
+        .admin-dashboard-hero::before {
+            content: '🎒';
+            position: absolute;
+            right: 40px;
+            bottom: -10px;
+            font-size: 100px;
+            opacity: 0.12;
+            pointer-events: none;
+        }
+        .boss-greeting {
+            font-family: 'Inter', sans-serif !important;
+            font-weight: 900 !important;
+            font-size: 32px !important;
+            background: linear-gradient(135deg, #7c3aed 0%, #e75485 100%) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            margin-bottom: 15px !important;
+            line-height: 1.3 !important;
+        }
+        .boss-sub {
+            font-size: 16px !important;
+            color: #6d28d9 !important;
+            font-weight: 500 !important;
+            margin: 0 !important;
+        }
+        .stat-card-custom {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 24px !important;
+            border-radius: 20px !important;
+            background: rgba(255, 255, 255, 0.9) !important;
+            border: 1px solid rgba(124, 58, 237, 0.1) !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 8px 24px rgba(124, 58, 237, 0.02) !important;
+            text-decoration: none !important;
+            color: inherit !important;
+        }
+        .stat-card-custom:hover {
+            transform: translateY(-4px) !important;
+            border-color: #e75485 !important;
+            box-shadow: 0 12px 32px rgba(231, 84, 133, 0.1) !important;
+        }
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #fff;
+        }
+        .stat-icon-users { background: linear-gradient(135deg, #3b82f6, #60a5fa); }
+        .stat-icon-revenue { background: linear-gradient(135deg, #10b981, #34d399); }
+        .stat-icon-packages { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+        .stat-icon-transactions { background: linear-gradient(135deg, #8b5cf6, #a78bfa); }
+        .stat-info h3 {
+            font-size: 20px !important;
+            font-weight: 800 !important;
+            color: #2e1065 !important;
+            margin: 0 0 4px 0 !important;
+        }
+        .stat-info p {
+            font-size: 14px !important;
+            color: #7c3aed !important;
+            opacity: 0.8;
+            margin: 0 !important;
+            font-weight: 500 !important;
+        }
+        .quick-action-card {
+            background: rgba(255, 255, 255, 0.8) !important;
+            border: 1px solid rgba(124, 58, 237, 0.08) !important;
+            border-radius: 20px !important;
+            padding: 24px !important;
+            margin-top: 30px !important;
+        }
+        .quick-action-title {
+            font-size: 18px !important;
+            font-weight: 800 !important;
+            color: #2e1065 !important;
+            margin-bottom: 20px !important;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        .btn-action-custom {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 20px !important;
+            background: rgba(255, 255, 255, 0.7) !important;
+            border: 1px solid rgba(124, 58, 237, 0.1) !important;
+            border-radius: 16px !important;
+            text-decoration: none !important;
+            color: #4c1d95 !important;
+            font-weight: 600 !important;
+            font-size: 14px !important;
+            transition: all 0.3s ease !important;
+        }
+        .btn-action-custom:hover {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.05) 0%, rgba(231, 84, 133, 0.05) 100%) !important;
+            border-color: #e75485 !important;
+            color: #e75485 !important;
+            transform: translateY(-2px) !important;
+        }
+        .btn-action-custom i {
+            font-size: 24px;
+        }
+    </style>
+
+    <div class="admin-dashboard-hero">
+        <h2 class="boss-greeting">Chào Mừng Xếp Đã Quay Lại.<br>Hôm Nay tôi có thể giúp gì được cho Xếp.</h2>
+        <p class="boss-sub"><i class="fa-regular fa-clock me-2"></i>Hệ thống quản trị hoạt động bình thường • Cập nhật lần cuối: @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row g-4">
+        <div class="col-xl-3 col-sm-6">
+            <a href="/User" class="stat-card-custom">
+                <div class="stat-icon stat-icon-users">
+                    <i class="fa-solid fa-users-gear"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Quản lý</h3>
+                    <p>Người dùng</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-xl-3 col-sm-6">
+            <a href="/Revenue" class="stat-card-custom">
+                <div class="stat-icon stat-icon-revenue">
+                    <i class="fa-solid fa-sack-dollar"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Thống kê</h3>
+                    <p>Doanh thu</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-xl-3 col-sm-6">
+            <a href="/Package" class="stat-card-custom">
+                <div class="stat-icon stat-icon-packages">
+                    <i class="fa-solid fa-cubes"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Cấu hình</h3>
+                    <p>Gói học</p>
+                </div>
+            </a>
+        </div>
+        <div class="col-xl-3 col-sm-6">
+            <a href="/Transaction" class="stat-card-custom">
+                <div class="stat-icon stat-icon-transactions">
+                    <i class="fa-solid fa-receipt"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Phê duyệt</h3>
+                    <p>Giao dịch</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Actions Card -->
+    <div class="quick-action-card">
+        <div class="quick-action-title">
+            <i class="fa-solid fa-bolt text-warning"></i>
+            <span>Tác vụ quản lý nhanh</span>
+        </div>
+        <div class="action-grid">
+            <a href="/Grade" class="btn-action-custom">
+                <i class="fa-solid fa-graduation-cap text-primary"></i>
+                <span>Khối lớp</span>
+            </a>
+            <a href="/Subject" class="btn-action-custom">
+                <i class="fa-solid fa-book text-success"></i>
+                <span>Môn học</span>
+            </a>
+            <a href="/Chapter" class="btn-action-custom">
+                <i class="fa-solid fa-folder-open text-warning"></i>
+                <span>Chương học</span>
+            </a>
+            <a href="/Lesson" class="btn-action-custom">
+                <i class="fa-solid fa-file-signature text-danger"></i>
+                <span>Bài học</span>
+            </a>
+        </div>
+    </div>
+}
+else if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Content Manager"))
+{
+    ViewData["Title"] = "Bảng Điều Khiển Quản Lý Nội Dung - PLO";
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        .manager-dashboard-container {
+            padding: 140px 15px 80px;
+            font-family: 'Nunito', sans-serif !important;
+            background: transparent;
+            position: relative;
+        }
+        .manager-dashboard-container *:not(i):not(.fa) {
+            font-family: 'Nunito', sans-serif !important;
+        }
+        .manager-dashboard-hero {
+            background: linear-gradient(135deg, #fdf2f8 0%, #f5f3ff 100%) !important;
+            border: 3px solid #fbcfe8 !important;
+            border-radius: 32px !important;
+            padding: 40px !important;
+            margin-bottom: 40px !important;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(236, 96, 144, 0.05) !important;
+            z-index: 2;
+        }
+        .manager-dashboard-hero::before {
+            content: '✍️';
+            position: absolute;
+            right: 40px;
+            bottom: 5px;
+            font-size: 100px;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+        .boss-greeting {
+            font-weight: 900 !important;
+            font-size: 2.4rem !important;
+            background: linear-gradient(135deg, #ec6090 0%, #7c3aed 100%) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            background-clip: text !important;
+            margin-bottom: 12px !important;
+            line-height: 1.3 !important;
+        }
+        .boss-sub {
+            font-size: 1.05rem !important;
+            color: #6b7280 !important;
+            font-weight: 700 !important;
+            margin: 0 !important;
+        }
+        .stat-card-custom {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 24px !important;
+            border-radius: 24px !important;
+            background: rgba(255, 255, 255, 0.9) !important;
+            border: 3px solid #fbcfe8 !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.02) !important;
+            text-decoration: none !important;
+            color: inherit !important;
+            z-index: 2;
+            position: relative;
+        }
+        .stat-card-custom:hover {
+            transform: translateY(-5px) !important;
+            border-color: #ec6090 !important;
+            box-shadow: 0 20px 40px rgba(236, 96, 144, 0.12) !important;
+        }
+        .stat-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            color: #fff;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+        }
+        .stat-icon-questions { background: linear-gradient(135deg, #3b82f6, #60a5fa) !important; }
+        .stat-icon-reports { background: linear-gradient(135deg, #ef4444, #f87171) !important; }
+        .stat-icon-subjects { background: linear-gradient(135deg, #10b981, #34d399) !important; }
+        .stat-icon-lessons { background: linear-gradient(135deg, #8b5cf6, #a78bfa) !important; }
+        .stat-info h3 {
+            font-size: 22px !important;
+            font-weight: 900 !important;
+            color: #1e1b4b !important;
+            margin: 0 0 2px 0 !important;
+        }
+        .stat-info p {
+            font-size: 15px !important;
+            color: #7c3aed !important;
+            margin: 0 !important;
+            font-weight: 800 !important;
+        }
+        .quick-action-card {
+            background: rgba(255, 255, 255, 0.9) !important;
+            border: 3px solid #fbcfe8 !important;
+            border-radius: 32px !important;
+            padding: 32px !important;
+            margin-top: 40px !important;
+            box-shadow: 0 15px 35px rgba(236, 96, 144, 0.04) !important;
+            z-index: 2;
+            position: relative;
+        }
+        .quick-action-title {
+            font-size: 22px !important;
+            font-weight: 900 !important;
+            color: #1e1b4b !important;
+            margin-bottom: 24px !important;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+        .btn-action-custom {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            padding: 24px 20px !important;
+            background: rgba(255, 255, 255, 0.7) !important;
+            border: 2px solid #f3f4f6 !important;
+            border-radius: 20px !important;
+            text-decoration: none !important;
+            color: #4b5563 !important;
+            font-weight: 800 !important;
+            font-size: 15px !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        .btn-action-custom:hover {
+            background: linear-gradient(135deg, #fdf2f8 0%, #f5f3ff 100%) !important;
+            border-color: #ec6090 !important;
+            color: #ec6090 !important;
+            transform: translateY(-3px) !important;
+            box-shadow: 0 12px 25px rgba(236, 96, 144, 0.08) !important;
+        }
+        .btn-action-custom i {
+            font-size: 28px;
+        }
+
+        /* Twinkling Star Animations */
+        @@keyframes twinkle {
+            0%, 100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 0.5; }
+            50% { transform: translateY(-15px) scale(1.3) rotate(15deg); opacity: 1; }
+        }
+        .star-bubble {
+            position: absolute;
+            pointer-events: none;
+            animation: twinkle 4s infinite ease-in-out;
+            z-index: 1;
+        }
+        .star-1 { top: 120px; left: 5%; animation-delay: 0s; font-size: 24px; }
+        .star-2 { top: 250px; right: 5%; animation-delay: 1.5s; font-size: 32px; }
+        .star-3 { bottom: 100px; left: 8%; animation-delay: 0.8s; font-size: 20px; }
+        .star-4 { bottom: 200px; right: 12%; animation-delay: 2.2s; font-size: 28px; }
+    </style>
+
+    <div class="container manager-dashboard-container">
+        <!-- Floating Stars -->
+        <span class="star-bubble star-1">⭐</span>
+        <span class="star-bubble star-2">🌟</span>
+        <span class="star-bubble star-3">⭐</span>
+        <span class="star-bubble star-4">🌟</span>
+
+        <div class="manager-dashboard-hero">
+            <h2 class="boss-greeting">Chào Mừng Quản Lý Nội Dung.<br>Hôm Nay bạn muốn thiết lập nội dung gì nào.</h2>
+            <p class="boss-sub"><i class="fa-regular fa-clock me-2"></i>Hệ thống quản lý nội dung hoạt động bình thường • Cập nhật lần cuối: @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="row g-4">
+            <div class="col-xl-3 col-sm-6">
+                <a href="/Question" class="stat-card-custom">
+                    <div class="stat-icon stat-icon-questions">
+                        <i class="fa fa-tasks"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Ngân hàng</h3>
+                        <p>Câu hỏi</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-xl-3 col-sm-6">
+                <a href="/QuestionReport" class="stat-card-custom">
+                    <div class="stat-icon stat-icon-reports">
+                        <i class="fa fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Báo cáo</h3>
+                        <p>Lỗi câu hỏi</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-xl-3 col-sm-6">
+                <a href="/Subject" class="stat-card-custom">
+                    <div class="stat-icon stat-icon-subjects">
+                        <i class="fa fa-book"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Quản lý</h3>
+                        <p>Môn học</p>
+                    </div>
+                </a>
+            </div>
+            <div class="col-xl-3 col-sm-6">
+                <a href="/Lesson" class="stat-card-custom">
+                    <div class="stat-icon stat-icon-lessons">
+                        <i class="fa fa-file-alt"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Quản lý</h3>
+                        <p>Bài học</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Quick Actions Card -->
+        <div class="quick-action-card">
+            <div class="quick-action-title">
+                <i class="fa fa-bolt text-warning"></i>
+                <span>Tác vụ quản lý nhanh</span>
+            </div>
+            <div class="action-grid">
+                <a href="/Question/Create" class="btn-action-custom">
+                    <i class="fa fa-plus text-primary"></i>
+                    <span>Thêm câu hỏi</span>
+                </a>
+                <a href="/Grade" class="btn-action-custom">
+                    <i class="fa fa-graduation-cap text-success"></i>
+                    <span>Khối lớp</span>
+                </a>
+                <a href="/Chapter" class="btn-action-custom">
+                    <i class="fa fa-folder-open text-warning"></i>
+                    <span>Chương học</span>
+                </a>
+                <a href="/Certificate" class="btn-action-custom">
+                    <i class="fa fa-certificate text-danger"></i>
+                    <span>Chứng chỉ</span>
+                </a>
+            </div>
+        </div>
+    </div>
+}
+else if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Student"))
+{
+    ViewData["Title"] = "Trang Chủ Của Bé - PLO";
+    <style>
+        @@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap');
+        
+        .student-dashboard {
+            min-height: 75vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 110px 20px 60px; /* Safe padding-top to avoid header collision */
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+        
+        .student-hero-card {
+            background: rgba(255, 255, 255, 0.88) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 4px solid #fbcfe8 !important; /* Sweet pink border */
+            border-radius: 40px !important;
+            padding: 50px 40px !important;
+            text-align: center;
+            max-width: 800px;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 20px 50px rgba(236, 96, 144, 0.12) !important;
+            animation: cardEntrance 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+        }
+
+        @@keyframes cardEntrance {
+            0% { transform: translateY(50px) scale(0.9); opacity: 0; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        .student-title-container {
+            margin-bottom: 30px;
+        }
+
+        .kid-welcome-title {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+            font-size: 3.5rem !important;
+            line-height: 1.2 !important;
+            background: linear-gradient(135deg, #ec6090 0%, #a855f7 50%, #4f46e5 100%) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            margin-bottom: 15px !important;
+            display: inline-block;
+        }
+
+        .kid-welcome-sub {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 800 !important;
+            font-size: 1.8rem !important;
+            color: #4f46e5 !important;
+            margin: 0 !important;
+            line-height: 1.4 !important;
+        }
+
+        .kid-mascots-container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin: 40px 0;
+            position: relative;
+            flex-wrap: wrap;
+        }
+
+        .kid-mascot-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .kid-mascot-wrapper:hover {
+            transform: scale(1.3) rotate(10deg);
+        }
+
+        .kid-mascot-emoji {
+            font-size: 4.5rem;
+            animation: floatMascot 3s ease-in-out infinite alternate;
+            display: block;
+        }
+
+        .kid-mascot-wrapper:nth-child(2) .kid-mascot-emoji { animation-delay: 0.5s; }
+        .kid-mascot-wrapper:nth-child(3) .kid-mascot-emoji { animation-delay: 1s; }
+        .kid-mascot-wrapper:nth-child(4) .kid-mascot-emoji { animation-delay: 1.5s; }
+
+        @@keyframes floatMascot {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-15px); }
+        }
+
+        .kid-mascot-name {
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 900;
+            color: #64748b;
+            margin-top: 10px;
+            background: #f1f5f9;
+            padding: 4px 14px;
+            border-radius: 99px;
+            transition: background 0.2s, color 0.25s;
+        }
+
+        .kid-mascot-wrapper:hover .kid-mascot-name {
+            background: #ec6090;
+            color: #ffffff;
+        }
+
+        .kid-cta-wrap {
+            margin-top: 40px;
+            position: relative;
+        }
+
+        .btn-kid-continue {
+            display: inline-block;
+            padding: 22px 65px !important;
+            background: linear-gradient(135deg, #ec6090 0%, #e75485 100%) !important;
+            color: #ffffff !important; /* High contrast clean white text */
+            border-radius: 99px !important;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+            font-size: 1.8rem !important;
+            text-decoration: none !important;
+            border: none !important;
+            cursor: pointer !important;
+            box-shadow: 0 12px 30px rgba(236, 96, 144, 0.35) !important;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+            position: relative;
+            overflow: hidden; /* For sweeping shine effect */
+            animation: kidButtonFloat 3s ease-in-out infinite;
+        }
+
+        .btn-kid-continue:hover {
+            transform: scale(1.08) !important;
+            box-shadow: 0 15px 35px rgba(236, 96, 144, 0.55), 0 0 0 8px rgba(236, 96, 144, 0.2) !important;
+            color: #ffffff !important;
+        }
+
+        /* Diagonal sweeping shine animation */
+        .btn-kid-continue::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.45) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: skewX(-25deg);
+        }
+
+        .btn-kid-continue:hover::before {
+            animation: sweepShine 1.5s ease-in-out infinite;
+        }
+
+        @@keyframes kidButtonFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        @@keyframes sweepShine {
+            0% { left: -150%; }
+            50% { left: 150%; }
+            100% { left: 150%; }
+        }
+
+        /* Decorative Background Elements */
+        .kid-bg-cloud {
+            position: absolute;
+            font-size: 5rem;
+            opacity: 0.15;
+            pointer-events: none;
+            animation: floatCloud 25s linear infinite;
+        }
+        .kid-bg-cloud.c1 { top: 15%; left: -10%; animation-duration: 45s; }
+        .kid-bg-cloud.c2 { bottom: 20%; right: -10%; animation-duration: 35s; animation-delay: -10s; }
+
+        @@keyframes floatCloud {
+            0% { transform: translateX(-150px); }
+            100% { transform: translateX(110vw); }
+        }
+
+        /* Moving Star animations around the card */
+        .kid-bg-star {
+            position: absolute;
+            font-size: 2.5rem;
+            color: #f59e0b;
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .kid-bg-star.s1 {
+            top: 15%;
+            right: 12%;
+            animation: orbitRight 14s ease-in-out infinite alternate;
+        }
+        .kid-bg-star.s2 {
+            bottom: 18%;
+            left: 10%;
+            animation: orbitLeft 17s ease-in-out infinite alternate;
+            color: #fbbf24;
+        }
+        .kid-bg-star.s3 {
+            top: 45%;
+            left: 6%;
+            animation: floatAroundVertical 11s ease-in-out infinite alternate;
+            font-size: 1.8rem;
+            color: #fca5a5;
+        }
+        .kid-bg-star.s4 {
+            bottom: 40%;
+            right: 6%;
+            animation: floatAroundHorizontal 15s ease-in-out infinite alternate;
+            font-size: 2rem;
+            color: #38bdf8;
+        }
+        .kid-bg-star.s5 {
+            top: 10%;
+            left: 25%;
+            animation: diagonalFloat 20s ease-in-out infinite alternate;
+            font-size: 1.6rem;
+            color: #c084fc;
+        }
+
+        @@keyframes orbitRight {
+            0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            35% { transform: translate(45px, -70px) rotate(120deg) scale(1.25); }
+            70% { transform: translate(-30px, -120px) rotate(240deg) scale(0.8); }
+            100% { transform: translate(0, 0) rotate(360deg) scale(1); }
+        }
+
+        @@keyframes orbitLeft {
+            0% { transform: translate(0, 0) rotate(360deg) scale(0.9); }
+            40% { transform: translate(-60px, 50px) rotate(180deg) scale(1.3); }
+            80% { transform: translate(40px, -40px) rotate(0deg) scale(0.7); }
+            100% { transform: translate(0, 0) rotate(-360deg) scale(0.9); }
+        }
+
+        @@keyframes floatAroundVertical {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-90px) rotate(180deg); }
+            100% { transform: translateY(0) rotate(360deg); }
+        }
+
+        @@keyframes floatAroundHorizontal {
+            0% { transform: translateX(0) rotate(0deg); }
+            50% { transform: translateX(90px) rotate(-180deg); }
+            100% { transform: translateX(0) rotate(-360deg); }
+        }
+
+        @@keyframes diagonalFloat {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(120px, 90px) rotate(180deg); }
+            100% { transform: translate(0, 0) rotate(360deg); }
+        }
+
+        /* ===== Responsive Spacing Media Queries ===== */
+        @@media (max-width: 992px) {
+            .student-dashboard {
+                padding-top: 120px;
+            }
+            .kid-welcome-title {
+                font-size: 3rem !important;
+            }
+            .kid-welcome-sub {
+                font-size: 1.6rem !important;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .student-dashboard {
+                padding-top: 130px !important;
+                padding-bottom: 50px !important;
+            }
+            .student-hero-card {
+                padding: 40px 25px !important;
+                border-radius: 30px !important;
+                max-width: 95% !important;
+            }
+            .kid-welcome-title {
+                font-size: 2.4rem !important;
+            }
+            .kid-welcome-sub {
+                font-size: 1.35rem !important;
+            }
+            .kid-mascots-container {
+                gap: 25px !important;
+                margin: 30px 0 !important;
+            }
+            .kid-mascot-emoji {
+                font-size: 3.8rem !important;
+            }
+            .btn-kid-continue {
+                padding: 18px 45px !important;
+                font-size: 1.4rem !important;
+            }
+        }
+
+        @@media (max-width: 480px) {
+            .student-dashboard {
+                padding-top: 140px !important;
+                padding-bottom: 30px !important;
+            }
+            .student-hero-card {
+                padding: 30px 15px !important;
+                border-radius: 24px !important;
+            }
+            .kid-welcome-title {
+                font-size: 1.85rem !important;
+                margin-bottom: 10px !important;
+            }
+            .kid-welcome-sub {
+                font-size: 1.1rem !important;
+            }
+            .kid-mascots-container {
+                gap: 15px !important;
+                margin: 25px 0 !important;
+            }
+            .kid-mascot-emoji {
+                font-size: 2.8rem !important;
+            }
+            .kid-mascot-name {
+                font-size: 0.85rem !important;
+                padding: 2px 10px !important;
+                margin-top: 6px !important;
+            }
+            .btn-kid-continue {
+                padding: 14px 30px !important;
+                font-size: 1.1rem !important;
+                box-shadow: 0 10px 25px rgba(236, 96, 144, 0.3) !important;
+            }
+            .btn-kid-continue::after {
+                display: none !important; /* Simplify decoration on small viewports */
+            }
+            .kid-bg-star {
+                font-size: 1.5rem !important; /* Scale down stars on mobile */
+            }
+        }
+    </style>
+
+    <div class="student-dashboard">
+        <!-- Floating cloud & star decorations -->
+        <div class="kid-bg-cloud c1">☁️</div>
+        <div class="kid-bg-cloud c2">☁️</div>
+        <div class="kid-bg-star s1">⭐</div>
+        <div class="kid-bg-star s2">⭐</div>
+        <div class="kid-bg-star s3">⭐</div>
+        <div class="kid-bg-star s4">⭐</div>
+        <div class="kid-bg-star s5">⭐</div>
+
+        <div class="student-hero-card">
+            <div class="student-title-container">
+                <h1 class="kid-welcome-title">Chào Bé Đáng Yêu.</h1>
+                <p class="kid-welcome-sub">Cùng Nhau Học Tập Thật Năng Suất Nhé! 🚀</p>
+            </div>
+
+            <!-- Interative Bouncy Mascots -->
+            <div class="kid-mascots-container">
+                <div class="kid-mascot-wrapper">
+                    <span class="kid-mascot-emoji">🐝</span>
+                    <span class="kid-mascot-name">Bạn Ong</span>
+                </div>
+                <div class="kid-mascot-wrapper">
+                    <span class="kid-mascot-emoji">🦋</span>
+                    <span class="kid-mascot-name">Bạn Bướm</span>
+                </div>
+                <div class="kid-mascot-wrapper">
+                    <span class="kid-mascot-emoji">🐸</span>
+                    <span class="kid-mascot-name">Bạn Ếch</span>
+                </div>
+                <div class="kid-mascot-wrapper">
+                    <span class="kid-mascot-emoji">🐼</span>
+                    <span class="kid-mascot-name">Bạn Gấu</span>
+                </div>
+            </div>
+
+            <!-- CTA Big Play Button -->
+            <div class="kid-cta-wrap">
+                <a href="/Chapter" class="btn-kid-continue">📚 Tiếp tục học tập</a>
+            </div>
+        </div>
+    </div>
+}
+else if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Parent"))
+{
+    ViewData["Title"] = "Trang Chủ Phụ Huynh - PLO";
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .parent-dashboard {
+            padding: 110px 0 80px;
+            background: linear-gradient(135deg, #fef4f6 0%, #fdf2f8 50%, #f3e8ff 100%);
+            min-height: 80vh;
+            font-family: 'Nunito', sans-serif !important;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        /* Glassmorphism Hero Card */
+        .parent-hero {
+            background: rgba(255, 255, 255, 0.85) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 4px solid #fbcfe8 !important; /* Sweet pink border */
+            border-radius: 40px !important;
+            padding: 50px 40px !important;
+            box-shadow: 0 20px 50px rgba(236, 96, 144, 0.1) !important;
+            margin-bottom: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 25px;
+            position: relative;
+            z-index: 10;
+            animation: cardEntranceParent 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+        }
+
+        .hero-left h1 {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+            font-size: 2.8rem !important;
+            background: linear-gradient(135deg, #ec6090 0%, #a855f7 50%, #4f46e5 100%) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            margin-bottom: 12px;
+            display: inline-block;
+        }
+
+        .hero-left p {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 800 !important;
+            color: #4f46e5 !important;
+            font-size: 1.25rem !important;
+            margin: 0 !important;
+        }
+
+        .parent-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 18px 45px !important;
+            background: linear-gradient(135deg, #ec6090 0%, #e75485 100%) !important;
+            color: #ffffff !important;
+            border-radius: 99px !important;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+            font-size: 1.25rem !important;
+            text-decoration: none !important;
+            border: none !important;
+            cursor: pointer !important;
+            box-shadow: 0 10px 25px rgba(236, 96, 144, 0.35) !important;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+            position: relative;
+            overflow: hidden;
+            animation: parentButtonFloat 3s ease-in-out infinite;
+        }
+
+        .parent-cta:hover {
+            transform: scale(1.06) !important;
+            box-shadow: 0 15px 35px rgba(236, 96, 144, 0.55), 0 0 0 8px rgba(236, 96, 144, 0.2) !important;
+            color: #ffffff !important;
+        }
+
+        .parent-cta::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.45) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: skewX(-25deg);
+        }
+
+        .parent-cta:hover::before {
+            animation: sweepShineParent 1.5s ease-in-out infinite;
+        }
+
+        /* Diagonal sweeping shine animation */
+        @@keyframes sweepShineParent {
+            0% { left: -150%; }
+            50% { left: 150%; }
+            100% { left: 150%; }
+        }
+
+        @@keyframes parentButtonFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        @@keyframes cardEntranceParent {
+            0% { transform: translateY(50px) scale(0.95); opacity: 0; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        .parent-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            position: relative;
+            z-index: 10;
+            animation: fadeInUpParent 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Glassmorphic feature cards */
+        .p-card {
+            background: rgba(255, 255, 255, 0.82) !important;
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
+            border: 2px solid rgba(236, 96, 144, 0.12) !important;
+            border-radius: 30px !important;
+            padding: 35px 28px !important;
+            box-shadow: 0 10px 30px rgba(236, 96, 144, 0.02) !important;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-decoration: none !important;
+            color: inherit !important;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .p-card:hover {
+            transform: translateY(-10px) scale(1.02) !important;
+            border-color: #ec6090 !important;
+            box-shadow: 0 20px 40px rgba(236, 96, 144, 0.12) !important;
+        }
+
+        /* Individual Card Accents */
+        .p-card.blue-theme:hover {
+            border-color: #4f46e5 !important;
+            box-shadow: 0 20px 40px rgba(79, 70, 229, 0.12) !important;
+        }
+
+        .p-card.yellow-theme:hover {
+            border-color: #f59e0b !important;
+            box-shadow: 0 20px 40px rgba(245, 158, 11, 0.12) !important;
+        }
+
+        .p-card-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: #ec6090;
+            transition: transform 0.3s ease;
+        }
+
+        .p-card:hover .p-card-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .p-card-icon.blue {
+            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+            color: #4f46e5;
+        }
+
+        .p-card-icon.yellow {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            color: #d97706;
+        }
+
+        .p-card h3 {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+            font-size: 1.4rem !important;
+            color: #1e1b4b;
+            margin: 0;
+        }
+
+        .p-card p {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 700 !important;
+            color: #6b7280;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .p-card-footer {
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+            font-size: 0.95rem;
+            color: #ec6090;
+            transition: gap 0.2s;
+        }
+
+        .p-card:hover .p-card-footer {
+            gap: 12px;
+        }
+
+        .p-card-footer.blue { color: #4f46e5; }
+        .p-card-footer.yellow { color: #d97706; }
+
+        /* Tips Section */
+        .tips-container {
+            margin-top: 50px;
+            background: rgba(255, 255, 255, 0.85) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 4px solid #e0e7ff !important; /* Soft lavender border */
+            border-radius: 40px !important;
+            padding: 40px !important;
+            box-shadow: 0 20px 50px rgba(124, 58, 237, 0.05) !important;
+            position: relative;
+            z-index: 10;
+            animation: fadeInUpParent 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .tips-container h2 {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+            font-size: 1.6rem !important;
+            color: #4f46e5 !important;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .tips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .tip-item-hp {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid rgba(124, 58, 237, 0.08);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.01);
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+            transition: all 0.3s ease;
+        }
+
+        .tip-item-hp:hover {
+            transform: translateY(-4px);
+            border-color: #a855f7;
+            box-shadow: 0 10px 20px rgba(124, 58, 237, 0.08);
+        }
+
+        .tip-badge {
+            background: #ede9fe;
+            color: #7c3aed;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 1rem;
+            flex-shrink: 0;
+            font-family: 'Nunito', sans-serif !important;
+        }
+
+        .tip-text-hp {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 700 !important;
+            color: #4b5563;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        /* Drifting Clouds & Orbiting Stars matching Student Dashboard */
+        .parent-bg-cloud {
+            position: absolute;
+            font-size: 6rem;
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 1;
+            animation: floatCloudParent 25s linear infinite;
+        }
+        .parent-bg-cloud.c1 { top: 10%; left: -10%; animation-duration: 45s; }
+        .parent-bg-cloud.c2 { bottom: 15%; right: -10%; animation-duration: 35s; animation-delay: -10s; }
+
+        @@keyframes floatCloudParent {
+            0% { transform: translateX(-150px); }
+            100% { transform: translateX(110vw); }
+        }
+
+        .parent-bg-star {
+            position: absolute;
+            font-size: 2.5rem;
+            color: #f59e0b;
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .parent-bg-star.s1 {
+            top: 15%;
+            right: 10%;
+            animation: orbitRightParent 14s ease-in-out infinite alternate;
+        }
+        .parent-bg-star.s2 {
+            bottom: 12%;
+            left: 8%;
+            animation: orbitLeftParent 17s ease-in-out infinite alternate;
+            color: #fbbf24;
+        }
+        .parent-bg-star.s3 {
+            top: 40%;
+            left: 4%;
+            animation: floatAroundVerticalParent 11s ease-in-out infinite alternate;
+            font-size: 1.8rem;
+            color: #fca5a5;
+        }
+        .parent-bg-star.s4 {
+            bottom: 35%;
+            right: 4%;
+            animation: floatAroundHorizontalParent 15s ease-in-out infinite alternate;
+            font-size: 2rem;
+            color: #38bdf8;
+        }
+
+        @@keyframes orbitRightParent {
+            0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            35% { transform: translate(40px, -60px) rotate(120deg) scale(1.2); }
+            70% { transform: translate(-25px, -100px) rotate(240deg) scale(0.85); }
+            100% { transform: translate(0, 0) rotate(360deg) scale(1); }
+        }
+
+        @@keyframes orbitLeftParent {
+            0% { transform: translate(0, 0) rotate(360deg) scale(0.95); }
+            40% { transform: translate(-50px, 40px) rotate(180deg) scale(1.25); }
+            80% { transform: translate(30px, -30px) rotate(0deg) scale(0.75); }
+            100% { transform: translate(0, 0) rotate(-360deg) scale(0.95); }
+        }
+
+        @@keyframes floatAroundVerticalParent {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-70px) rotate(180deg); }
+            100% { transform: translateY(0) rotate(360deg); }
+        }
+
+        @@keyframes floatAroundHorizontalParent {
+            0% { transform: translateX(0) rotate(0deg); }
+            50% { transform: translateX(70px) rotate(-180deg); }
+            100% { transform: translateX(0) rotate(-360deg); }
+        }
+
+        @@keyframes fadeInUpParent {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive Media Queries */
+        @@media (max-width: 992px) {
+            .parent-hero {
+                padding: 40px 30px !important;
+                border-radius: 30px !important;
+            }
+            .hero-left h1 {
+                font-size: 2.2rem !important;
+            }
+        }
+        
+        @@media (max-width: 768px) {
+            .parent-dashboard {
+                padding-top: 80px !important;
+            }
+            .parent-hero {
+                padding: 35px 20px !important;
+                border-radius: 24px !important;
+                text-align: center;
+                justify-content: center;
+            }
+            .hero-left h1 {
+                font-size: 2rem !important;
+            }
+            .parent-cta {
+                padding: 16px 36px !important;
+                font-size: 1.1rem !important;
+            }
+        }
+    </style>
+
+    <div class="parent-dashboard">
+        <!-- Floating cloud & star decorations matching student dashboard -->
+        <div class="parent-bg-cloud c1">☁️</div>
+        <div class="parent-bg-cloud c2">☁️</div>
+        <div class="parent-bg-star s1">⭐</div>
+        <div class="parent-bg-star s2">⭐</div>
+        <div class="parent-bg-star s3">⭐</div>
+        <div class="parent-bg-star s4">⭐</div>
+
+        <div class="container">
+            <div class="parent-hero">
+                <div class="hero-left">
+                    <h1>Chào Phụ Huynh @(User.FindFirst("FullName")?.Value ?? "gia đình")! 👨‍👩‍👧‍👦</h1>
+                    <p>Hãy Cùng Con Yêu Đồng Hành Trên Con Đường Chinh Phục Tiếng Anh Mỗi Ngày.</p>
+                </div>
+                <div class="hero-right">
+                    <a asp-controller="Parent" asp-action="DetailedProgress" class="parent-cta">
+                        <i class="fa-solid fa-chart-line"></i> Xem tiến độ học tập của con →
+                    </a>
+                </div>
+            </div>
+
+            <div class="parent-cards-grid">
+                <a asp-controller="Parent" asp-action="LinkedStudents" class="p-card">
+                    <div class="p-card-icon">
+                        <i class="fa-solid fa-child"></i>
+                    </div>
+                    <h3>Học sinh liên kết</h3>
+                    <p>Liên kết thêm tài khoản của con bạn bằng địa chỉ email để theo dõi tiến độ của bé trên hệ thống.</p>
+                    <div class="p-card-footer">
+                        Xem chi tiết danh sách <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                </a>
+
+                <a asp-controller="Wallet" asp-action="Index" class="p-card blue-theme">
+                    <div class="p-card-icon blue">
+                        <i class="fa-solid fa-wallet"></i>
+                    </div>
+                    <h3>Ví của tôi</h3>
+                    <p>Số dư ví hiện tại dùng để mua và gia hạn các gói học tập cao cấp cho con một cách nhanh chóng.</p>
+                    <div class="p-card-footer blue">
+                        Xem số dư ví & giao dịch <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                </a>
+
+                <a asp-controller="Package" asp-action="List" class="p-card yellow-theme">
+                    <div class="p-card-icon yellow">
+                        <i class="fa-solid fa-gem"></i>
+                    </div>
+                    <h3>Gói học tập</h3>
+                    <p>Đăng ký các gói học theo khối lớp hoặc các môn học cụ thể để mở khóa nội dung chất lượng cao cho con.</p>
+                    <div class="p-card-footer yellow">
+                        Xem danh sách gói học <i class="fa-solid fa-arrow-right"></i>
+                    </div>
+                </a>
+            </div>
+
+            <div class="tips-container">
+                <h2><i class="fa-solid fa-lightbulb text-warning animate-bounce"></i> Gợi ý giúp con học tốt tuần này</h2>
+                <div class="tips-grid">
+                    <div class="tip-item-hp">
+                        <span class="tip-badge">1</span>
+                        <p class="tip-text-hp">Khuyến khích con tự giác học 10 phút vào khung giờ cố định mỗi ngày.</p>
+                    </div>
+                    <div class="tip-item-hp">
+                        <span class="tip-badge">2</span>
+                        <p class="tip-text-hp">Khen ngợi sự tập trung và sự cố gắng hoàn thành bài học của con hơn là điểm số.</p>
+                    </div>
+                    <div class="tip-item-hp">
+                        <span class="tip-badge">3</span>
+                        <p class="tip-text-hp">Cùng con mở rộng vốn từ qua các câu hỏi vui nhộn về thế giới xung quanh.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    ViewData["Title"] = "PLO - Học Tiếng Anh cho trẻ lớp 1 & lớp 2 (6–7 tuổi)";
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -625,6 +1974,7 @@
         }
     </div>
 </section>
+}
 
 @section Scripts {
     <script src="~/vendor/jquery/jquery.min.js"></script>

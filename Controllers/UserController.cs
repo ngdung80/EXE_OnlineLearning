@@ -2,6 +2,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using POT_System_ASPNET.Services;
 using System.Security.Claims;
+using POT_System_ASPNET.Data;
+using POT_System_ASPNET.Data.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace POT_System_ASPNET.Controllers;
 
@@ -80,15 +83,40 @@ public class ParentController : Controller
     private readonly IUserService _userService;
     private readonly ITestAttemptService _testAttemptService;
     private readonly IStudentPackageService _studentPackageService;
+<<<<<<< HEAD
+    private readonly IGradeService _gradeService;
+    private readonly ISubjectService _subjectService;
+    private readonly IChapterService _chapterService;
+    private readonly ILessonService _lessonService;
+    private readonly AppDbContext _dbContext;
+
+    public ParentController(IUserService userService, 
+        ITestAttemptService testAttemptService, 
+        IStudentPackageService studentPackageService,
+        IGradeService gradeService,
+        ISubjectService subjectService,
+        IChapterService chapterService,
+        ILessonService lessonService,
+        AppDbContext dbContext)
+=======
     private readonly IEmailService _emailService;
 
     public ParentController(IUserService userService, ITestAttemptService testAttemptService, 
         IStudentPackageService studentPackageService, IEmailService emailService)
+>>>>>>> ee62a85d55fb06b1057f8eabda607e243d866af1
     {
         _userService = userService;
         _testAttemptService = testAttemptService;
         _studentPackageService = studentPackageService;
+<<<<<<< HEAD
+        _gradeService = gradeService;
+        _subjectService = subjectService;
+        _chapterService = chapterService;
+        _lessonService = lessonService;
+        _dbContext = dbContext;
+=======
         _emailService = emailService;
+>>>>>>> ee62a85d55fb06b1057f8eabda607e243d866af1
     }
 
     public async Task<IActionResult> LinkedStudents()
@@ -216,6 +244,153 @@ public class ParentController : Controller
         // Nhiều con → hiển thị danh sách để chọn
         ViewBag.GradeId = gradeId;
         return View("SelectStudentForProgress", childrenInGrade);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> DetailedProgress(int? studentId, int? gradeId, int? subjectId, int? chapterId, int? lessonId)
+    {
+        var parentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        
+        // Trace back selections from lessonId, chapterId, or subjectId if not explicitly provided
+        if (lessonId.HasValue && !chapterId.HasValue)
+        {
+            var lesson = await _dbContext.Lessons
+                .Include(l => l.Chapter)
+                .ThenInclude(c => c.Subject)
+                .FirstOrDefaultAsync(l => l.LessonId == lessonId.Value);
+            if (lesson != null)
+            {
+                chapterId = lesson.ChapterId;
+                subjectId = lesson.Chapter.SubjectId;
+                gradeId = lesson.Chapter.Subject.GradeId;
+            }
+        }
+        else if (chapterId.HasValue && !subjectId.HasValue)
+        {
+            var chapter = await _dbContext.Chapters
+                .Include(c => c.Subject)
+                .FirstOrDefaultAsync(c => c.ChapterId == chapterId.Value);
+            if (chapter != null)
+            {
+                subjectId = chapter.SubjectId;
+                gradeId = chapter.Subject.GradeId;
+            }
+        }
+        else if (subjectId.HasValue && !gradeId.HasValue)
+        {
+            var subject = await _dbContext.Subjects
+                .FirstOrDefaultAsync(s => s.SubjectId == subjectId.Value);
+            if (subject != null)
+            {
+                gradeId = subject.GradeId;
+            }
+        }
+
+        // 1. Get linked students
+        var children = await _userService.GetLinkedStudentsAsync(parentId);
+        ViewBag.Children = children;
+        
+        // Auto-select if only 1 student linked and no studentId provided
+        if (!studentId.HasValue && children.Count == 1)
+        {
+            studentId = children[0].UserId;
+        }
+
+        POT_System_ASPNET.Data.Entities.User? selectedStudent = null;
+        if (studentId.HasValue)
+        {
+            selectedStudent = children.FirstOrDefault(c => c.UserId == studentId.Value);
+            if (selectedStudent == null)
+            {
+                // Security check
+                return RedirectToAction(nameof(DetailedProgress));
+            }
+        }
+        ViewBag.SelectedStudent = selectedStudent;
+
+        // 2. Fetch Grades (Active ones)
+        var grades = await _gradeService.GetActiveAsync();
+        ViewBag.Grades = grades;
+        
+        Grade? selectedGrade = null;
+        if (gradeId.HasValue && selectedStudent != null)
+        {
+            selectedGrade = grades.FirstOrDefault(g => g.GradeId == gradeId.Value);
+        }
+        ViewBag.SelectedGrade = selectedGrade;
+
+        // 3. Fetch Subjects based on Selected Grade
+        List<Subject> subjects = new();
+        if (selectedGrade != null)
+        {
+            subjects = (await _subjectService.GetByGradeIdAsync(selectedGrade.GradeId))
+                .Where(s => s.Status == "Active").ToList();
+        }
+        ViewBag.Subjects = subjects;
+        
+        Subject? selectedSubject = null;
+        if (subjectId.HasValue && selectedGrade != null)
+        {
+            selectedSubject = subjects.FirstOrDefault(s => s.SubjectId == subjectId.Value);
+        }
+        ViewBag.SelectedSubject = selectedSubject;
+
+        // 4. Fetch Chapters based on Selected Subject
+        List<Chapter> chapters = new();
+        if (selectedSubject != null)
+        {
+            chapters = (await _chapterService.GetBySubjectIdAsync(selectedSubject.SubjectId))
+                .Where(c => c.Status == "Active").ToList();
+        }
+        ViewBag.Chapters = chapters;
+        
+        Chapter? selectedChapter = null;
+        if (chapterId.HasValue && selectedSubject != null)
+        {
+            selectedChapter = chapters.FirstOrDefault(c => c.ChapterId == chapterId.Value);
+        }
+        ViewBag.SelectedChapter = selectedChapter;
+
+        // 5. Fetch Lessons based on Selected Chapter
+        List<Lesson> lessons = new();
+        if (selectedChapter != null)
+        {
+            lessons = (await _lessonService.GetByChapterIdAsync(selectedChapter.ChapterId))
+                .Where(l => l.Status == "Active").ToList();
+        }
+        ViewBag.Lessons = lessons;
+        
+        Lesson? selectedLesson = null;
+        if (lessonId.HasValue && selectedChapter != null)
+        {
+            selectedLesson = lessons.FirstOrDefault(l => l.LessonId == lessonId.Value);
+        }
+        ViewBag.SelectedLesson = selectedLesson;
+
+        // 6. Fetch progress details if lesson is selected
+        if (selectedStudent != null && selectedLesson != null)
+        {
+            var isLessonCompleted = await _dbContext.StudentLessonProgresses
+                .AnyAsync(p => p.StudentId == selectedStudent.UserId && p.LessonId == selectedLesson.LessonId);
+            ViewBag.IsLessonCompleted = isLessonCompleted;
+
+            if (isLessonCompleted)
+            {
+                var progressEntry = await _dbContext.StudentLessonProgresses
+                    .FirstOrDefaultAsync(p => p.StudentId == selectedStudent.UserId && p.LessonId == selectedLesson.LessonId);
+                ViewBag.CompletedAt = progressEntry?.CompletedAt;
+            }
+
+            var attempts = await _dbContext.TestAttempts
+                .Include(a => a.Test)
+                .Where(a => a.StudentId == selectedStudent.UserId && a.Test.LessonId == selectedLesson.LessonId)
+                .OrderByDescending(a => a.StartTime)
+                .ToListAsync();
+                
+            ViewBag.TestAttempts = attempts;
+        }
+
+        return View();
     }
 }
 

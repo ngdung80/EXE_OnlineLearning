@@ -45,11 +45,11 @@ public class GradeController : Controller
         return View(await _gradeService.GetActiveAsync());
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Content Manager")]
     [HttpGet]
     public IActionResult Create() => View();
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Content Manager")]
     [HttpPost]
     public async Task<IActionResult> Create(Grade grade)
     {
@@ -59,7 +59,7 @@ public class GradeController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Content Manager")]
     [HttpGet]
     public async Task<IActionResult> Edit(int id)
     {
@@ -68,7 +68,7 @@ public class GradeController : Controller
         return View(grade);
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Content Manager")]
     [HttpPost]
     public async Task<IActionResult> Edit(Grade grade)
     {
@@ -78,7 +78,7 @@ public class GradeController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Admin,Content Manager")]
     [HttpPost]
     public async Task<IActionResult> Delete(int id)
     {

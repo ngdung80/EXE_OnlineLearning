@@ -77,7 +77,7 @@ public class PackageController : Controller
         if (!subjectIds.Any()) { TempData["Error"] = "No subjects found for this grade."; return RedirectToAction(nameof(Purchase), new { packageId }); }
 
         var startDate = DateOnly.FromDateTime(DateTime.Now);
-        var endDate = startDate.AddMonths(package!.Duration);
+        var endDate = startDate.AddDays(package!.Duration);
         var studentPackageId = await _studentPackageService.InsertForGradeAsync(studentId, packageId, gradeId, startDate, endDate, subjectIds);
 
         // Deduct from wallet

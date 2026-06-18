@@ -97,6 +97,7 @@ public class UserService : IUserService
 
     public async Task<List<User>> GetLinkedStudentsAsync(int parentId)
         => await _db.Users
+            .Include(u => u.Grade)
             .Where(u => u.ParentId == parentId && u.Role == "Student" && u.Status == "active" && !u.Deleted)
             .ToListAsync();
 

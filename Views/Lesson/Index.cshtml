@@ -3,100 +3,534 @@
     ViewData["Title"] = "Bài học";
     var chapter = ViewBag.Chapter as POT_System_ASPNET.Data.Entities.Chapter;
 }
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 <style>
-    .lesson-section { padding:80px 0; background:linear-gradient(135deg,#0f172a,#1e293b); min-height:80vh; }
-    .breadcrumb-bar { display:flex; align-items:center; gap:8px; color:#64748b; font-size:.88rem; margin-bottom:20px; flex-wrap:wrap; }
+    .lesson-section {
+        padding: 140px 0 80px;
+        background: transparent !important;
+        min-height: 80vh;
+        position: relative;
+        overflow: hidden;
+        font-family: 'Nunito', sans-serif !important;
+        color: #1e1b4b;
+    }
+    .lesson-section *:not(i):not(.fa) {
+        font-family: 'Nunito', sans-serif !important;
+    }
+
+    .breadcrumb-bar { display:flex; align-items:center; gap:8px; color:#6b7280; font-size:.95rem; margin-bottom:20px; font-weight: 700; position: relative; z-index: 10; }
     .breadcrumb-bar a { color:#ec6090; text-decoration:none; }
-    .section-hd { display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; }
-    .section-hd h2 { color:#ec6090; font-weight:700; margin:0; }
-    .btn-add { display:inline-flex; align-items:center; gap:8px; padding:10px 22px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border-radius:25px; text-decoration:none; font-weight:600; font-size:.88rem; transition:all .3s; }
-    .btn-add:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(236,96,144,.4); color:#fff; }
-    .lesson-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:18px; }
-    .lesson-card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.09); border-radius:14px; padding:22px; transition:all .3s; display:flex; flex-direction:column; }
-    .lesson-card:hover { transform:translateY(-4px); border-color:rgba(236,96,144,.3); box-shadow:0 12px 28px rgba(0,0,0,.25); }
-    .lesson-icon { font-size:2rem; margin-bottom:12px; }
-    .lesson-name { color:#e2e8f0; font-weight:700; font-size:.98rem; margin-bottom:6px; }
-    .lesson-content { color:#64748b; font-size:.82rem; margin-bottom:16px; flex:1; overflow:hidden; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; line-height:1.5; }
+    .breadcrumb-bar a:hover { text-decoration:underline; }
+
+    .section-hd { display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; position: relative; z-index: 10; }
+    .section-hd h2 { color:#ec6090; font-weight:900; margin:0; font-size: 2.2rem; }
+    
+    .btn-add { display:inline-flex; align-items:center; gap:8px; padding:12px 28px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff !important; border-radius:25px; text-decoration:none; font-weight:800; font-size:.9rem; transition:all .3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 5px 15px rgba(236, 96, 144, 0.2); }
+    .btn-add:hover { transform:translateY(-2px) scale(1.02); box-shadow:0 8px 20px rgba(236,96,144,.4); }
+
+    .lesson-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:24px; position: relative; z-index: 10; }
+    
+    .lesson-card {
+        background: rgba(255, 255, 255, 0.88) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        border: 4px solid #fbcfe8 !important;
+        border-radius: 35px !important;
+        padding: 30px;
+        box-shadow: 0 10px 25px rgba(236, 96, 144, 0.05) !important;
+        transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .lesson-card:hover {
+        transform: translateY(-8px) scale(1.02) !important;
+        box-shadow: 0 15px 35px rgba(168, 85, 247, 0.15), 0 0 0 6px rgba(244, 63, 94, 0.08) !important;
+        border-color: #f472b6 !important;
+    }
+
+    .lesson-icon { font-size:3rem; margin-bottom:15px; }
+    .lesson-name { color:#1e1b4b; font-weight:900; font-size:1.3rem; margin-bottom:10px; }
+    .lesson-content { color:#4b5563; font-size:.95rem; margin-bottom:20px; flex:1; overflow:hidden; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; line-height:1.6; font-weight: 700; }
     .lesson-footer { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
-    .badge { display:inline-block; padding:3px 10px; border-radius:12px; font-size:.74rem; font-weight:600; }
-    .badge-active { background:rgba(16,185,129,.2); color:#10b981; }
-    .badge-pending { background:rgba(234,179,8,.2); color:#eab308; }
-    .badge-inactive { background:rgba(239,68,68,.2); color:#ef4444; }
-    .btn-read { padding:7px 14px; background:rgba(236,96,144,.15); color:#ec6090; border-radius:15px; text-decoration:none; font-size:.82rem; font-weight:600; }
-    .btn-read:hover { background:rgba(236,96,144,.3); color:#ec6090; }
-    .admin-btns { display:flex; gap:6px; margin-top:10px; flex-wrap:wrap; }
-    .btn-sm-action { padding:5px 11px; border-radius:10px; font-size:.75rem; font-weight:600; border:none; cursor:pointer; transition:all .2s; text-decoration:none; }
-    .btn-edit-sm { background:rgba(59,130,246,.2); color:#60a5fa; }
-    .btn-del-sm { background:rgba(239,68,68,.2); color:#f87171; }
-    .btn-approve-sm { background:rgba(16,185,129,.2); color:#10b981; }
-    .empty-state { text-align:center; padding:60px; color:#64748b; }
+    
+    .badge { display:inline-block; padding:6px 14px; border-radius:20px; font-size:.8rem; font-weight:800; border: 1px solid transparent; }
+    .badge-active { background:rgba(16,185,129,.1); color:#10b981; border-color: rgba(16,185,129,.2); }
+    .badge-pending { background:rgba(234,179,8,.1); color:#d97706; border-color: rgba(234,179,8,.2); }
+    .badge-inactive { background:rgba(239,68,68,.1); color:#ef4444; border-color: rgba(239,68,68,.2); }
+    
+    .btn-read { padding:8px 18px; background:rgba(236,96,144,.1); color:#ec6090 !important; border-radius:20px; text-decoration:none; font-size:.85rem; font-weight:800; transition:all .2s; border: 1px solid rgba(236,96,144,.2); }
+    .btn-read:hover { background:rgba(236,96,144,.2); transform: translateY(-1px); }
+    
+    .admin-btns { display:flex; gap:8px; margin-top:15px; flex-wrap:wrap; border-top: 2px dashed #fbcfe8; padding-top: 15px; }
+    .btn-sm-action { padding:8px 16px; border-radius:20px; font-size:.8rem; font-weight:800; border:none; cursor:pointer; transition:all .2s; text-decoration:none; display: inline-flex; align-items: center; justify-content: center; }
+    .btn-edit-sm { background:rgba(59,130,246,.1); color:#3b82f6 !important; border: 1px solid rgba(59,130,246,.2); }
+    .btn-edit-sm:hover { background:rgba(59,130,246,.2); transform: translateY(-1px); }
+    .btn-del-sm { background:rgba(239,68,68,.1); color:#ef4444 !important; border: 1px solid rgba(239,68,68,.2); }
+    .btn-del-sm:hover { background:rgba(239,68,68,.2); transform: translateY(-1px); }
+    .btn-approve-sm { background:rgba(16,185,129,.1); color:#10b981 !important; border: 1px solid rgba(16,185,129,.2); }
+    .btn-approve-sm:hover { background:rgba(16,185,129,.2); transform: translateY(-1px); }
+    
+    .empty-state { text-align:center; padding:60px; color:#4b5563; position: relative; z-index: 10; font-weight: 800; }
+
+    .kid-bg-cloud {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 100px;
+        pointer-events: none;
+        z-index: 1;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.02);
+    }
+    .kid-bg-cloud::before, .kid-bg-cloud::after {
+        content: '';
+        position: absolute;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 50%;
+    }
+    .kid-bg-cloud.c1 {
+        width: 120px; height: 40px; top: 12%; left: 8%;
+        animation: floatCloud 24s linear infinite;
+    }
+    .kid-bg-cloud.c1::before { width: 50px; height: 50px; top: -25px; left: 15px; }
+    .kid-bg-cloud.c1::after { width: 70px; height: 70px; top: -35px; right: 15px; }
+
+    .kid-bg-cloud.c2 {
+        width: 160px; height: 50px; bottom: 15%; right: 8%;
+        animation: floatCloudReverse 28s linear infinite;
+    }
+    .kid-bg-cloud.c2::before { width: 70px; height: 70px; top: -35px; left: 20px; }
+    .kid-bg-cloud.c2::after { width: 90px; height: 90px; top: -45px; right: 20px; }
+
+    @@keyframes floatCloud {
+        0% { transform: translateX(0); }
+        50% { transform: translateX(50px); }
+        100% { transform: translateX(0); }
+    }
+    @@keyframes floatCloudReverse {
+        0% { transform: translateX(0); }
+        50% { transform: translateX(-50px); }
+        100% { transform: translateX(0); }
+    }
+
+    .kid-bg-star {
+        position: absolute;
+        font-size: 2.5rem;
+        color: #f59e0b;
+        opacity: 0.35;
+        pointer-events: none;
+        z-index: 5;
+    }
+    .kid-bg-star.s1 { top: 15%; right: 12%; animation: orbitRight 14s ease-in-out infinite alternate; }
+    .kid-bg-star.s2 { bottom: 18%; left: 10%; animation: orbitLeft 17s ease-in-out infinite alternate; color: #fbbf24; }
+    .kid-bg-star.s3 { top: 45%; left: 6%; animation: floatAroundVertical 11s ease-in-out infinite alternate; font-size: 1.8rem; color: #fca5a5; }
+    .kid-bg-star.s4 { bottom: 40%; right: 6%; animation: floatAroundHorizontal 15s ease-in-out infinite alternate; font-size: 2rem; color: #38bdf8; }
+    .kid-bg-star.s5 { top: 10%; left: 25%; animation: diagonalFloat 20s ease-in-out infinite alternate; font-size: 1.6rem; color: #c084fc; }
+
+    @@keyframes orbitRight {
+        0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+        35% { transform: translate(45px, -70px) rotate(120deg) scale(1.25); }
+        70% { transform: translate(-30px, -120px) rotate(240deg) scale(0.8); }
+        100% { transform: translate(0, 0) rotate(360deg) scale(1); }
+    }
+    @@keyframes orbitLeft {
+        0% { transform: translate(0, 0) rotate(360deg) scale(0.9); }
+        40% { transform: translate(-60px, 50px) rotate(180deg) scale(1.3); }
+        80% { transform: translate(40px, -40px) rotate(0deg) scale(0.7); }
+        100% { transform: translate(0, 0) rotate(-360deg) scale(0.9); }
+    }
+    @@keyframes floatAroundVertical {
+        0% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-90px) rotate(180deg); }
+        100% { transform: translateY(0) rotate(360deg); }
+    }
+    @@keyframes floatAroundHorizontal {
+        0% { transform: translateX(0) rotate(0deg); }
+        50% { transform: translateX(90px) rotate(-180deg); }
+        100% { transform: translateX(0) rotate(-360deg); }
+    }
+    @@keyframes diagonalFloat {
+        0% { transform: translate(0, 0) rotate(0deg); }
+        50% { transform: translate(80px, 80px) rotate(180deg); }
+        100% { transform: translate(0, 0) rotate(360deg); }
+    }
 </style>
 
-<section class="lesson-section">
-    <div class="container">
-        <div class="breadcrumb-bar">
-            <a asp-controller="Grade" asp-action="Index">Khối lớp</a>
+@if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Student"))
+{
+    ViewData["Title"] = "Bài Học Của Bé - PLO";
+    <style>
+        @@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap');
+
+        .kid-lessons-container {
+            min-height: 80vh;
+            padding: 120px 20px 80px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .kid-breadcrumb {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 800 !important;
+            font-size: 1.1rem !important;
+            margin-bottom: 25px !important;
+            color: #6366f1 !important;
+            z-index: 10;
+        }
+
+        .kid-breadcrumb a {
+            color: #ec6090 !important;
+            text-decoration: none !important;
+        }
+
+        .kid-lessons-header {
+            text-align: center;
+            margin-bottom: 50px;
+            z-index: 10;
+        }
+
+        .kid-lessons-title {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+            font-size: 3rem !important;
+            background: linear-gradient(135deg, #ec6090 0%, #a855f7 50%, #4f46e5 100%) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            margin-bottom: 15px !important;
+            display: inline-block;
+        }
+
+        .kid-lessons-sub {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 800 !important;
+            font-size: 1.5rem !important;
+            color: #4f46e5 !important;
+        }
+
+        .kid-lessons-grid {
+            display: flex;
+            justify-content: center;
+            gap: 35px;
+            flex-wrap: wrap;
+            max-width: 1100px;
+            width: 100%;
+            z-index: 10;
+        }
+
+        .kid-lesson-card {
+            background: rgba(255, 255, 255, 0.88) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 4px solid #fbcfe8 !important;
+            border-radius: 35px !important;
+            padding: 35px 30px !important;
+            width: 280px;
+            box-shadow: 0 15px 35px rgba(236, 96, 144, 0.08) !important;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kid-lesson-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.4) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: skewX(-25deg);
+        }
+
+        .kid-lesson-card:hover::before {
+            animation: sweepShineLesson 1.8s ease-in-out infinite;
+        }
+
+        @@keyframes sweepShineLesson {
+            0% { left: -150%; }
+            50% { left: 150%; }
+            100% { left: 150%; }
+        }
+
+        .kid-lesson-card:hover {
+            transform: translateY(-12px) scale(1.03) !important;
+            box-shadow: 0 20px 45px rgba(168, 85, 247, 0.18), 0 0 0 8px rgba(244, 63, 94, 0.1) !important;
+            border-color: #f472b6 !important;
+        }
+
+        .kid-lesson-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            animation: floatLessonIcon 3s ease-in-out infinite alternate;
+            display: inline-block;
+        }
+
+        .kid-lesson-card:nth-child(even) .kid-lesson-icon {
+            animation-delay: 0.5s;
+        }
+
+        @@keyframes floatLessonIcon {
+            0% { transform: translateY(0) rotate(-4deg); }
+            100% { transform: translateY(-8px) rotate(4deg); }
+        }
+
+        .kid-lesson-name {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+            font-size: 1.5rem !important;
+            color: #1e1b4b !important;
+            margin-bottom: 10px !important;
+        }
+
+        .kid-lesson-desc {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 700 !important;
+            font-size: 1.05rem !important;
+            color: #64748b !important;
+            margin-bottom: 25px !important;
+            line-height: 1.5;
+            min-height: 65px;
+        }
+
+        .btn-kid-lesson-action {
+            display: inline-block;
+            padding: 12px 28px !important;
+            background: linear-gradient(135deg, #ec6090 0%, #e75485 100%) !important;
+            color: #ffffff !important;
+            border-radius: 99px !important;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+            font-size: 1.1rem !important;
+            text-decoration: none !important;
+            box-shadow: 0 8px 20px rgba(236, 96, 144, 0.3) !important;
+            text-align: center;
+            transition: all 0.3s !important;
+        }
+
+        .btn-kid-lesson-action:hover {
+            transform: scale(1.05) !important;
+            box-shadow: 0 12px 25px rgba(236, 96, 144, 0.45) !important;
+            color: #ffffff !important;
+        }
+
+        /* Decorative Elements */
+        .kid-bg-cloud {
+            position: absolute;
+            font-size: 5rem;
+            opacity: 0.12;
+            pointer-events: none;
+            animation: floatCloud 25s linear infinite;
+        }
+        .kid-bg-cloud.c1 { top: 15%; left: -10%; animation-duration: 45s; }
+        .kid-bg-cloud.c2 { bottom: 20%; right: -10%; animation-duration: 35s; animation-delay: -10s; }
+
+        @@keyframes floatCloud {
+            0% { transform: translateX(-150px); }
+            100% { transform: translateX(110vw); }
+        }
+
+        .kid-bg-star {
+            position: absolute;
+            font-size: 2.5rem;
+            color: #f59e0b;
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .kid-bg-star.s1 { top: 15%; right: 12%; animation: orbitRight 14s ease-in-out infinite alternate; }
+        .kid-bg-star.s2 { bottom: 18%; left: 10%; animation: orbitLeft 17s ease-in-out infinite alternate; color: #fbbf24; }
+        .kid-bg-star.s3 { top: 45%; left: 6%; animation: floatAroundVertical 11s ease-in-out infinite alternate; font-size: 1.8rem; color: #fca5a5; }
+        .kid-bg-star.s4 { bottom: 40%; right: 6%; animation: floatAroundHorizontal 15s ease-in-out infinite alternate; font-size: 2rem; color: #38bdf8; }
+        .kid-bg-star.s5 { top: 10%; left: 25%; animation: diagonalFloat 20s ease-in-out infinite alternate; font-size: 1.6rem; color: #c084fc; }
+
+        @@keyframes orbitRight {
+            0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            35% { transform: translate(45px, -70px) rotate(120deg) scale(1.25); }
+            70% { transform: translate(-30px, -120px) rotate(240deg) scale(0.8); }
+            100% { transform: translate(0, 0) rotate(360deg) scale(1); }
+        }
+
+        @@keyframes orbitLeft {
+            0% { transform: translate(0, 0) rotate(360deg) scale(0.9); }
+            40% { transform: translate(-60px, 50px) rotate(180deg) scale(1.3); }
+            80% { transform: translate(40px, -40px) rotate(0deg) scale(0.7); }
+            100% { transform: translate(0, 0) rotate(-360deg) scale(0.9); }
+        }
+
+        @@keyframes floatAroundVertical {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-90px) rotate(180deg); }
+            100% { transform: translateY(0) rotate(360deg); }
+        }
+
+        @@keyframes floatAroundHorizontal {
+            0% { transform: translateX(0) rotate(0deg); }
+            50% { transform: translateX(90px) rotate(-180deg); }
+            100% { transform: translateX(0) rotate(-360deg); }
+        }
+
+        @@keyframes diagonalFloat {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(120px, 90px) rotate(180deg); }
+            100% { transform: translate(0, 0) rotate(360deg); }
+        }
+
+        /* Responsive Media Queries */
+        @@media (max-width: 768px) {
+            .kid-lessons-title { font-size: 2.2rem !important; }
+            .kid-lessons-sub { font-size: 1.25rem !important; }
+            .kid-lesson-card { width: 45%; }
+        }
+
+        @@media (max-width: 480px) {
+            .kid-lessons-title { font-size: 1.85rem !important; }
+            .kid-lesson-card { width: 100%; }
+        }
+    </style>
+
+    <div class="kid-lessons-container">
+        <!-- Floating cloud & star decorations -->
+        <div class="kid-bg-cloud c1">☁️</div>
+        <div class="kid-bg-cloud c2">☁️</div>
+        <div class="kid-bg-star s1">⭐</div>
+        <div class="kid-bg-star s2">⭐</div>
+        <div class="kid-bg-star s3">⭐</div>
+        <div class="kid-bg-star s4">⭐</div>
+        <div class="kid-bg-star s5">⭐</div>
+
+        <div class="kid-breadcrumb">
+            <a asp-controller="Grade" asp-action="Index">🎒 Khối lớp</a>
             <span>›</span>
             <a asp-controller="Subject" asp-action="Index" asp-route-gradeId="@chapter?.Subject?.GradeId">@chapter?.Subject?.Grade?.GradeName</a>
             <span>›</span>
             <a asp-controller="Chapter" asp-action="Index" asp-route-subjectId="@chapter?.SubjectId">@chapter?.Subject?.SubjectName</a>
             <span>›</span>
-            <span style="color:#e2e8f0;">@chapter?.ChapterName</span>
-        </div>
-        <div class="section-hd">
-            <h2>📝 @(chapter?.ChapterName ?? "Bài học")</h2>
-            @if (User.IsInRole("Admin") || User.IsInRole("Content Manager"))
-            {
-                <a asp-action="Create" asp-route-chapterId="@chapter?.ChapterId" class="btn-add"><i class="fas fa-plus"></i> Thêm bài học</a>
-            }
+            <span>@chapter?.ChapterName</span>
         </div>
 
-        @if (Model != null && Model.Any())
-        {
-            <div class="lesson-grid">
-                @{ var icons = new[] { "📖", "🎯", "💡", "🔬", "🧮", "📐", "🌍", "🎨" }; int li = 0; }
-                @foreach (var l in Model)
+        <div class="kid-lessons-header">
+            <h1 class="kid-lessons-title">Chọn Bài Học Của Bé</h1>
+            <p class="kid-lessons-sub">Bé hãy chọn một bài học thật bổ ích nhé! 📝</p>
+        </div>
+
+        <div class="kid-lessons-grid">
+            @if (Model != null && Model.Any())
+            {
+                var icons = new[] { "📖", "🎯", "💡", "🔬", "🧮", "📐", "🌍", "🎨" };
+                int li = 0;
+                foreach (var l in Model.Where(x => x.Status == "Active"))
                 {
-                    <div class="lesson-card">
-                        <div class="lesson-icon">@icons[li++ % icons.Length]</div>
-                        <div class="lesson-name">@l.LessonName</div>
-                        <div class="lesson-content">@(l.ContentText ?? "Chưa có mô tả tóm tắt nội dung bài học.")</div>
-                        <div class="lesson-footer">
-                            @{
-                                string badgeClass = l.Status == "Active" ? "badge-active" : l.Status == "Pending" ? "badge-pending" : "badge-inactive";
-                                string statusText = l.Status == "Active" ? "Hoạt động" : l.Status == "Pending" ? "Chờ duyệt" : "Không hoạt động";
-                            }
-                            <span class="badge @badgeClass">@statusText</span>
-                            <a asp-action="Detail" asp-route-id="@l.LessonId" class="btn-read">Xem chi tiết →</a>
+                    var fallbackIcon = icons[li++ % icons.Length];
+
+                    <div class="kid-lesson-card">
+                        <div>
+                            <span class="kid-lesson-icon">@fallbackIcon</span>
+                            <h2 class="kid-lesson-name">@l.LessonName</h2>
+                            <p class="kid-lesson-desc">@(l.ContentText ?? "Chưa có mô tả tóm tắt nội dung bài học.")</p>
                         </div>
-                        @if (User.IsInRole("Admin") || User.IsInRole("Content Manager"))
-                        {
-                            <div class="admin-btns">
-                                <a asp-action="Edit" asp-route-id="@l.LessonId" class="btn-sm-action btn-edit-sm">✏️ Sửa</a>
-                                @if (User.IsInRole("Admin") && l.Status == "Pending")
-                                {
-                                    <form asp-action="Approve" asp-route-id="@l.LessonId" method="post" style="display:inline">
-                                        @Html.AntiForgeryToken()
-                                        <button type="submit" class="btn-sm-action btn-approve-sm">✅ Duyệt</button>
-                                    </form>
-                                }
-                                <form asp-action="Delete" asp-route-id="@l.LessonId" method="post" style="display:inline" onsubmit="return confirm('Xóa bài học này?')">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn-sm-action btn-del-sm">🗑️ Xóa</button>
-                                </form>
-                            </div>
-                        }
+                        <a asp-action="Detail" asp-route-id="@l.LessonId" class="btn-kid-lesson-action">🚀 Học Bài Ngay</a>
                     </div>
                 }
-            </div>
-        }
-        else
-        {
-            <div class="empty-state">
-                <div style="font-size:3rem;margin-bottom:15px;">📄</div>
-                <p>Chưa có bài học nào trong chương này.</p>
-            </div>
-        }
+            }
+            else
+            {
+                <div style="background:rgba(255,255,255,0.85); padding:40px; border-radius:30px; border:3px solid #fbcfe8; text-align:center;">
+                    <span style="font-size:4rem;">🤔</span>
+                    <p style="font-family:'Nunito',sans-serif; font-size:1.2rem; font-weight:800; color:#4f46e5; margin-top:15px;">Chưa có bài học nào cho bé trong chương này.</p>
+                </div>
+            }
+        </div>
     </div>
-</section>
+}
+else
+{
+    <!-- Clouds -->
+    <div class="kid-bg-cloud c1"></div>
+    <div class="kid-bg-cloud c2"></div>
+
+    <!-- Stars -->
+    <div class="kid-bg-star s1">⭐</div>
+    <div class="kid-bg-star s2">✨</div>
+    <div class="kid-bg-star s3">🌟</div>
+    <div class="kid-bg-star s4">⭐</div>
+    <div class="kid-bg-star s5">✨</div>
+
+    <section class="lesson-section">
+        <div class="container">
+            <div class="breadcrumb-bar">
+                <a asp-controller="Grade" asp-action="Index">Khối lớp</a>
+                <span>›</span>
+                <a asp-controller="Subject" asp-action="Index" asp-route-gradeId="@chapter?.Subject?.GradeId">@chapter?.Subject?.Grade?.GradeName</a>
+                <span>›</span>
+                <a asp-controller="Chapter" asp-action="Index" asp-route-subjectId="@chapter?.SubjectId">@chapter?.Subject?.SubjectName</a>
+                <span>›</span>
+                <span style="color:#1e1b4b;">@chapter?.ChapterName</span>
+            </div>
+            <div class="section-hd">
+                <h2>📝 @(chapter?.ChapterName ?? "Bài học")</h2>
+                @if (User.IsInRole("Admin") || User.IsInRole("Content Manager"))
+                {
+                    <a asp-action="Create" asp-route-chapterId="@chapter?.ChapterId" class="btn-add"><i class="fas fa-plus"></i> Thêm bài học</a>
+                }
+            </div>
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="lesson-grid">
+                    @{ var icons = new[] { "📖", "🎯", "💡", "🔬", "🧮", "📐", "🌍", "🎨" }; int li = 0; }
+                    @foreach (var l in Model)
+                    {
+                        <div class="lesson-card">
+                            <div class="lesson-icon">@icons[li++ % icons.Length]</div>
+                            <div class="lesson-name">@l.LessonName</div>
+                            <div class="lesson-content">@(l.ContentText ?? "Chưa có mô tả tóm tắt nội dung bài học.")</div>
+                            <div class="lesson-footer">
+                                @{
+                                    string badgeClass = l.Status == "Active" ? "badge-active" : l.Status == "Pending" ? "badge-pending" : "badge-inactive";
+                                    string statusText = l.Status == "Active" ? "Hoạt động" : l.Status == "Pending" ? "Chờ duyệt" : "Không hoạt động";
+                                }
+                                <span class="badge @badgeClass">@statusText</span>
+                                <a asp-action="Detail" asp-route-id="@l.LessonId" class="btn-read">Xem chi tiết →</a>
+                            </div>
+                            @if (User.IsInRole("Admin") || User.IsInRole("Content Manager"))
+                            {
+                                <div class="admin-btns">
+                                    <a asp-action="Edit" asp-route-id="@l.LessonId" class="btn-sm-action btn-edit-sm">✏️ Sửa</a>
+                                    @if (User.IsInRole("Admin") && l.Status == "Pending")
+                                    {
+                                        <form asp-action="Approve" asp-route-id="@l.LessonId" method="post" style="display:inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn-sm-action btn-approve-sm">✅ Duyệt</button>
+                                        </form>
+                                    }
+                                    <form asp-action="Delete" asp-route-id="@l.LessonId" method="post" style="display:inline" onsubmit="return confirm('Xóa bài học này?')">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn-sm-action btn-del-sm">🗑️ Xóa</button>
+                                    </form>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <div style="font-size:3rem;margin-bottom:15px;">📄</div>
+                    <p>Chưa có bài học nào trong chương này.</p>
+                </div>
+            }
+        </div>
+    </section>
+}

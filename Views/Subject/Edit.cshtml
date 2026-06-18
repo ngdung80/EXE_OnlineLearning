@@ -2,19 +2,160 @@
 @{
     ViewData["Title"] = "Chỉnh sửa môn học";
 }
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 <style>
-    .form-section { padding:80px 0; background:linear-gradient(135deg,#0f172a,#1e293b); min-height:80vh; }
-    .form-card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:20px; padding:40px; color:#fff; }
-    .form-card h2 { color:#ec6090; font-weight:700; margin-bottom:30px; }
-    .form-label { color:#94a3b8; font-size:.9rem; }
-    .form-control, .form-select { background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); color:#fff; border-radius:10px; padding:12px 15px; width:100%; }
-    .form-control:focus, .form-select:focus { border-color:#ec6090; background:rgba(255,255,255,.12); outline:none; color:#fff; box-shadow:0 0 0 3px rgba(236,96,144,.2); }
-    .form-control::placeholder { color:#64748b; }
-    .form-select option { background:#1e293b; }
-    .btn-save { padding:12px 30px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border:none; border-radius:25px; font-weight:600; cursor:pointer; }
-    .btn-cancel { display:inline-block; padding:12px 30px; background:transparent; color:#ec6090; border:2px solid #ec6090; border-radius:25px; text-decoration:none; font-weight:600; }
-    .current-img { max-width: 100px; border-radius: 8px; margin-top: 10px; border: 1px solid rgba(255,255,255,.2); }
+    .form-section {
+        padding: 140px 0 80px;
+        background: transparent !important;
+        min-height: 80vh;
+        position: relative;
+        overflow: hidden;
+        font-family: 'Nunito', sans-serif !important;
+        color: #1e1b4b;
+    }
+    .form-section *:not(i):not(.fa) {
+        font-family: 'Nunito', sans-serif !important;
+    }
+
+    .form-card {
+        background: rgba(255, 255, 255, 0.88) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        border: 4px solid #fbcfe8 !important;
+        border-radius: 35px !important;
+        overflow: hidden !important;
+        box-shadow: 0 15px 35px rgba(236, 96, 144, 0.08) !important;
+        position: relative;
+        z-index: 10;
+        padding: 40px;
+        color: #1e1b4b !important;
+    }
+
+    .form-card h2 { color:#ec6090; font-weight:900; margin-bottom:30px; font-size:2.2rem; }
+    .form-label { color:#4f46e5; font-size:.95rem; font-weight: 800; }
+    
+    .form-control, .form-select { 
+        background:#ffffff !important; 
+        border: 2px solid #e5e7eb !important; 
+        color:#1e1b4b !important; 
+        border-radius:15px !important; 
+        padding:12px 15px !important; 
+        width:100%; 
+        font-size:14px; 
+        transition:all .3s; 
+        font-weight: 700; 
+    }
+    .form-control:focus, .form-select:focus { 
+        background:#fff !important; 
+        border-color:#ec6090 !important; 
+        box-shadow: 0 0 0 4px rgba(236, 96, 144, 0.1) !important; 
+        outline:none; 
+        color:#1e1b4b !important; 
+    }
+    .form-control::placeholder { color:#a5b4fc; }
+    .form-select option { background:#ffffff; color: #1e1b4b; }
+    
+    .btn-save { padding:12px 30px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff !important; border:none; border-radius:25px; font-weight:800; cursor:pointer; transition:all .3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 5px 15px rgba(236, 96, 144, 0.2); }
+    .btn-save:hover { transform:translateY(-2px) scale(1.02); box-shadow:0 8px 20px rgba(236,96,144,.4); }
+    
+    .btn-cancel { display:inline-block; padding:12px 30px; background:transparent; color:#ec6090 !important; border:2px solid #ec6090; border-radius:25px; text-decoration:none; font-weight:800; transition:all .3s; }
+    .btn-cancel:hover { background: rgba(236, 96, 144, 0.05); transform: translateY(-1px); }
+    .current-img { max-width: 120px; border-radius: 15px; margin-top: 10px; border: 3px solid #fbcfe8; }
+
+    .kid-bg-cloud {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 100px;
+        pointer-events: none;
+        z-index: 1;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.02);
+    }
+    .kid-bg-cloud::before, .kid-bg-cloud::after {
+        content: '';
+        position: absolute;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 50%;
+    }
+    .kid-bg-cloud.c1 {
+        width: 120px; height: 40px; top: 12%; left: 8%;
+        animation: floatCloud 24s linear infinite;
+    }
+    .kid-bg-cloud.c1::before { width: 50px; height: 50px; top: -25px; left: 15px; }
+    .kid-bg-cloud.c1::after { width: 70px; height: 70px; top: -35px; right: 15px; }
+
+    .kid-bg-cloud.c2 {
+        width: 160px; height: 50px; bottom: 15%; right: 8%;
+        animation: floatCloudReverse 28s linear infinite;
+    }
+    .kid-bg-cloud.c2::before { width: 70px; height: 70px; top: -35px; left: 20px; }
+    .kid-bg-cloud.c2::after { width: 90px; height: 90px; top: -45px; right: 20px; }
+
+    @@keyframes floatCloud {
+        0% { transform: translateX(0); }
+        50% { transform: translateX(50px); }
+        100% { transform: translateX(0); }
+    }
+    @@keyframes floatCloudReverse {
+        0% { transform: translateX(0); }
+        50% { transform: translateX(-50px); }
+        100% { transform: translateX(0); }
+    }
+
+    .kid-bg-star {
+        position: absolute;
+        font-size: 2.5rem;
+        color: #f59e0b;
+        opacity: 0.35;
+        pointer-events: none;
+        z-index: 5;
+    }
+    .kid-bg-star.s1 { top: 15%; right: 12%; animation: orbitRight 14s ease-in-out infinite alternate; }
+    .kid-bg-star.s2 { bottom: 18%; left: 10%; animation: orbitLeft 17s ease-in-out infinite alternate; color: #fbbf24; }
+    .kid-bg-star.s3 { top: 45%; left: 6%; animation: floatAroundVertical 11s ease-in-out infinite alternate; font-size: 1.8rem; color: #fca5a5; }
+    .kid-bg-star.s4 { bottom: 40%; right: 6%; animation: floatAroundHorizontal 15s ease-in-out infinite alternate; font-size: 2rem; color: #38bdf8; }
+    .kid-bg-star.s5 { top: 10%; left: 25%; animation: diagonalFloat 20s ease-in-out infinite alternate; font-size: 1.6rem; color: #c084fc; }
+
+    @@keyframes orbitRight {
+        0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+        35% { transform: translate(45px, -70px) rotate(120deg) scale(1.25); }
+        70% { transform: translate(-30px, -120px) rotate(240deg) scale(0.8); }
+        100% { transform: translate(0, 0) rotate(360deg) scale(1); }
+    }
+    @@keyframes orbitLeft {
+        0% { transform: translate(0, 0) rotate(360deg) scale(0.9); }
+        40% { transform: translate(-60px, 50px) rotate(180deg) scale(1.3); }
+        80% { transform: translate(40px, -40px) rotate(0deg) scale(0.7); }
+        100% { transform: translate(0, 0) rotate(-360deg) scale(0.9); }
+    }
+    @@keyframes floatAroundVertical {
+        0% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-90px) rotate(180deg); }
+        100% { transform: translateY(0) rotate(360deg); }
+    }
+    @@keyframes floatAroundHorizontal {
+        0% { transform: translateX(0) rotate(0deg); }
+        50% { transform: translateX(90px) rotate(-180deg); }
+        100% { transform: translateX(0) rotate(-360deg); }
+    }
+    @@keyframes diagonalFloat {
+        0% { transform: translate(0, 0) rotate(0deg); }
+        50% { transform: translate(80px, 80px) rotate(180deg); }
+        100% { transform: translate(0, 0) rotate(360deg); }
+    }
 </style>
+
+<!-- Clouds -->
+<div class="kid-bg-cloud c1"></div>
+<div class="kid-bg-cloud c2"></div>
+
+<!-- Stars -->
+<div class="kid-bg-star s1">⭐</div>
+<div class="kid-bg-star s2">✨</div>
+<div class="kid-bg-star s3">🌟</div>
+<div class="kid-bg-star s4">⭐</div>
+<div class="kid-bg-star s5">✨</div>
+
 <section class="form-section">
     <div class="container">
         <div class="row justify-content-center">
@@ -52,7 +193,7 @@
                             @if (!string.IsNullOrEmpty(Model.Image))
                             {
                                 <div>
-                                    <p class="form-label mt-2 mb-1">Hình ảnh hiện tại:</p>
+                                    <p class="form-label mt-3 mb-1">Hình ảnh hiện tại:</p>
                                     <img src="@Model.Image" class="current-img" alt="Subject image">
                                 </div>
                             }
@@ -66,7 +207,7 @@
                         </div>
                         <div class="d-flex gap-3">
                             <button type="submit" class="btn-save">💾 Lưu thay đổi</button>
-                            <a asp-action="Index" class="btn-cancel">← Hủy</a>
+                            <a asp-action="Index" asp-route-gradeId="@Model.GradeId" class="btn-cancel">← Hủy</a>
                         </div>
                     </form>
                 </div>

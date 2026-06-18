@@ -9,33 +9,227 @@
         .Select(g => g.First())
         .ToList();
 }
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-<style>
-    .ai-section { padding:80px 0; background:linear-gradient(135deg,#0f172a,#1e293b); min-height:80vh; color:#fff; }
-    .ai-card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:24px; padding:40px; }
-    .ai-card h2 { color:#ec6090; font-weight:800; margin-bottom:10px; display:flex; align-items:center; gap:12px; }
-    .subtitle { color:#94a3b8; font-size:.95rem; margin-bottom:30px; }
-    .form-label { color:#cbd5e1; font-weight:600; font-size:.9rem; }
-    .form-control, .form-select { background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); color:#fff; border-radius:12px; padding:12px 18px; width:100%; transition:all .2s; }
-    .form-control:focus, .form-select:focus { border-color:#ec6090; background:rgba(255,255,255,.12); outline:none; color:#fff; box-shadow:0 0 0 3px rgba(236,96,144,.2); }
-    .form-select option { background:#1e293b; }
-    .num-selector { display:flex; align-items:center; gap:12px; }
-    .btn-num { width:40px; height:40px; border-radius:50%; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.06); color:#fff; font-weight:700; font-size:1.1rem; display:flex; align-items:center; justify-content:center; cursor:pointer; user-select:none; transition:all .2s; }
-    .btn-num:hover { background:rgba(236,96,144,.2); border-color:#ec6090; }
-    .num-val { font-size:1.2rem; font-weight:700; color:#ec6090; width:30px; text-align:center; }
-    .btn-generate { padding:14px 35px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border:none; border-radius:30px; font-weight:700; font-size:1rem; cursor:pointer; width:100%; display:flex; align-items:center; justify-content:center; gap:10px; transition:all .2s; box-shadow:0 8px 25px rgba(236,96,144,.3); }
-    .btn-generate:hover { transform:translateY(-2px); box-shadow:0 12px 30px rgba(236,96,144,.5); }
-    
-    /* Loading screen */
-    .loading-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,.95); backdrop-filter:blur(10px); z-index:9999; display:none; flex-direction:column; align-items:center; justify-content:center; color:#fff; }
-    .ai-brain { position:relative; width:120px; height:120px; margin-bottom:30px; }
-    .ai-brain::before, .ai-brain::after { content:''; position:absolute; width:100%; height:100%; border-radius:50%; border:3px solid transparent; border-top-color:#ec6090; animation:spin 1.5s linear infinite; }
-    .ai-brain::after { border-top-color:#60a5fa; animation:spin 1s linear infinite reverse; opacity:.7; }
-    .loading-step { font-size:1.2rem; font-weight:600; color:#e2e8f0; margin-top:10px; animation:pulse 1.5s infinite; }
-    
-    @@keyframes spin { to { transform: rotate(360deg); } }
-    @@keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
-</style>
+
+@if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Student"))
+{
+    <style>
+        .ai-section {
+            padding: 120px 0;
+            background: transparent !important;
+            min-height: 80vh;
+            color: #1e1b4b;
+            position: relative;
+            overflow: hidden;
+            font-family: 'Nunito', sans-serif !important;
+        }
+        .ai-card {
+            background: rgba(255, 255, 255, 0.88) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 4px solid #fbcfe8 !important;
+            border-radius: 35px !important;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(236, 96, 144, 0.08) !important;
+            position: relative;
+            z-index: 10;
+            color: #1e1b4b !important;
+        }
+        .ai-card h2 { color:#ec6090; font-weight:900; margin-bottom:10px; display:flex; align-items:center; gap:12px; font-family:'Nunito',sans-serif !important; }
+        .subtitle { color:#4f46e5; font-weight:700; font-size:.95rem; margin-bottom:30px; }
+        .form-label { color:#4f46e5 !important; font-weight:800; font-size:.95rem; }
+        .form-control, .form-select {
+            background: #ffffff !important;
+            border: 2px solid #fbcfe8 !important;
+            color: #1e1b4b !important;
+            border-radius: 15px !important;
+            padding: 12px 18px;
+            width: 100%;
+            transition: all .2s;
+            font-weight: 700;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #ec6090 !important;
+            background: #ffffff !important;
+            outline: none !important;
+            color: #1e1b4b !important;
+            box-shadow: 0 0 0 3px rgba(236,96,144,.2) !important;
+        }
+        .form-select option { background:#ffffff; color:#1e1b4b; font-weight:600; }
+        .num-selector { display:flex; align-items:center; gap:12px; }
+        .btn-num {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #fbcfe8 !important;
+            background: rgba(255,255,255,0.9) !important;
+            color: #ec6090 !important;
+            font-weight: 900;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            transition: all .2s;
+        }
+        .btn-num:hover { background:#ec6090 !important; color:#fff !important; border-color:#ec6090 !important; }
+        .num-val { font-size:1.3rem; font-weight:900; color:#ec6090; width:30px; text-align:center; }
+        .btn-generate {
+            padding: 14px 35px;
+            background: linear-gradient(135deg, #ec6090, #e75485) !important;
+            color: #fff !important;
+            border: none !important;
+            border-radius: 30px !important;
+            font-weight: 800;
+            font-size: 1.1rem;
+            cursor: pointer;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 8px 25px rgba(236, 96, 144, 0.2) !important;
+        }
+        .btn-generate:hover { transform:translateY(-3px) scale(1.02); box-shadow:0 12px 30px rgba(236, 96, 144, 0.4) !important; }
+        
+        /* Loading screen */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 241, 242, 0.95) !important;
+            backdrop-filter: blur(10px);
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #1e1b4b !important;
+        }
+        .ai-brain { position:relative; width:120px; height:120px; margin-bottom:30px; }
+        .ai-brain::before, .ai-brain::after { content:''; position:absolute; width:100%; height:100%; border-radius:50%; border:4px solid transparent; border-top-color:#ec6090; animation:spin 1.5s linear infinite; }
+        .ai-brain::after { border-top-color:#4f46e5; animation:spin 1s linear infinite reverse; opacity:.7; }
+        .loading-step { font-size:1.3rem; font-weight:800; color:#ec6090 !important; margin-top:10px; animation:pulse 1.5s infinite; }
+        
+        @@keyframes spin { to { transform: rotate(360deg); } }
+        @@keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+
+        .kid-bg-cloud {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 100px;
+            pointer-events: none;
+            z-index: 1;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.02);
+        }
+        .kid-bg-cloud::before, .kid-bg-cloud::after {
+            content: '';
+            position: absolute;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+        }
+        .kid-bg-cloud.c1 {
+            width: 120px; height: 40px; top: 12%; left: 8%;
+            animation: floatCloud 24s linear infinite;
+        }
+        .kid-bg-cloud.c1::before { width: 50px; height: 50px; top: -25px; left: 15px; }
+        .kid-bg-cloud.c1::after { width: 70px; height: 70px; top: -35px; right: 15px; }
+
+        .kid-bg-cloud.c2 {
+            width: 160px; height: 50px; bottom: 15%; right: 8%;
+            animation: floatCloudReverse 28s linear infinite;
+        }
+        .kid-bg-cloud.c2::before { width: 70px; height: 70px; top: -35px; left: 20px; }
+        .kid-bg-cloud.c2::after { width: 90px; height: 90px; top: -45px; right: 20px; }
+
+        @@keyframes floatCloud {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(50px); }
+            100% { transform: translateX(0); }
+        }
+        @@keyframes floatCloudReverse {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(-50px); }
+            100% { transform: translateX(0); }
+        }
+
+        .kid-bg-star {
+            position: absolute;
+            font-size: 2.5rem;
+            color: #f59e0b;
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .kid-bg-star.s1 { top: 15%; right: 12%; animation: orbitRight 14s ease-in-out infinite alternate; }
+        .kid-bg-star.s2 { bottom: 18%; left: 10%; animation: orbitLeft 17s ease-in-out infinite alternate; color: #fbbf24; }
+        .kid-bg-star.s3 { top: 45%; left: 6%; animation: floatAroundVertical 11s ease-in-out infinite alternate; font-size: 1.8rem; color: #fca5a5; }
+        .kid-bg-star.s4 { bottom: 40%; right: 6%; animation: floatAroundHorizontal 15s ease-in-out infinite alternate; font-size: 2rem; color: #38bdf8; }
+        .kid-bg-star.s5 { top: 10%; left: 25%; animation: diagonalFloat 20s ease-in-out infinite alternate; font-size: 1.6rem; color: #c084fc; }
+
+        @@keyframes orbitRight {
+            0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            35% { transform: translate(45px, -70px) rotate(120deg) scale(1.25); }
+            70% { transform: translate(-30px, -120px) rotate(240deg) scale(0.8); }
+            100% { transform: translate(0, 0) rotate(360deg) scale(1); }
+        }
+        @@keyframes orbitLeft {
+            0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            30% { transform: translate(-50px, 60px) rotate(-100deg) scale(1.2); }
+            65% { transform: translate(25px, 100px) rotate(-220deg) scale(0.85); }
+            100% { transform: translate(0, 0) rotate(-360deg) scale(1); }
+        }
+        @@keyframes floatAroundVertical {
+            0% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-40px) scale(1.2); }
+            100% { transform: translateY(0) scale(1); }
+        }
+        @@keyframes floatAroundHorizontal {
+            0% { transform: translateX(0) scale(1); }
+            50% { transform: translateX(35px) scale(1.15); }
+            100% { transform: translateX(0) scale(1); }
+        }
+        @@keyframes diagonalFloat {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(80px, 80px) rotate(180deg); }
+            100% { transform: translate(0, 0) rotate(360deg); }
+        }
+    </style>
+}
+else
+{
+    <style>
+        .ai-section { padding:80px 0; background:linear-gradient(135deg,#0f172a,#1e293b); min-height:80vh; color:#fff; }
+        .ai-card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:24px; padding:40px; }
+        .ai-card h2 { color:#ec6090; font-weight:800; margin-bottom:10px; display:flex; align-items:center; gap:12px; }
+        .subtitle { color:#94a3b8; font-size:.95rem; margin-bottom:30px; }
+        .form-label { color:#cbd5e1; font-weight:600; font-size:.9rem; }
+        .form-control, .form-select { background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15); color:#fff; border-radius:12px; padding:12px 18px; width:100%; transition:all .2s; }
+        .form-control:focus, .form-select:focus { border-color:#ec6090; background:rgba(255,255,255,.12); outline:none; color:#fff; box-shadow:0 0 0 3px rgba(236,96,144,.2); }
+        .form-select option { background:#1e293b; }
+        .num-selector { display:flex; align-items:center; gap:12px; }
+        .btn-num { width:40px; height:40px; border-radius:50%; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.06); color:#fff; font-weight:700; font-size:1.1rem; display:flex; align-items:center; justify-content:center; cursor:pointer; user-select:none; transition:all .2s; }
+        .btn-num:hover { background:rgba(236,96,144,.2); border-color:#ec6090; }
+        .num-val { font-size:1.2rem; font-weight:700; color:#ec6090; width:30px; text-align:center; }
+        .btn-generate { padding:14px 35px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border:none; border-radius:30px; font-weight:700; font-size:1rem; cursor:pointer; width:100%; display:flex; align-items:center; justify-content:center; gap:10px; transition:all .2s; box-shadow:0 8px 25px rgba(236,96,144,.3); }
+        .btn-generate:hover { transform:translateY(-2px); box-shadow:0 12px 30px rgba(236,96,144,.5); }
+        
+        /* Loading screen */
+        .loading-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,.95); backdrop-filter:blur(10px); z-index:9999; display:none; flex-direction:column; align-items:center; justify-content:center; color:#fff; }
+        .ai-brain { position:relative; width:120px; height:120px; margin-bottom:30px; }
+        .ai-brain::before, .ai-brain::after { content:''; position:absolute; width:100%; height:100%; border-radius:50%; border:3px solid transparent; border-top-color:#ec6090; animation:spin 1.5s linear infinite; }
+        .ai-brain::after { border-top-color:#60a5fa; animation:spin 1s linear infinite reverse; opacity:.7; }
+        .loading-step { font-size:1.2rem; font-weight:600; color:#e2e8f0; margin-top:10px; animation:pulse 1.5s infinite; }
+        
+        @@keyframes spin { to { transform: rotate(360deg); } }
+        @@keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+    </style>
+}
 
 <div class="loading-overlay" id="loadingOverlay">
     <div class="ai-brain"></div>
@@ -44,6 +238,19 @@
 </div>
 
 <section class="ai-section">
+    @if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Student"))
+    {
+        <!-- Clouds -->
+        <div class="kid-bg-cloud c1"></div>
+        <div class="kid-bg-cloud c2"></div>
+
+        <!-- Stars -->
+        <div class="kid-bg-star s1">⭐</div>
+        <div class="kid-bg-star s2">✨</div>
+        <div class="kid-bg-star s3">🌟</div>
+        <div class="kid-bg-star s4">⭐</div>
+        <div class="kid-bg-star s5">✨</div>
+    }
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-8">

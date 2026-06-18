@@ -238,7 +238,7 @@ public class PaymentController : Controller
     }
 
     [Authorize(Roles = "Parent")]
-    public async Task<IActionResult> TopUpCancel(int walletTransactionId)
+    public IActionResult TopUpCancel(int walletTransactionId)
     {
         TempData["Error"] = "Bạn đã hủy nạp tiền.";
         return RedirectToAction("Index", "Wallet");
@@ -303,7 +303,7 @@ public class PaymentController : Controller
                 {
                     var subjectIds = await _subjectService.GetSubjectIdsByGradeIdAsync(transaction.GradeId.Value);
                     var startDate = DateOnly.FromDateTime(DateTime.Now);
-                    var endDate = startDate.AddMonths(package.Duration);
+                    var endDate = startDate.AddDays(package.Duration);
 
                     var studentPackageId = await _studentPackageService.InsertForGradeAsync(
                         transaction.StudentId.Value, transaction.PackageId,

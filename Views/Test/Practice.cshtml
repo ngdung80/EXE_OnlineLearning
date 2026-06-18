@@ -9,8 +9,10 @@
 }
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-    .practice-section { padding: 60px 0; background: linear-gradient(135deg, #0f172a, #1e293b); min-height: 90vh; color: #fff; font-family: 'Nunito', sans-serif; }
+    .practice-section { padding: 60px 0; background: linear-gradient(135deg, #0f172a, #1e293b); min-height: 90vh; color: #fff; font-family: 'Nunito', sans-serif !important; }
+    .practice-section button, .practice-section select, .practice-section input { font-family: 'Nunito', sans-serif !important; }
     .page-header { text-align: center; margin-bottom: 50px; }
     .page-title { font-size: 2.8rem; font-weight: 900; background: linear-gradient(135deg, #ec6090, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
     .page-subtitle { color: #94a3b8; font-size: 1.1rem; font-weight: 600; }
@@ -42,9 +44,9 @@
     .lesson-card-item.completed:hover { transform: translateY(-5px); border-color: #10b981; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.15); }
     
     .lock-overlay { position: absolute; top: 15px; right: 15px; font-size: 1.3rem; color: #ef4444; background: rgba(239, 68, 68, 0.15); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(239, 68, 68, 0.3); }
-    .complete-badge { position: absolute; top: 15px; right: 15px; font-size: 0.8rem; color: #10b981; background: rgba(16, 185, 129, 0.15); padding: 4px 10px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 700; }
+    .complete-badge { font-size: 0.8rem; color: #10b981; background: rgba(16, 185, 129, 0.15); padding: 4px 10px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.3); font-weight: 700; white-space: nowrap; flex-shrink: 0; }
     
-    .lesson-card-name { font-size: 1.25rem; font-weight: 800; color: #f8fafc; margin-bottom: 8px; padding-right: 50px; line-height: 1.4; }
+    .lesson-card-name { font-size: 1.25rem; font-weight: 800; color: #f8fafc; line-height: 1.4; }
     .lesson-card-desc { font-size: 0.85rem; color: #94a3b8; line-height: 1.6; margin-bottom: 20px; }
     .btn-start-practice { width: 100%; padding: 12px; border-radius: 12px; border: none; background: linear-gradient(135deg, #10b981, #059669); color: #fff; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; }
     .btn-start-practice:hover { transform: scale(1.02); box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35); }
@@ -228,9 +230,11 @@
                 if (l.completed) {
                     lessonList.innerHTML += `
                         <div class="lesson-card-item completed animate__animated animate__fadeIn">
-                            <span class="complete-badge"><i class="fas fa-check-circle"></i> Đã hoàn thành</span>
                             <div>
-                                <h3 class="lesson-card-name">${l.name}</h3>
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 12px;">
+                                    <h3 class="lesson-card-name">${l.name}</h3>
+                                    <span class="complete-badge"><i class="fas fa-check-circle"></i> Đã hoàn thành</span>
+                                </div>
                                 <p class="lesson-card-desc">Con đã học xong lý thuyết bài này. Hãy luyện tập để củng cố kiến thức nhé!</p>
                             </div>
                             <button type="button" class="btn-start-practice" onclick="startPractice(${l.id})">
@@ -241,9 +245,11 @@
                 } else {
                     lessonList.innerHTML += `
                         <div class="lesson-card-item locked">
-                            <div class="lock-overlay"><i class="fas fa-lock"></i></div>
                             <div>
-                                <h3 class="lesson-card-name">${l.name}</h3>
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 12px;">
+                                    <h3 class="lesson-card-name">${l.name}</h3>
+                                    <div style="font-size: 1.1rem; color: #ef4444; background: rgba(239, 68, 68, 0.15); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(239, 68, 68, 0.3); flex-shrink: 0;"><i class="fas fa-lock"></i></div>
+                                </div>
                                 <p class="lesson-card-desc">Con cần xem bài giảng và hoàn thành phần từ mới của bài này trước khi làm luyện tập.</p>
                             </div>
                             <div class="locked-msg">

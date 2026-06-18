@@ -20,14 +20,14 @@ public class EmailService : IEmailService
     {
         var settings = _config.GetSection("EmailSettings");
         var message = new MimeMessage();
-        message.From.Add(new MailboxAddress(settings["SenderName"], settings["SenderEmail"]));
+        message.From.Add(new MailboxAddress(settings["SenderName"] ?? "", settings["SenderEmail"] ?? ""));
         message.To.Add(MailboxAddress.Parse(toEmail));
         message.Subject = subject;
         message.Body = new TextPart("html") { Text = htmlBody };
 
         using var client = new SmtpClient();
-        await client.ConnectAsync(settings["SmtpHost"], int.Parse(settings["SmtpPort"]!), false);
-        await client.AuthenticateAsync(settings["SenderEmail"], settings["SenderPassword"]);
+        await client.ConnectAsync(settings["SmtpHost"] ?? "", int.Parse(settings["SmtpPort"] ?? "25"), false);
+        await client.AuthenticateAsync(settings["SenderEmail"] ?? "", settings["SenderPassword"] ?? "");
         await client.SendAsync(message);
         await client.DisconnectAsync(true);
     }

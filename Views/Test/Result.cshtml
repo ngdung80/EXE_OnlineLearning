@@ -3,54 +3,200 @@
     ViewData["Title"] = "Kết quả kiểm tra";
     double pct = Model?.TotalQuestions > 0 ? (double)(Model.CorrectAnswers ?? 0) / Model.TotalQuestions.Value * 100 : 0;
     string grade = Model?.Score >= 9 ? "Xuất sắc" : Model?.Score >= 8 ? "Giỏi" : Model?.Score >= 7 ? "Khá" : Model?.Score >= 5 ? "Trung bình" : "Yếu";
-    string gradeColor = Model?.Score >= 8 ? "#10b981" : Model?.Score >= 5 ? "#eab308" : "#ef4444";
+    string gradeColor = Model?.Score >= 8 ? "#10b981" : Model?.Score >= 5 ? "#d97706" : "#ef4444";
 }
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-    .result-section { padding:80px 0; background:linear-gradient(135deg,#0f172a,#1e293b); min-height:80vh; }
-    .result-card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:20px; padding:40px; color:#fff; text-align:center; }
-    .score-circle { width:160px; height:160px; border-radius:50%; margin:0 auto 20px; display:flex; flex-direction:column; align-items:center; justify-content:center; border:6px solid @gradeColor; background:rgba(255,255,255,.04); }
-    .score-num { font-size:3rem; font-weight:800; color:@gradeColor; }
-    .score-max { font-size:1rem; color:#94a3b8; }
-    .grade-badge { font-size:2rem; font-weight:800; color:@gradeColor; margin-bottom:5px; }
-    .result-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px; margin:30px 0; }
-    .stat-box { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:20px; }
-    .stat-val { font-size:1.8rem; font-weight:700; color:#ec6090; }
-    .stat-lbl { color:#94a3b8; font-size:.85rem; margin-top:4px; }
-    .review-section { text-align:left; margin-top:30px; }
-    .review-section h4 { color:#ec6090; font-weight:700; margin-bottom:20px; }
-    .q-review { background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:20px; margin-bottom:14px; }
-    .q-review.correct { border-color:rgba(16,185,129,.3); }
-    .q-review.wrong { border-color:rgba(239,68,68,.3); }
-    .q-txt { font-weight:500; margin-bottom:12px; }
-    .ans-row { display:flex; gap:8px; align-items:center; font-size:.88rem; margin-top:6px; }
-    .ans-lbl { color:#64748b; min-width:90px; }
-    .ans-correct { color:#10b981; font-weight:600; }
-    .ans-wrong { color:#ef4444; font-weight:600; }
-    .btn-back { display:inline-block; padding:12px 30px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border-radius:25px; text-decoration:none; font-weight:700; margin-top:20px; }
-    .btn-back:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(236,96,144,.4); color:#fff; }
-    .progress-wrap { background:rgba(255,255,255,.08); border-radius:10px; height:10px; margin:15px 0; }
-    .progress-fill { height:100%; background:linear-gradient(135deg,@gradeColor,@gradeColor); border-radius:10px; transition:width .5s ease; }
+    .result-section {
+        background: linear-gradient(135deg,#fdf2f8 0%,#f5f3ff 100%);
+        min-height: 85vh;
+        padding: 100px 0 80px;
+        font-family: 'Nunito', sans-serif !important;
+    }
+    .result-section button, .result-section input, .result-section textarea, .result-section a, .result-section h4, .result-section span {
+        font-family: 'Nunito', sans-serif !important;
+    }
+    .result-card {
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 2px solid #fbcfe8;
+        border-radius: 32px;
+        padding: 48px 56px;
+        box-shadow: 0 20px 50px rgba(236,96,144,.07);
+        color: #1e1b4b;
+        text-align: center;
+    }
+    .score-circle {
+        width: 160px;
+        height: 160px;
+        border-radius: 50%;
+        margin: 0 auto 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 6px solid @gradeColor;
+        background: linear-gradient(135deg, #fce7f3, #ede9fe);
+        box-shadow: 0 8px 20px rgba(231,84,133,.12);
+        animation: floatIcon 3s ease-in-out infinite;
+    }
+    .score-num {
+        font-size: 3.2rem;
+        font-weight: 900;
+        color: @gradeColor;
+        line-height: 1.1;
+    }
+    .score-max {
+        font-size: 1rem;
+        color: #6b7280;
+        font-weight: 700;
+    }
+    .grade-badge {
+        font-size: 1.85rem;
+        font-weight: 900;
+        background: linear-gradient(135deg, #e75485 0%, #7c3aed 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 5px;
+    }
+    .result-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 16px;
+        margin: 30px 0;
+    }
+    .stat-box {
+        background: #fff;
+        border: 2px solid #ede9fe;
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(124,58,237,.03);
+    }
+    .stat-val {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #e75485;
+    }
+    .stat-lbl {
+        color: #6b7280;
+        font-size: .85rem;
+        margin-top: 4px;
+        font-weight: 700;
+    }
+    .review-section {
+        text-align: left;
+        margin-top: 40px;
+        border-top: 2px dashed rgba(231,84,133,.15);
+        padding-top: 30px;
+    }
+    .review-section h4 {
+        color: #e75485;
+        font-weight: 900;
+        margin-bottom: 24px;
+        font-size: 1.35rem;
+    }
+    .q-review {
+        background: #fff;
+        border: 2px solid #ede9fe;
+        border-radius: 18px;
+        padding: 22px;
+        margin-bottom: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.02);
+    }
+    .q-review.correct {
+        border-color: #a7f3d0;
+        background: #f0fdf4;
+    }
+    .q-review.wrong {
+        border-color: #fecaca;
+        background: #fef2f2;
+    }
+    .q-txt {
+        font-weight: 700;
+        margin-bottom: 12px;
+        color: #1e1b4b;
+        font-size: 1.02rem;
+    }
+    .ans-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        font-size: .92rem;
+        margin-top: 6px;
+    }
+    .ans-lbl {
+        color: #6b7280;
+        font-weight: 700;
+        min-width: 120px;
+    }
+    .ans-correct {
+        color: #10b981;
+        font-weight: 800;
+    }
+    .ans-wrong {
+        color: #ef4444;
+        font-weight: 800;
+    }
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 28px;
+        background: linear-gradient(135deg, #e75485 0%, #7c3aed 100%);
+        color: #fff;
+        border-radius: 20px;
+        text-decoration: none !important;
+        font-weight: 800;
+        margin-top: 20px;
+        border: none;
+        transition: all .25s;
+        box-shadow: 0 8px 20px rgba(231,84,133,.2);
+    }
+    .btn-back:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 25px rgba(231,84,133,.3);
+        color: #fff;
+    }
+    .progress-wrap {
+        background: #ede9fe;
+        border-radius: 12px;
+        height: 12px;
+        margin: 20px 0;
+        overflow: hidden;
+    }
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(135deg, #e75485, #7c3aed);
+        border-radius: 12px;
+        transition: width .5s ease;
+    }
+    @@keyframes floatIcon {
+        0%,100%{ transform:translateY(0); }
+        50%{ transform:translateY(-6px); }
+    }
 </style>
 
 <section class="result-section">
-    <div class="container">
+    <div class="container" style="max-width: 900px;">
         <div class="row justify-content-center">
-            <div class="col-lg-8">
+            <div class="col-12">
                 <div class="result-card">
                     <div class="score-circle">
-                        <div class="score-num">@Model?.Score?.ToString("F1")</div>
+                        <div class="score-num">@Model?.Score?.ToString("0.0")</div>
                         <div class="score-max">/10</div>
                     </div>
                     <div class="grade-badge">Xếp loại: @grade</div>
-                    <p style="color:#94a3b8;">@Model?.Test?.TestName</p>
+                    <p style="color:#6b7280; font-weight: 700; font-size: 1.05rem;">@Model?.Test?.TestName</p>
                     <div class="progress-wrap"><div class="progress-fill" style="width:@pct%"></div></div>
 
                     <div class="result-stats">
-                        <div class="stat-box"><div class="stat-val">@Model?.CorrectAnswers</div><div class="stat-lbl">✅ Đúng</div></div>
-                        <div class="stat-box"><div class="stat-val">@((Model?.TotalQuestions ?? 0) - (Model?.CorrectAnswers ?? 0))</div><div class="stat-lbl">❌ Sai</div></div>
-                        <div class="stat-box"><div class="stat-val">@Model?.TotalQuestions</div><div class="stat-lbl">📝 Tổng số câu</div></div>
-                        <div class="stat-box"><div class="stat-val">@pct.ToString("F0")%</div><div class="stat-lbl">📊 Tỷ lệ chính xác</div></div>
+                        <div class="stat-box"><div class="stat-val" style="color: #10b981;">@Model?.CorrectAnswers</div><div class="stat-lbl">✅ Đúng</div></div>
+                        <div class="stat-box"><div class="stat-val" style="color: #ef4444;">@((Model?.TotalQuestions ?? 0) - (Model?.CorrectAnswers ?? 0))</div><div class="stat-lbl">❌ Sai</div></div>
+                        <div class="stat-box"><div class="stat-val" style="color: #7c3aed;">@Model?.TotalQuestions</div><div class="stat-lbl">📝 Tổng số câu</div></div>
+                        <div class="stat-box"><div class="stat-val" style="color: #e75485;">@pct.ToString("F0")%</div><div class="stat-lbl">📊 Tỷ lệ chính xác</div></div>
                     </div>
 
                     <!-- Question Review -->
@@ -68,7 +214,7 @@
                                     string ansClass = result.IsCorrect ? "ans-correct" : "ans-wrong";
                                     <div class="q-review @cssClass">
                                         <div class="q-txt">
-                                            <span style="color:@iconColor">@icon Q@(idx++):</span>
+                                            <span style="color:@iconColor">@icon Câu @(idx++):</span>
                                             @result.Question?.QuestionContent
                                         </div>
                                         <div class="ans-row">
@@ -82,28 +228,40 @@
                                                 <span class="ans-correct">@result.Question?.CorrectAnswer</span>
                                             </div>
                                         }
-                                        <div class="text-end mt-2">
-                                            <button type="button" class="btn btn-sm btn-link" style="color:#64748b; font-size:.8rem; padding:0; text-decoration:none; border:none; background:none; cursor:pointer;" onclick="toggleReportForm(@result.QuestionId)">
-                                                ⚠️ Báo cáo lỗi cho câu hỏi này
-                                            </button>
-                                        </div>
-                                        <form asp-action="Report" method="post" id="reportForm-@result.QuestionId" style="display:none; margin-top:10px; background:rgba(0,0,0,.15); padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,.05);">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="questionId" value="@result.QuestionId" />
-                                            <input type="hidden" name="attemptId" value="@Model.AttemptId" />
-                                            <div class="d-flex gap-2">
-                                                <input type="text" name="reason" class="form-control" style="padding:6px 12px; font-size:.85rem; border-radius:8px; flex:1;" placeholder="Ví dụ: đáp án đúng bị sai, lỗi chính tả..." required />
-                                                <button type="submit" class="btn btn-save" style="padding:6px 15px; font-size:.85rem; border-radius:15px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border:none; cursor:pointer;">Gửi</button>
+                                        @if (User.IsInRole("Student"))
+                                        {
+                                            <div class="text-end mt-2">
+                                                <button type="button" class="btn btn-sm btn-link" style="color:#6b7280; font-size:.8rem; padding:0; text-decoration:none; border:none; background:none; cursor:pointer;" onclick="toggleReportForm(@result.QuestionId)">
+                                                    ⚠️ Báo cáo lỗi cho câu hỏi này
+                                                </button>
                                             </div>
-                                        </form>
+                                            <form asp-action="Report" method="post" id="reportForm-@result.QuestionId" style="display:none; margin-top:10px; background:rgba(255,255,255,.5); padding:12px; border-radius:12px; border:1px solid #fbcfe8;">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="questionId" value="@result.QuestionId" />
+                                                <input type="hidden" name="attemptId" value="@Model.AttemptId" />
+                                                <div class="d-flex gap-2">
+                                                    <input type="text" name="reason" class="form-control" style="padding:6px 12px; font-size:.85rem; border-radius:8px; flex:1; border: 1.5px solid #ede9fe;" placeholder="Ví dụ: đáp án đúng bị sai, lỗi chính tả..." required />
+                                                    <button type="submit" class="btn btn-save" style="padding:6px 15px; font-size:.85rem; border-radius:15px; background:linear-gradient(135deg,#e75485,#7c3aed); color:#fff; border:none; cursor:pointer; font-weight: 700;">Gửi</button>
+                                                </div>
+                                            </form>
+                                        }
                                     </div>
                                 }
                             }
                         </div>
                     }
 
-                    <a asp-action="History" class="btn-back">← Quay lại lịch sử</a>
-                    <a asp-action="List" class="btn-back" style="background:transparent;border:2px solid #ec6090;margin-left:10px;">📝 Làm đề kiểm tra khác</a>
+                    <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                        @if (User.IsInRole("Parent"))
+                        {
+                            <a href="/Parent/DetailedProgress?studentId=@Model?.StudentId&lessonId=@Model?.Test?.LessonId" class="btn-back">← Quay lại Tiến độ của con</a>
+                        }
+                        else
+                        {
+                            <a asp-action="History" class="btn-back">← Quay lại lịch sử</a>
+                            <a asp-action="List" class="btn-back" style="background:transparent;border:2px solid #e75485;color:#e75485;box-shadow:none;margin-left:10px;">📝 Làm đề kiểm tra khác</a>
+                        }
+                    </div>
                 </div>
             </div>
         </div>
@@ -120,3 +278,4 @@
         }
     </script>
 }
+

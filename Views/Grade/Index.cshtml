@@ -2,121 +2,466 @@
 @{
     ViewData["Title"] = "Quản lý khối lớp";
 }
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 <style>
-    .mgmt-section { padding:80px 0; background:linear-gradient(135deg,#0f172a,#1e293b); min-height:80vh; }
-    .mgmt-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; }
-    .mgmt-header h2 { color:#ec6090; font-weight:700; margin:0; }
-    .btn-add { display:inline-flex; align-items:center; gap:8px; padding:10px 24px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border-radius:25px; text-decoration:none; font-weight:600; transition:all .3s; }
-    .btn-add:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(236,96,144,.4); color:#fff; }
-    .table-card { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:16px; overflow:hidden; }
-    .table { color:#e2e8f0; margin:0; }
-    .table thead th { background:rgba(236,96,144,.15); color:#ec6090; font-weight:600; border:none; padding:16px; }
-    .table tbody tr { border-bottom:1px solid rgba(255,255,255,.05); transition:background .2s; }
-    .table tbody tr:hover { background:rgba(255,255,255,.05); }
-    .table tbody td { padding:14px 16px; border:none; vertical-align:middle; }
-    .badge-active { display:inline-block; padding:4px 12px; background:rgba(16,185,129,.2); color:#10b981; border-radius:20px; font-size:.8rem; font-weight:600; }
-    .badge-inactive { display:inline-block; padding:4px 12px; background:rgba(239,68,68,.2); color:#ef4444; border-radius:20px; font-size:.8rem; font-weight:600; }
-    .btn-sm-action { padding:6px 14px; border-radius:15px; font-size:.8rem; font-weight:600; border:none; cursor:pointer; transition:all .2s; }
-    .btn-edit-sm { background:rgba(59,130,246,.2); color:#60a5fa; }
-    .btn-edit-sm:hover { background:rgba(59,130,246,.4); }
-    .btn-del-sm { background:rgba(239,68,68,.2); color:#f87171; }
-    .btn-del-sm:hover { background:rgba(239,68,68,.4); }
-    .alert-success { background:rgba(16,185,129,.15); border:1px solid #10b981; color:#10b981; border-radius:10px; padding:12px 20px; }
+    .mgmt-section {
+        padding: 140px 0 80px;
+        background: transparent !important;
+        min-height: 80vh;
+        position: relative;
+        overflow: hidden;
+        font-family: 'Nunito', sans-serif !important;
+        color: #1e1b4b;
+    }
+    .mgmt-section *:not(i):not(.fa) {
+        font-family: 'Nunito', sans-serif !important;
+    }
+
+    .mgmt-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:30px; position: relative; z-index: 10; }
+    .mgmt-header h2 { color:#ec6090; font-weight:900; margin:0; font-size: 2.2rem; }
+    
+    .btn-add { display:inline-flex; align-items:center; gap:8px; padding:12px 28px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff !important; border-radius:25px; text-decoration:none; font-weight:800; transition:all .3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 5px 15px rgba(236, 96, 144, 0.2); }
+    .btn-add:hover { transform:translateY(-2px) scale(1.02); box-shadow:0 8px 20px rgba(236,96,144,.4); }
+
+    .table-card {
+        background: rgba(255, 255, 255, 0.88) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        border: 4px solid #fbcfe8 !important;
+        border-radius: 35px !important;
+        overflow: hidden !important;
+        box-shadow: 0 15px 35px rgba(236, 96, 144, 0.05) !important;
+        position: relative;
+        z-index: 10;
+        padding: 20px;
+    }
+    
+    .table { color:#1e1b4b !important; margin:0; }
+    .table thead th { background:rgba(236,96,144,0.08) !important; color:#ec6090 !important; font-weight:800; border:none; padding:18px 16px; font-size: 1rem; }
+    .table tbody tr { border-bottom:1px solid #f3f4f6; transition:all .2s; }
+    .table tbody tr:hover { background:rgba(245,243,255,0.5); }
+    .table tbody td { padding:18px 16px; border:none; vertical-align:middle; font-weight: 700; color: #4b5563; }
+    
+    .badge-active { display:inline-block; padding:6px 16px; background:rgba(16,185,129,.1); color:#10b981; border-radius:20px; font-size:.85rem; font-weight:800; border: 1px solid rgba(16,185,129,.2); }
+    .badge-inactive { display:inline-block; padding:6px 16px; background:rgba(239,68,68,.1); color:#ef4444; border-radius:20px; font-size:.85rem; font-weight:800; border: 1px solid rgba(239,68,68,.2); }
+    
+    .btn-sm-action { padding:8px 18px; border-radius:20px; font-size:.85rem; font-weight:800; border:none; cursor:pointer; transition:all .2s; text-decoration: none; }
+    .btn-edit-sm { background:rgba(59,130,246,.1); color:#3b82f6 !important; border: 1px solid rgba(59,130,246,.2); }
+    .btn-edit-sm:hover { background:rgba(59,130,246,.2); transform: translateY(-1px); }
+    .btn-del-sm { background:rgba(239,68,68,.1); color:#ef4444 !important; border: 1px solid rgba(239,68,68,.2); }
+    .btn-del-sm:hover { background:rgba(239,68,68,.2); transform: translateY(-1px); }
+    
+    .alert-success { background:rgba(16,185,129,.1); border:2px solid #10b981; color:#10b981; border-radius:15px; padding:15px 20px; font-weight: 800; z-index: 10; position: relative; }
+
+    .kid-bg-cloud {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 100px;
+        pointer-events: none;
+        z-index: 1;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.02);
+    }
+    .kid-bg-cloud::before, .kid-bg-cloud::after {
+        content: '';
+        position: absolute;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 50%;
+    }
+    .kid-bg-cloud.c1 {
+        width: 120px; height: 40px; top: 12%; left: 8%;
+        animation: floatCloud 24s linear infinite;
+    }
+    .kid-bg-cloud.c1::before { width: 50px; height: 50px; top: -25px; left: 15px; }
+    .kid-bg-cloud.c1::after { width: 70px; height: 70px; top: -35px; right: 15px; }
+
+    .kid-bg-cloud.c2 {
+        width: 160px; height: 50px; bottom: 15%; right: 8%;
+        animation: floatCloudReverse 28s linear infinite;
+    }
+    .kid-bg-cloud.c2::before { width: 70px; height: 70px; top: -35px; left: 20px; }
+    .kid-bg-cloud.c2::after { width: 90px; height: 90px; top: -45px; right: 20px; }
+
+    @@keyframes floatCloud {
+        0% { transform: translateX(0); }
+        50% { transform: translateX(50px); }
+        100% { transform: translateX(0); }
+    }
+    @@keyframes floatCloudReverse {
+        0% { transform: translateX(0); }
+        50% { transform: translateX(-50px); }
+        100% { transform: translateX(0); }
+    }
+
+    .kid-bg-star {
+        position: absolute;
+        font-size: 2.5rem;
+        color: #f59e0b;
+        opacity: 0.35;
+        pointer-events: none;
+        z-index: 5;
+    }
+    .kid-bg-star.s1 { top: 15%; right: 12%; animation: orbitRight 14s ease-in-out infinite alternate; }
+    .kid-bg-star.s2 { bottom: 18%; left: 10%; animation: orbitLeft 17s ease-in-out infinite alternate; color: #fbbf24; }
+    .kid-bg-star.s3 { top: 45%; left: 6%; animation: floatAroundVertical 11s ease-in-out infinite alternate; font-size: 1.8rem; color: #fca5a5; }
+    .kid-bg-star.s4 { bottom: 40%; right: 6%; animation: floatAroundHorizontal 15s ease-in-out infinite alternate; font-size: 2rem; color: #38bdf8; }
+    .kid-bg-star.s5 { top: 10%; left: 25%; animation: diagonalFloat 20s ease-in-out infinite alternate; font-size: 1.6rem; color: #c084fc; }
+
+    @@keyframes orbitRight {
+        0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+        35% { transform: translate(45px, -70px) rotate(120deg) scale(1.25); }
+        70% { transform: translate(-30px, -120px) rotate(240deg) scale(0.8); }
+        100% { transform: translate(0, 0) rotate(360deg) scale(1); }
+    }
+    @@keyframes orbitLeft {
+        0% { transform: translate(0, 0) rotate(360deg) scale(0.9); }
+        40% { transform: translate(-60px, 50px) rotate(180deg) scale(1.3); }
+        80% { transform: translate(40px, -40px) rotate(0deg) scale(0.7); }
+        100% { transform: translate(0, 0) rotate(-360deg) scale(0.9); }
+    }
+    @@keyframes floatAroundVertical {
+        0% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-90px) rotate(180deg); }
+        100% { transform: translateY(0) rotate(360deg); }
+    }
+    @@keyframes floatAroundHorizontal {
+        0% { transform: translateX(0) rotate(0deg); }
+        50% { transform: translateX(90px) rotate(-180deg); }
+        100% { transform: translateX(0) rotate(-360deg); }
+    }
+    @@keyframes diagonalFloat {
+        0% { transform: translate(0, 0) rotate(0deg); }
+        50% { transform: translate(80px, 80px) rotate(180deg); }
+        100% { transform: translate(0, 0) rotate(360deg); }
+    }
 </style>
 
-<section class="mgmt-section">
-    <div class="container">
-        @if (TempData["Success"] != null) { <div class="alert-success mb-3">@TempData["Success"]</div> }
-        <div class="mgmt-header">
-            <h2>📚 @(User.IsInRole("Admin") || User.IsInRole("Content Manager") || User.IsInRole("Content Approver") ? "Quản lý khối lớp" : (ViewBag.IsParent == true ? "Khối lớp đã mua" : "Khối lớp học tập"))</h2>
-            @if (User.IsInRole("Admin"))
+@if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Student"))
+{
+    ViewData["Title"] = "Khối Lớp Học Tập Của Bé - PLO";
+    <style>
+        .kid-grades-container {
+            min-height: 80vh;
+            padding: 120px 20px 80px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .kid-grades-header {
+            text-align: center;
+            margin-bottom: 50px;
+            z-index: 10;
+        }
+
+        .kid-grades-title {
+            font-weight: 900 !important;
+            font-size: 3rem !important;
+            background: linear-gradient(135deg, #ec6090 0%, #a855f7 50%, #4f46e5 100%) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            margin-bottom: 15px !important;
+            display: inline-block;
+        }
+
+        .kid-grades-sub {
+            font-weight: 800 !important;
+            font-size: 1.5rem !important;
+            color: #4f46e5 !important;
+        }
+
+        .kid-grades-grid {
+            display: flex;
+            justify-content: center;
+            gap: 35px;
+            flex-wrap: wrap;
+            max-width: 1000px;
+            width: 100%;
+            z-index: 10;
+        }
+
+        .kid-grade-card {
+            background: rgba(255, 255, 255, 0.88) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 4px solid #fbcfe8 !important;
+            border-radius: 35px !important;
+            padding: 40px 30px !important;
+            text-align: center;
+            width: 280px;
+            box-shadow: 0 15px 35px rgba(236, 96, 144, 0.1) !important;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .kid-grade-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(255, 255, 255, 0.4) 50%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            transform: skewX(-25deg);
+        }
+
+        .kid-grade-card:hover::before {
+            animation: sweepShineCard 1.8s ease-in-out infinite;
+        }
+
+        @@keyframes sweepShineCard {
+            0% { left: -150%; }
+            50% { left: 150%; }
+            100% { left: 150%; }
+        }
+
+        .kid-grade-card:hover {
+            transform: translateY(-12px) scale(1.05) !important;
+            box-shadow: 0 20px 45px rgba(168, 85, 247, 0.2), 0 0 0 8px rgba(244, 63, 94, 0.1) !important;
+            border-color: #f472b6 !important;
+        }
+
+        .kid-grade-icon {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            animation: floatGradeIcon 3s ease-in-out infinite alternate;
+            display: inline-block;
+        }
+
+        .kid-grade-card:nth-child(even) .kid-grade-icon {
+            animation-delay: 0.5s;
+        }
+
+        @@keyframes floatGradeIcon {
+            0% { transform: translateY(0) rotate(-3deg); }
+            100% { transform: translateY(-12px) rotate(3deg); }
+        }
+
+        .kid-grade-name {
+            font-weight: 900 !important;
+            font-size: 1.8rem !important;
+            color: #1e1b4b !important;
+            margin-bottom: 12px !important;
+        }
+
+        .kid-grade-desc {
+            font-weight: 700 !important;
+            font-size: 1.15rem !important;
+            color: #64748b !important;
+            margin-bottom: 25px !important;
+            min-height: 50px;
+        }
+
+        .btn-kid-action {
+            display: inline-block;
+            padding: 14px 30px !important;
+            background: linear-gradient(135deg, #ec6090 0%, #e75485 100%) !important;
+            color: #ffffff !important;
+            border-radius: 99px !important;
+            font-weight: 900 !important;
+            font-size: 1.15rem !important;
+            text-decoration: none !important;
+            box-shadow: 0 8px 20px rgba(236, 96, 144, 0.3) !important;
+            transition: all 0.3s !important;
+        }
+
+        .btn-kid-action:hover {
+            transform: scale(1.06) !important;
+            box-shadow: 0 12px 25px rgba(236, 96, 144, 0.45) !important;
+            color: #ffffff !important;
+        }
+
+        .kid-bg-cloud-icon {
+            position: absolute;
+            font-size: 5rem;
+            opacity: 0.12;
+            pointer-events: none;
+            animation: floatCloudIcon 25s linear infinite;
+        }
+        .kid-bg-cloud-icon.c1 { top: 15%; left: -10%; animation-duration: 45s; }
+        .kid-bg-cloud-icon.c2 { bottom: 20%; right: -10%; animation-duration: 35s; animation-delay: -10s; }
+
+        @@keyframes floatCloudIcon {
+            0% { transform: translateX(-150px); }
+            100% { transform: translateX(110vw); }
+        }
+
+        /* Responsive Media Queries */
+        @@media (max-width: 768px) {
+            .kid-grades-title { font-size: 2.2rem !important; }
+            .kid-grades-sub { font-size: 1.25rem !important; }
+            .kid-grade-card { width: 45%; padding: 30px 20px !important; }
+        }
+
+        @@media (max-width: 480px) {
+            .kid-grades-title { font-size: 1.85rem !important; }
+            .kid-grade-card { width: 100%; }
+        }
+    </style>
+
+    <div class="kid-grades-container">
+        <!-- Floating cloud & star decorations -->
+        <div class="kid-bg-cloud-icon c1">☁️</div>
+        <div class="kid-bg-cloud-icon c2">☁️</div>
+        <div class="kid-bg-star s1">⭐</div>
+        <div class="kid-bg-star s2">⭐</div>
+        <div class="kid-bg-star s3">⭐</div>
+        <div class="kid-bg-star s4">⭐</div>
+        <div class="kid-bg-star s5">⭐</div>
+
+        <div class="kid-grades-header">
+            <h1 class="kid-grades-title">Khối Lớp Học Tập</h1>
+            <p class="kid-grades-sub">Bé hãy chọn khối lớp phù hợp với tuổi của mình nhé! 💫</p>
+        </div>
+
+        <div class="kid-grades-grid">
+            @if (Model != null && Model.Any())
             {
-                <a asp-action="Create" class="btn-add"><i class="fas fa-plus"></i> Thêm khối lớp</a>
+                int emojiIdx = 0;
+                string[] emojis = { "🎒", "📖", "🏫", "✏️", "🎨", "🧸" };
+                foreach (var g in Model)
+                {
+                    var icon = emojis[emojiIdx % emojis.Length];
+                    emojiIdx++;
+                    
+                    <div class="kid-grade-card">
+                        <div>
+                            <span class="kid-grade-icon">@icon</span>
+                            <h2 class="kid-grade-name">@g.GradeName</h2>
+                            <p class="kid-grade-desc">@(g.Description ?? "Học tập vui vẻ cùng PLO!")</p>
+                        </div>
+                        <a href="/Subject?gradeId=@g.GradeId" class="btn-kid-action">🚀 Vào Học Thôi</a>
+                    </div>
+                }
+            }
+            else
+            {
+                <div style="background:rgba(255,255,255,0.85); padding:40px; border-radius:30px; border:3px solid #fbcfe8; text-align:center;">
+                    <span style="font-size:4rem;">🤔</span>
+                    <p style="font-family:'Nunito',sans-serif; font-size:1.2rem; font-weight:800; color:#4f46e5; margin-top:15px;">Chưa tìm thấy khối lớp nào cho bé.</p>
+                </div>
             }
         </div>
-        <div class="table-card">
-            <table class="table table-borderless">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Tên khối lớp</th>
-                        <th>Mô tả</th>
-                        <th>Trạng thái</th>
-                        <th>@(ViewBag.IsParent == true ? "Tiến trình học" : "Môn học")</th>
-                        @if (User.IsInRole("Admin"))
+    </div>
+}
+else
+{
+    <!-- Clouds -->
+    <div class="kid-bg-cloud c1"></div>
+    <div class="kid-bg-cloud c2"></div>
+
+    <!-- Stars -->
+    <div class="kid-bg-star s1">⭐</div>
+    <div class="kid-bg-star s2">✨</div>
+    <div class="kid-bg-star s3">🌟</div>
+    <div class="kid-bg-star s4">⭐</div>
+    <div class="kid-bg-star s5">✨</div>
+
+    <section class="mgmt-section">
+        <div class="container">
+            @if (TempData["Success"] != null) { <div class="alert-success mb-3">@TempData["Success"]</div> }
+            <div class="mgmt-header">
+                <h2>📚 @(User.IsInRole("Admin") || User.IsInRole("Content Manager") || User.IsInRole("Content Approver") ? "Quản lý khối lớp" : (ViewBag.IsParent == true ? "Khối lớp đã mua" : "Khối lớp học tập"))</h2>
+                @if (User.IsInRole("Admin") || User.IsInRole("Content Manager"))
+                {
+                    <a asp-action="Create" class="btn-add"><i class="fas fa-plus"></i> Thêm khối lớp</a>
+                }
+            </div>
+            <div class="table-card">
+                <table class="table table-borderless">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Tên khối lớp</th>
+                            <th>Mô tả</th>
+                            <th>Trạng thái</th>
+                            <th>@(ViewBag.IsParent == true ? "Tiến trình học" : "Môn học")</th>
+                            @if (User.IsInRole("Admin") || User.IsInRole("Content Manager"))
+                            {
+                                <th>Thao tác</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
                         {
-                            <th>Thao tác</th>
-                        }
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model != null && Model.Any())
-                    {
-                        int i = 1;
-                        foreach (var g in Model)
-                        {
-                            <tr>
-                                <td style="color:#64748b;">@i++</td>
-                                <td style="font-weight:600;">@g.GradeName</td>
-                                <td style="color:#94a3b8;">@(g.Description ?? "—")</td>
-                                <td>
-                                    @if (g.Status == "Active") { <span class="badge-active">Hoạt động</span> }
-                                    else { <span class="badge-inactive">@(g.Status == "Inactive" ? "Không hoạt động" : (g.Status ?? "—"))</span> }
-                                </td>
-                                <td>
-                                    @if (ViewBag.IsParent == true)
-                                    {
-                                        <a href="/Parent/ProgressByGrade?gradeId=@g.GradeId"
-                                           style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:linear-gradient(135deg,#ec6090,#e75485);color:#fff;border-radius:20px;text-decoration:none;font-size:.82rem;font-weight:700;transition:all .25s;"
-                                           onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(231,84,133,.35)'"
-                                           onmouseout="this.style.transform='';this.style.boxShadow=''">
-                                            📊 Xem quá trình
-                                        </a>
-                                    }
-                                    else
-                                    {
-                                        <a href="/Subject?gradeId=@g.GradeId" style="color:#60a5fa;text-decoration:none;font-size:.85rem;">Xem môn học →</a>
-                                    }
-                                </td>
-                                @if (User.IsInRole("Admin"))
-                                {
+                            int i = 1;
+                            foreach (var g in Model)
+                            {
+                                <tr>
+                                    <td style="color:#64748b;">@i++</td>
+                                    <td style="font-weight:800; color: #1e1b4b;">@g.GradeName</td>
+                                    <td style="color:#4b5563;">@(g.Description ?? "—")</td>
                                     <td>
-                                        <a asp-action="Edit" asp-route-id="@g.GradeId" class="btn-sm-action btn-edit-sm me-1">✏️ Sửa</a>
-                                        <form asp-action="Delete" asp-route-id="@g.GradeId" method="post" style="display:inline" onsubmit="return confirm('Xóa khối lớp này?')">
-                                            @Html.AntiForgeryToken()
-                                            <button type="submit" class="btn-sm-action btn-del-sm">🗑️ Xóa</button>
-                                        </form>
+                                        @if (g.Status == "Active") { <span class="badge-active">Hoạt động</span> }
+                                        else { <span class="badge-inactive">@(g.Status == "Inactive" ? "Không hoạt động" : (g.Status ?? "—"))</span> }
                                     </td>
-                                }
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        @if (ViewBag.IsParent == true)
-                        {
-                            <tr>
-                                <td colspan="5" class="text-center" style="padding:50px;">
-                                    <div style="display:flex;flex-direction:column;align-items:center;gap:16px;">
-                                        <div style="font-size:3rem;">🛒</div>
-                                        <p style="color:#94a3b8;font-size:1rem;margin:0;">Bạn chưa mua gói học nào cho con.</p>
-                                        <p style="color:#64748b;font-size:.875rem;margin:0;">Hãy mua gói học để mở khóa các khối lớp và môn học.</p>
-                                        <a asp-controller="Package" asp-action="List"
-                                           style="display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:linear-gradient(135deg,#ec6090,#e75485);color:#fff;border-radius:25px;text-decoration:none;font-weight:600;transition:all .3s;">
-                                            🎁 Xem các gói học
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
+                                    <td>
+                                        @if (ViewBag.IsParent == true)
+                                        {
+                                            <a href="/Parent/ProgressByGrade?gradeId=@g.GradeId"
+                                               style="display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:linear-gradient(135deg,#ec6090,#e75485);color:#fff;border-radius:20px;text-decoration:none;font-size:.82rem;font-weight:700;transition:all .25s;"
+                                               onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 16px rgba(231,84,133,.35)'"
+                                               onmouseout="this.style.transform='';this.style.boxShadow=''">
+                                                📊 Xem quá trình
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <a href="/Subject?gradeId=@g.GradeId" style="color:#4f46e5;text-decoration:none;font-size:.85rem; font-weight: 800;">Xem môn học →</a>
+                                        }
+                                    </td>
+                                    @if (User.IsInRole("Admin") || User.IsInRole("Content Manager"))
+                                    {
+                                        <td>
+                                            <a asp-action="Edit" asp-route-id="@g.GradeId" class="btn-sm-action btn-edit-sm me-1">✏️ Sửa</a>
+                                            <form asp-action="Delete" asp-route-id="@g.GradeId" method="post" style="display:inline" onsubmit="return confirm('Xóa khối lớp này?')">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn-sm-action btn-del-sm">🗑️ Xóa</button>
+                                            </form>
+                                        </td>
+                                    }
+                                </tr>
+                            }
                         }
                         else
                         {
-                            <tr><td colspan="@(User.IsInRole("Admin") ? 6 : 5)" class="text-center" style="color:#64748b;padding:40px;">Không tìm thấy khối lớp nào.</td></tr>
+                            @if (ViewBag.IsParent == true)
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center" style="padding:50px;">
+                                        <div style="display:flex;flex-direction:column;align-items:center;gap:16px;">
+                                            <div style="font-size:3rem;">🛒</div>
+                                            <p style="color:#94a3b8;font-size:1rem;margin:0;">Bạn chưa mua gói học nào cho con.</p>
+                                            <p style="color:#64748b;font-size:.875rem;margin:0;">Hãy mua gói học để mở khóa các khối lớp và môn học.</p>
+                                            <a asp-controller="Package" asp-action="List"
+                                               style="display:inline-flex;align-items:center;gap:8px;padding:12px 28px;background:linear-gradient(135deg,#ec6090,#e75485);color:#fff;border-radius:25px;text-decoration:none;font-weight:600;transition:all .3s;">
+                                                🎁 Xem các gói học
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                            else
+                            {
+                                <tr><td colspan="@(User.IsInRole("Admin") || User.IsInRole("Content Manager") ? 6 : 5)" class="text-center" style="color:#64748b;padding:40px;">Không tìm thấy khối lớp nào.</td></tr>
+                            }
                         }
-                    }
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
-</section>
+    </section>
+}

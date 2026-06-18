@@ -1,5 +1,9 @@
 @model POT_System_ASPNET.Data.Entities.Lesson
 @{
+<<<<<<< HEAD
+=======
+    #pragma warning disable CS8602
+>>>>>>> origin/main
     ViewData["Title"] = Model?.LessonName ?? "Chi tiết bài học";
 
     bool isVideo = false;
@@ -42,6 +46,7 @@
     }
 }
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<<<<<<< HEAD
 <style>
     .detail-section { padding:80px 0; background:linear-gradient(135deg,#0f172a,#1e293b); min-height:80vh; }
     .breadcrumb-bar { display:flex; align-items:center; gap:8px; color:#64748b; font-size:.88rem; margin-bottom:25px; flex-wrap:wrap; }
@@ -106,6 +111,620 @@
 
 <section class="detail-section">
     <div class="container">
+=======
+@if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Student"))
+{
+    <style>
+        @@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap');
+
+        .detail-section {
+            padding: 120px 0 80px;
+            background: transparent !important;
+            min-height: 80vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .breadcrumb-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6366f1 !important;
+            font-size: 1.1rem !important;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 800 !important;
+            position: relative;
+            z-index: 10;
+        }
+
+        .breadcrumb-bar a {
+            color: #ec6090 !important;
+            text-decoration: none !important;
+        }
+
+        .breadcrumb-bar span {
+            color: #4f46e5 !important;
+        }
+
+        .lesson-card {
+            background: rgba(255, 255, 255, 0.88) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 4px solid #fbcfe8 !important;
+            border-radius: 35px !important;
+            padding: 40px !important;
+            color: #1e1b4b !important;
+            box-shadow: 0 15px 35px rgba(236, 96, 144, 0.08) !important;
+            position: relative;
+            z-index: 10;
+        }
+
+        .lesson-card h1 {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+            font-size: 2.2rem !important;
+            background: linear-gradient(135deg, #ec6090 0%, #a855f7 50%, #4f46e5 100%) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            margin-bottom: 15px !important;
+            display: inline-block;
+        }
+
+        .lesson-meta {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .meta-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px !important;
+            background: rgba(236, 96, 144, 0.06) !important;
+            border: 2px solid #fbcfe8 !important;
+            border-radius: 20px !important;
+            font-size: .95rem !important;
+            color: #ec6090 !important;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 800 !important;
+        }
+
+        .lesson-content {
+            color: #475569 !important;
+            line-height: 1.8;
+            font-size: 1.15rem !important;
+            margin-bottom: 30px;
+            white-space: pre-wrap;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 700 !important;
+        }
+
+        .divider {
+            border: none;
+            border-top: 3px dashed #fbcfe8 !important;
+            margin: 30px 0;
+        }
+
+        .file-section h4, .related-tests h4 {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+            font-size: 1.35rem !important;
+            color: #ec6090 !important;
+            margin-bottom: 15px;
+        }
+
+        .file-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px !important;
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%) !important;
+            color: #ffffff !important;
+            border-radius: 99px !important;
+            text-decoration: none !important;
+            font-weight: 900 !important;
+            font-family: 'Nunito', sans-serif !important;
+            box-shadow: 0 6px 15px rgba(59, 130, 246, 0.25) !important;
+            transition: all 0.3s !important;
+        }
+
+        .file-link:hover {
+            transform: scale(1.05) !important;
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4) !important;
+            color: #ffffff !important;
+        }
+
+        .lesson-img {
+            max-width: 100%;
+            border-radius: 25px !important;
+            border: 4px solid #fbcfe8 !important;
+            margin-bottom: 25px;
+        }
+
+        .test-mini {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px !important;
+            background: rgba(236, 96, 144, 0.03) !important;
+            border: 2px solid #fbcfe8 !important;
+            border-radius: 20px !important;
+            margin-bottom: 10px;
+        }
+
+        .test-mini-name {
+            color: #1e1b4b !important;
+            font-size: 1.05rem !important;
+            font-weight: 800 !important;
+            font-family: 'Nunito', sans-serif !important;
+        }
+
+        .btn-take-mini {
+            padding: 8px 18px !important;
+            background: linear-gradient(135deg, #ec6090, #e75485) !important;
+            color: #fff !important;
+            border-radius: 99px !important;
+            text-decoration: none !important;
+            font-size: .9rem !important;
+            font-weight: 900 !important;
+            font-family: 'Nunito', sans-serif !important;
+            box-shadow: 0 4px 12px rgba(236, 96, 144, 0.25) !important;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 22px !important;
+            background: transparent !important;
+            border: 2px solid #ec6090 !important;
+            color: #ec6090 !important;
+            border-radius: 99px !important;
+            text-decoration: none !important;
+            font-weight: 900 !important;
+            font-family: 'Nunito', sans-serif !important;
+            font-size: 1rem !important;
+            transition: all 0.2s !important;
+            margin-top: 15px;
+        }
+
+        .back-btn:hover {
+            background: rgba(236, 96, 144, 0.08) !important;
+            color: #ec6090 !important;
+        }
+
+        /* AI Quiz Widget Styles */
+        .ai-quiz-widget {
+            background: rgba(255, 255, 255, 0.88) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 4px solid #fbcfe8 !important;
+            border-radius: 35px !important;
+            padding: 30px !important;
+            color: #1e1b4b !important;
+            box-shadow: 0 15px 35px rgba(236, 96, 144, 0.08) !important;
+            position: relative;
+            z-index: 10;
+        }
+
+        .quiz-option-btn {
+            width: 100%;
+            text-align: left;
+            padding: 14px 18px !important;
+            background: rgba(236, 96, 144, 0.02) !important;
+            border: 2px solid #fbcfe8 !important;
+            border-radius: 18px !important;
+            color: #1e1b4b !important;
+            font-size: 1.05rem !important;
+            font-weight: 800 !important;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Nunito', sans-serif !important;
+        }
+
+        .quiz-option-btn:hover:not(:disabled) {
+            background: rgba(168, 85, 247, 0.08) !important;
+            border-color: #a855f7 !important;
+            color: #1e1b4b !important;
+            transform: translateY(-2px) !important;
+        }
+
+        .quiz-option-btn.correct {
+            background: rgba(16, 185, 129, 0.1) !important;
+            border-color: #10b981 !important;
+            color: #10b981 !important;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.1) !important;
+        }
+
+        .quiz-option-btn.incorrect {
+            background: rgba(239, 68, 68, 0.1) !important;
+            border-color: #ef4444 !important;
+            color: #ef4444 !important;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.1) !important;
+        }
+
+        /* Decorative Elements */
+        .kid-bg-cloud {
+            position: absolute;
+            font-size: 5rem;
+            opacity: 0.12;
+            pointer-events: none;
+            animation: floatCloud 25s linear infinite;
+        }
+        .kid-bg-cloud.c1 { top: 15%; left: -10%; animation-duration: 45s; }
+        .kid-bg-cloud.c2 { bottom: 20%; right: -10%; animation-duration: 35s; animation-delay: -10s; }
+
+        @@keyframes floatCloud {
+            0% { transform: translateX(-150px); }
+            100% { transform: translateX(110vw); }
+        }
+
+        .kid-bg-star {
+            position: absolute;
+            font-size: 2.5rem;
+            color: #f59e0b;
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .kid-bg-star.s1 { top: 15%; right: 12%; animation: orbitRight 14s ease-in-out infinite alternate; }
+        .kid-bg-star.s2 { bottom: 18%; left: 10%; animation: orbitLeft 17s ease-in-out infinite alternate; color: #fbbf24; }
+        .kid-bg-star.s3 { top: 45%; left: 6%; animation: floatAroundVertical 11s ease-in-out infinite alternate; font-size: 1.8rem; color: #fca5a5; }
+        .kid-bg-star.s4 { bottom: 40%; right: 6%; animation: floatAroundHorizontal 15s ease-in-out infinite alternate; font-size: 2rem; color: #38bdf8; }
+        .kid-bg-star.s5 { top: 10%; left: 25%; animation: diagonalFloat 20s ease-in-out infinite alternate; font-size: 1.6rem; color: #c084fc; }
+
+        @@keyframes orbitRight {
+            0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            35% { transform: translate(45px, -70px) rotate(120deg) scale(1.25); }
+            70% { transform: translate(-30px, -120px) rotate(240deg) scale(0.8); }
+            100% { transform: translate(0, 0) rotate(360deg) scale(1); }
+        }
+
+        @@keyframes orbitLeft {
+            0% { transform: translate(0, 0) rotate(360deg) scale(0.9); }
+            40% { transform: translate(-60px, 50px) rotate(180deg) scale(1.3); }
+            80% { transform: translate(40px, -40px) rotate(0deg) scale(0.7); }
+            100% { transform: translate(0, 0) rotate(-360deg) scale(0.9); }
+        }
+
+        @@keyframes floatAroundVertical {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-90px) rotate(180deg); }
+            100% { transform: translateY(0) rotate(360deg); }
+        }
+
+        @@keyframes floatAroundHorizontal {
+            0% { transform: translateX(0) rotate(0deg); }
+            50% { transform: translateX(90px) rotate(-180deg); }
+            100% { transform: translateX(0) rotate(-360deg); }
+        }
+
+        @@keyframes diagonalFloat {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(120px, 90px) rotate(180deg); }
+            100% { transform: translate(0, 0) rotate(360deg); }
+        }
+
+        @@keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* AI quiz widget text overrides for kids */
+        .ai-quiz-widget h4 {
+            color: #a855f7 !important;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+        }
+
+        .ai-quiz-widget small {
+            color: #4f46e5 !important;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 800 !important;
+        }
+
+        #quiz-init-screen p {
+            color: #475569 !important;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 700 !important;
+        }
+
+        #btn-ask-ai:disabled {
+            background: #cbd5e1 !important;
+            color: #64748b !important;
+            border: 2px solid #94a3b8 !important;
+            box-shadow: none !important;
+        }
+
+        #quiz-question-content {
+            color: #1e1b4b !important;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+        }
+
+        #quiz-score-badge {
+            background: rgba(236, 96, 144, 0.06) !important;
+            border: 2px solid #fbcfe8 !important;
+            color: #4f46e5 !important;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 800 !important;
+            padding: 6px 16px !important;
+            border-radius: 20px !important;
+        }
+
+        #quiz-feedback-title {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+        }
+
+        #quiz-explanation-text {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 700 !important;
+            color: #475569 !important;
+        }
+
+        /* Pagination buttons for kids */
+        .btn-page {
+            width: 40px;
+            height: 40px;
+            border-radius: 50% !important;
+            border: 2px solid #fbcfe8 !important;
+            background: rgba(255,255,255,0.9) !important;
+            color: #ec6090 !important;
+            font-size: 1.1rem !important;
+            font-weight: 900 !important;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(236,96,144,0.1) !important;
+            transition: all 0.2s !important;
+        }
+
+        .btn-page:hover:not(:disabled) {
+            transform: scale(1.1) !important;
+            background: #ec6090 !important;
+            color: #ffffff !important;
+            border-color: #ec6090 !important;
+        }
+
+        .btn-page:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+    </style>
+}
+else
+{
+    <style>
+        .detail-section {
+            padding: 140px 0 80px;
+            background: transparent !important;
+            min-height: 80vh;
+            position: relative;
+            overflow: hidden;
+            font-family: 'Nunito', sans-serif !important;
+            color: #1e1b4b;
+        }
+        .detail-section *:not(i):not(.fa) {
+            font-family: 'Nunito', sans-serif !important;
+        }
+
+        .breadcrumb-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #4f46e5 !important;
+            font-size: 1.1rem !important;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 800 !important;
+            position: relative;
+            z-index: 10;
+        }
+        .breadcrumb-bar a {
+            color: #ec6090 !important;
+            text-decoration: none !important;
+        }
+
+        .lesson-card {
+            background: rgba(255, 255, 255, 0.88) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 4px solid #fbcfe8 !important;
+            border-radius: 35px !important;
+            padding: 40px !important;
+            color: #1e1b4b !important;
+            box-shadow: 0 15px 35px rgba(236, 96, 144, 0.08) !important;
+            position: relative;
+            z-index: 10;
+        }
+        .lesson-card h1 {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+            font-size: 2.2rem !important;
+            color: #ec6090 !important;
+            margin-bottom: 15px !important;
+        }
+
+        .lesson-meta {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+        .meta-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px !important;
+            background: rgba(236, 96, 144, 0.06) !important;
+            border: 2px solid #fbcfe8 !important;
+            border-radius: 20px !important;
+            font-size: .95rem !important;
+            color: #ec6090 !important;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 800 !important;
+        }
+
+        .lesson-content {
+            color: #475569 !important;
+            line-height: 1.8;
+            font-size: 1.15rem !important;
+            margin-bottom: 30px;
+            white-space: pre-wrap;
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 700 !important;
+        }
+
+        .divider {
+            border: none;
+            border-top: 3px dashed #fbcfe8 !important;
+            margin: 30px 0;
+        }
+
+        .file-section h4 {
+            color: #ec6090 !important;
+            margin-bottom: 12px;
+            font-weight: 900 !important;
+            font-family: 'Nunito', sans-serif !important;
+        }
+        .file-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px !important;
+            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%) !important;
+            color: #ffffff !important;
+            border-radius: 99px !important;
+            text-decoration: none !important;
+            font-weight: 900 !important;
+            font-family: 'Nunito', sans-serif !important;
+            box-shadow: 0 6px 15px rgba(59, 130, 246, 0.25) !important;
+            transition: all 0.3s !important;
+        }
+        .file-link:hover {
+            transform: scale(1.05) !important;
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4) !important;
+            color: #ffffff !important;
+        }
+
+        .lesson-img {
+            max-width: 100%;
+            border-radius: 25px !important;
+            border: 4px solid #fbcfe8 !important;
+            margin-bottom: 25px;
+        }
+
+        .related-tests {
+            margin-top: 30px;
+        }
+        .related-tests h4 {
+            color: #ec6090 !important;
+            margin-bottom: 15px;
+            font-weight: 900 !important;
+            font-family: 'Nunito', sans-serif !important;
+        }
+
+        .test-mini {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px !important;
+            background: rgba(236, 96, 144, 0.03) !important;
+            border: 2px solid #fbcfe8 !important;
+            border-radius: 20px !important;
+            margin-bottom: 10px;
+        }
+        .test-mini-name {
+            color: #1e1b4b !important;
+            font-size: 1.05rem !important;
+            font-weight: 800 !important;
+            font-family: 'Nunito', sans-serif !important;
+        }
+
+        .btn-take-mini {
+            padding: 8px 18px !important;
+            background: linear-gradient(135deg, #ec6090, #e75485) !important;
+            color: #fff !important;
+            border-radius: 99px !important;
+            text-decoration: none !important;
+            font-size: .9rem !important;
+            font-weight: 900 !important;
+            font-family: 'Nunito', sans-serif !important;
+            box-shadow: 0 4px 12px rgba(236, 96, 144, 0.25) !important;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 22px !important;
+            background: transparent !important;
+            border: 2px solid #ec6090 !important;
+            color: #ec6090 !important;
+            border-radius: 99px !important;
+            text-decoration: none !important;
+            font-weight: 900 !important;
+            font-family: 'Nunito', sans-serif !important;
+            font-size: 1rem !important;
+            transition: all 0.2s !important;
+            margin-top: 15px;
+        }
+        .back-btn:hover {
+            background: rgba(236, 96, 144, 0.08) !important;
+            color: #ec6090 !important;
+        }
+
+        /* Pagination buttons */
+        .btn-page {
+            width: 40px;
+            height: 40px;
+            border-radius: 50% !important;
+            border: 2px solid #fbcfe8 !important;
+            background: rgba(255,255,255,0.9) !important;
+            color: #ec6090 !important;
+            font-size: 1.1rem !important;
+            font-weight: 900 !important;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(236,96,144,0.1) !important;
+            transition: all 0.2s !important;
+        }
+        .btn-page:hover:not(:disabled) {
+            transform: scale(1.1) !important;
+            background: #ec6090 !important;
+            color: #ffffff !important;
+            border-color: #ec6090 !important;
+        }
+        .btn-page:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+    </style>
+}
+
+<section class="detail-section">
+    <div class="container">
+        <!-- Floating cloud & star decorations -->
+        @if (User.IsInRole("Student"))
+        {
+            <div class="kid-bg-cloud c1">☁️</div>
+            <div class="kid-bg-cloud c2">☁️</div>
+            <div class="kid-bg-star s1">⭐</div>
+            <div class="kid-bg-star s2">⭐</div>
+            <div class="kid-bg-star s3">⭐</div>
+            <div class="kid-bg-star s4">⭐</div>
+            <div class="kid-bg-star s5">⭐</div>
+        }
+
+>>>>>>> origin/main
         <div class="breadcrumb-bar">
             <a asp-controller="Grade" asp-action="Index">Khối lớp</a>
             <span>›</span>
@@ -176,11 +795,31 @@
                             <hr class="divider">
                             <div class="related-tests">
                                 <h4>📝 Đề luyện tập của bài học này</h4>
+<<<<<<< HEAD
                                 @foreach (var t in Model.Tests)
                                 {
                                     <div class="test-mini">
                                         <div class="test-mini-name">@t.TestName <span style="color:#64748b;font-size:.8rem;">(@t.Duration phút)</span></div>
                                         <a asp-controller="Test" asp-action="Take" asp-route-id="@t.TestId" class="btn-take-mini">Bắt đầu →</a>
+=======
+                                <div id="test-list-container">
+                                    @foreach (var t in Model.Tests)
+                                    {
+                                        <div class="test-item-wrapper" style="display: none;">
+                                            <div class="test-mini">
+                                                <div class="test-mini-name">@t.TestName <span style="color:#64748b;font-size:.8rem;">(@t.Duration phút)</span></div>
+                                                <a asp-controller="Test" asp-action="Take" asp-route-id="@t.TestId" class="btn-take-mini">Bắt đầu →</a>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                                @if (Model.Tests.Count > 3)
+                                {
+                                    <div class="test-pagination" style="display: flex; justify-content: center; gap: 15px; margin-top: 15px; align-items: center;">
+                                        <button type="button" id="btn-prev-tests" class="btn-page" onclick="prevTestPage()">◀</button>
+                                        <span id="test-page-info" style="font-family:'Nunito',sans-serif; font-weight:800; color:#ec6090; font-size: 1rem;">1/1</span>
+                                        <button type="button" id="btn-next-tests" class="btn-page" onclick="nextTestPage()">▶</button>
+>>>>>>> origin/main
                                     </div>
                                 }
                             </div>
@@ -357,11 +996,23 @@
                             <hr class="divider">
                             <div class="related-tests">
                                 <h4>📝 Đề luyện tập của bài học này</h4>
-                                @foreach (var t in Model.Tests)
+                                <div id="test-list-container">
+                                    @foreach (var t in Model.Tests)
+                                    {
+                                        <div class="test-item-wrapper" style="display: none;">
+                                            <div class="test-mini">
+                                                <div class="test-mini-name">@t.TestName <span style="color:#64748b;font-size:.8rem;">(@t.Duration phút)</span></div>
+                                                <a asp-controller="Test" asp-action="Take" asp-route-id="@t.TestId" class="btn-take-mini">Bắt đầu →</a>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                                @if (Model.Tests.Count > 3)
                                 {
-                                    <div class="test-mini">
-                                        <div class="test-mini-name">@t.TestName <span style="color:#64748b;font-size:.8rem;">(@t.Duration phút)</span></div>
-                                        <a asp-controller="Test" asp-action="Take" asp-route-id="@t.TestId" class="btn-take-mini">Bắt đầu →</a>
+                                    <div class="test-pagination" style="display: flex; justify-content: center; gap: 15px; margin-top: 15px; align-items: center;">
+                                        <button type="button" id="btn-prev-tests" class="btn-page" onclick="prevTestPage()">◀</button>
+                                        <span id="test-page-info" style="font-family:'Nunito',sans-serif; font-weight:800; color:#ec6090; font-size: 1rem;">1/1</span>
+                                        <button type="button" id="btn-next-tests" class="btn-page" onclick="nextTestPage()">▶</button>
                                     </div>
                                 }
                             </div>
@@ -639,6 +1290,63 @@
         }
     </script>
 }
+
+<script>
+    let currentTestPage = 1;
+    const testsPerPage = 3;
+
+    window.addEventListener('DOMContentLoaded', () => {
+        initTestPagination();
+    });
+
+    function initTestPagination() {
+        const container = document.getElementById('test-list-container');
+        if (!container) return;
+        const items = container.getElementsByClassName('test-item-wrapper');
+        if (items.length === 0) return;
+
+        showTestPage(1);
+    }
+
+    function showTestPage(page) {
+        const container = document.getElementById('test-list-container');
+        if (!container) return;
+        const items = container.getElementsByClassName('test-item-wrapper');
+        const totalPages = Math.ceil(items.length / testsPerPage);
+
+        if (page < 1) page = 1;
+        if (page > totalPages) page = totalPages;
+
+        currentTestPage = page;
+
+        for (let i = 0; i < items.length; i++) {
+            if (i >= (page - 1) * testsPerPage && i < page * testsPerPage) {
+                items[i].style.display = 'block';
+            } else {
+                items[i].style.display = 'none';
+            }
+        }
+
+        const info = document.getElementById('test-page-info');
+        if (info) {
+            info.innerText = `${page} / ${totalPages}`;
+        }
+
+        const prevBtn = document.getElementById('btn-prev-tests');
+        if (prevBtn) prevBtn.disabled = (page === 1);
+
+        const nextBtn = document.getElementById('btn-next-tests');
+        if (nextBtn) nextBtn.disabled = (page === totalPages);
+    }
+
+    function prevTestPage() {
+        showTestPage(currentTestPage - 1);
+    }
+
+    function nextTestPage() {
+        showTestPage(currentTestPage + 1);
+    }
+</script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {

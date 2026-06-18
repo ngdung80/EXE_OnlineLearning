@@ -130,7 +130,7 @@ public class TransactionController : Controller
                 {
                     var subjectIds = await _subjectService.GetSubjectIdsByGradeIdAsync(transaction.GradeId.Value);
                     var startDate = DateOnly.FromDateTime(DateTime.Now);
-                    var endDate = startDate.AddMonths(package.Duration);
+                    var endDate = startDate.AddDays(package.Duration);
 
                     var studentPackageId = await _studentPackageService.InsertForGradeAsync(
                         transaction.StudentId.Value, transaction.PackageId,

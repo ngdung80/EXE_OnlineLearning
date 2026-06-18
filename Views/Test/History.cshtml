@@ -3,30 +3,286 @@
     ViewData["Title"] = "Lịch sử làm bài";
 }
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-<style>
-    .hist-section { padding:80px 0; background:linear-gradient(135deg,#0f172a,#1e293b); min-height:80vh; }
-    .hist-section h2 { color:#ec6090; font-weight:700; margin-bottom:30px; }
-    .table-card { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07); border-radius:16px; overflow:hidden; }
-    .table { color:#e2e8f0; margin:0; }
-    .table thead th { background:rgba(236,96,144,.15); color:#ec6090; font-weight:600; border:none; padding:16px; }
-    .table tbody tr { border-bottom:1px solid rgba(255,255,255,.05); }
-    .table tbody tr:hover { background:rgba(255,255,255,.03); }
-    .table tbody td { padding:14px 16px; border:none; vertical-align:middle; }
-    .score-badge { display:inline-block; padding:4px 14px; border-radius:20px; font-weight:700; font-size:.9rem; }
-    .score-high { background:rgba(16,185,129,.2); color:#10b981; }
-    .score-mid { background:rgba(234,179,8,.2); color:#eab308; }
-    .score-low { background:rgba(239,68,68,.2); color:#ef4444; }
-    .btn-view { padding:6px 14px; background:rgba(59,130,246,.2); color:#60a5fa; border-radius:15px; text-decoration:none; font-size:.8rem; font-weight:600; }
-    .empty-state { text-align:center; padding:60px; color:#64748b; }
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+@if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Student"))
+{
+    <style>
+
+        .hist-section {
+            padding: 120px 0 80px;
+            background: transparent !important;
+            min-height: 80vh;
+            position: relative;
+            overflow: hidden;
+            font-family: 'Nunito', sans-serif !important;
+        }
+
+        .hist-section h2 {
+            font-family: 'Nunito', sans-serif !important;
+            font-weight: 900 !important;
+            font-size: 2.2rem !important;
+            background: linear-gradient(135deg, #ec6090 0%, #a855f7 50%, #4f46e5 100%) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            margin-bottom: 30px !important;
+            display: inline-block;
+        }
+
+        .table-card {
+            background: rgba(255, 255, 255, 0.88) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 4px solid #fbcfe8 !important;
+            border-radius: 35px !important;
+            overflow: hidden !important;
+            box-shadow: 0 15px 35px rgba(236, 96, 144, 0.08) !important;
+            position: relative;
+            z-index: 10;
+        }
+
+        .table {
+            color: #1e1b4b !important;
+            margin: 0;
+        }
+
+        .table thead th {
+            background: linear-gradient(135deg, rgba(253, 244, 245, 0.95), rgba(251, 207, 232, 0.2)) !important;
+            color: #ec6090 !important;
+            font-weight: 900 !important;
+            border-bottom: 3px solid #fbcfe8 !important;
+            padding: 18px 16px !important;
+            font-size: 1.05rem !important;
+        }
+
+        .table tbody tr {
+            border-bottom: 2px dashed #fbcfe8 !important;
+            transition: all 0.2s !important;
+        }
+
+        .table tbody tr:hover {
+            background: rgba(236, 96, 144, 0.03) !important;
+            transform: scale(1.002) !important;
+        }
+
+        .table tbody td {
+            padding: 16px !important;
+            vertical-align: middle !important;
+            font-weight: 700 !important;
+            font-size: 1rem !important;
+        }
+
+        .score-badge {
+            display: inline-block;
+            padding: 6px 16px !important;
+            border-radius: 20px !important;
+            font-weight: 900 !important;
+            font-size: 0.95rem !important;
+        }
+
+        .score-high {
+            background: rgba(16, 185, 129, 0.1) !important;
+            color: #10b981 !important;
+            border: 2px solid #10b981 !important;
+        }
+
+        .score-mid {
+            background: rgba(245, 158, 11, 0.1) !important;
+            color: #d97706 !important;
+            border: 2px solid #fbbf24 !important;
+        }
+
+        .score-low {
+            background: rgba(239, 68, 68, 0.1) !important;
+            color: #ef4444 !important;
+            border: 2px solid #fca5a5 !important;
+        }
+
+        .btn-view {
+            padding: 8px 18px !important;
+            background: linear-gradient(135deg, #ec6090, #e75485) !important;
+            color: #fff !important;
+            border-radius: 99px !important;
+            text-decoration: none !important;
+            font-size: 0.9rem !important;
+            font-weight: 900 !important;
+            box-shadow: 0 4px 12px rgba(236, 96, 144, 0.2) !important;
+            transition: all 0.2s !important;
+            display: inline-block !important;
+        }
+
+        .btn-view:hover {
+            transform: scale(1.08) !important;
+            box-shadow: 0 6px 15px rgba(236, 96, 144, 0.35) !important;
+            color: #fff !important;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #64748b;
+        }
+
+        /* Decorative Elements */
+        .kid-bg-cloud {
+            position: absolute;
+            font-size: 5rem;
+            opacity: 0.12;
+            pointer-events: none;
+            animation: floatCloud 25s linear infinite;
+        }
+        .kid-bg-cloud.c1 { top: 15%; left: -10%; animation-duration: 45s; }
+        .kid-bg-cloud.c2 { bottom: 20%; right: -10%; animation-duration: 35s; animation-delay: -10s; }
+
+        @@keyframes floatCloud {
+            0% { transform: translateX(-150px); }
+            100% { transform: translateX(110vw); }
+        }
+
+        .kid-bg-star {
+            position: absolute;
+            font-size: 2.5rem;
+            color: #f59e0b;
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .kid-bg-star.s1 { top: 15%; right: 12%; animation: orbitRight 14s ease-in-out infinite alternate; }
+        .kid-bg-star.s2 { bottom: 18%; left: 10%; animation: orbitLeft 17s ease-in-out infinite alternate; color: #fbbf24; }
+        .kid-bg-star.s3 { top: 45%; left: 6%; animation: floatAroundVertical 11s ease-in-out infinite alternate; font-size: 1.8rem; color: #fca5a5; }
+        .kid-bg-star.s4 { bottom: 40%; right: 6%; animation: floatAroundHorizontal 15s ease-in-out infinite alternate; font-size: 2rem; color: #38bdf8; }
+        .kid-bg-star.s5 { top: 10%; left: 25%; animation: diagonalFloat 20s ease-in-out infinite alternate; font-size: 1.6rem; color: #c084fc; }
+
+        @@keyframes orbitRight {
+            0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+            35% { transform: translate(45px, -70px) rotate(120deg) scale(1.25); }
+            70% { transform: translate(-30px, -120px) rotate(240deg) scale(0.8); }
+            100% { transform: translate(0, 0) rotate(360deg) scale(1); }
+        }
+
+        @@keyframes orbitLeft {
+            0% { transform: translate(0, 0) rotate(360deg) scale(0.9); }
+            40% { transform: translate(-60px, 50px) rotate(180deg) scale(1.3); }
+            80% { transform: translate(40px, -40px) rotate(0deg) scale(0.7); }
+            100% { transform: translate(0, 0) rotate(-360deg) scale(0.9); }
+        }
+
+        @@keyframes floatAroundVertical {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-90px) rotate(180deg); }
+            100% { transform: translateY(0) rotate(360deg); }
+        }
+
+        @@keyframes floatAroundHorizontal {
+            0% { transform: translateX(0) rotate(0deg); }
+            50% { transform: translateX(90px) rotate(-180deg); }
+            100% { transform: translateX(0) rotate(-360deg); }
+        }
+
+        @@keyframes diagonalFloat {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(120px, 90px) rotate(180deg); }
+            100% { transform: translate(0, 0) rotate(360deg); }
+        }
+
+        /* Pagination buttons for kids */
+        .btn-page {
+            width: 40px;
+            height: 40px;
+            border-radius: 50% !important;
+            border: 2px solid #fbcfe8 !important;
+            background: rgba(255,255,255,0.9) !important;
+            color: #ec6090 !important;
+            font-size: 1.1rem !important;
+            font-weight: 900 !important;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(236,96,144,0.1) !important;
+            transition: all 0.2s !important;
+        }
+
+        .btn-page:hover:not(:disabled) {
+            transform: scale(1.1) !important;
+            background: #ec6090 !important;
+            color: #ffffff !important;
+            border-color: #ec6090 !important;
+        }
+
+        .btn-page:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+    </style>
+}
+else
+{
+    <style>
+        .hist-section { padding:80px 0; background:linear-gradient(135deg,#0f172a,#1e293b); min-height:80vh; font-family: 'Nunito', sans-serif !important; }
+        .btn-page, .btn-view, .table-card, .hist-section h2 { font-family: 'Nunito', sans-serif !important; }
+        .hist-section h2 { color:#ec6090; font-weight:700; margin-bottom:30px; }
+        .table-card { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07); border-radius:16px; overflow:hidden; }
+        .table { color:#e2e8f0; margin:0; }
+        .table thead th { background:rgba(236,96,144,.15); color:#ec6090; font-weight:600; border:none; padding:16px; }
+        .table tbody tr { border-bottom:1px solid rgba(255,255,255,.05); }
+        .table tbody tr:hover { background:rgba(255,255,255,.03); }
+        .table tbody td { padding:14px 16px; border:none; vertical-align:middle; }
+        .score-badge { display:inline-block; padding:4px 14px; border-radius:20px; font-weight:700; font-size:.9rem; }
+        .score-high { background:rgba(16,185,129,.2); color:#10b981; }
+        .score-mid { background:rgba(234,179,8,.2); color:#eab308; }
+        .score-low { background:rgba(239,68,68,.2); color:#ef4444; }
+        .btn-view { padding:6px 14px; background:rgba(59,130,246,.2); color:#60a5fa; border-radius:15px; text-decoration:none; font-size:.8rem; font-weight:600; }
+        .empty-state { text-align:center; padding:60px; color:#64748b; }
+
+        /* Pagination buttons for non-students */
+        .btn-page {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            color: #ec6090;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .btn-page:hover:not(:disabled) {
+            background: #ec6090;
+            color: #fff;
+            border-color: #ec6090;
+        }
+
+        .btn-page:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+    </style>
+}
 
 <section class="hist-section">
     <div class="container">
+        <!-- Floating cloud & star decorations -->
+        @if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Student"))
+        {
+            <div class="kid-bg-cloud c1">☁️</div>
+            <div class="kid-bg-cloud c2">☁️</div>
+            <div class="kid-bg-star s1">⭐</div>
+            <div class="kid-bg-star s2">⭐</div>
+            <div class="kid-bg-star s3">⭐</div>
+            <div class="kid-bg-star s4">⭐</div>
+            <div class="kid-bg-star s5">⭐</div>
+        }
+
         <h2>📊 Lịch sử làm bài</h2>
         <div class="table-card">
             <table class="table table-borderless">
                 <thead>
-                    <tr><th>#</th><th>Tên đề</th><th>Điểm số</th><th>Số câu đúng</th><th>Ngày làm</th><th>Chi tiết</th></tr>
+                    <tr><th>STT</th><th>Tên đề</th><th>Điểm số</th><th>Số câu đúng</th><th>Ngày làm</th><th>Chi tiết</th></tr>
                 </thead>
                 <tbody>
                     @if (Model != null && Model.Any())
@@ -35,12 +291,12 @@
                         foreach (var a in Model)
                         {
                             string scoreClass = a.Score >= 8 ? "score-high" : a.Score >= 5 ? "score-mid" : "score-low";
-                            <tr>
-                                <td style="color:#64748b;">@i++</td>
-                                <td style="font-weight:600;">@a.Test?.TestName</td>
+                            <tr class="history-row-wrapper" style="display: none;">
+                                <td class="stt-cell" style="@(User.IsInRole("Student") ? "color:#4f46e5; font-weight:700;" : "color:#64748b;")">@i++</td>
+                                <td style="@(User.IsInRole("Student") ? "font-weight:800; color:#1e1b4b;" : "font-weight:600;")">@a.Test?.TestName</td>
                                 <td><span class="score-badge @scoreClass">@a.Score?.ToString("F1")/10</span></td>
-                                <td style="color:#94a3b8;">@a.CorrectAnswers/@a.TotalQuestions</td>
-                                <td style="color:#94a3b8;">@a.EndTime?.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td style="@(User.IsInRole("Student") ? "color:#475569;" : "color:#94a3b8;")">@a.CorrectAnswers/@a.TotalQuestions</td>
+                                <td style="@(User.IsInRole("Student") ? "color:#475569;" : "color:#94a3b8;")">@a.EndTime?.ToString("dd/MM/yyyy HH:mm")</td>
                                 <td><a asp-action="Result" asp-route-attemptId="@a.AttemptId" class="btn-view">Xem →</a></td>
                             </tr>
                         }
@@ -52,5 +308,73 @@
                 </tbody>
             </table>
         </div>
+
+        @if (Model != null && Model.Count > 6)
+        {
+            <div class="history-pagination" style="display: flex; justify-content: center; gap: 15px; margin-top: 25px; align-items: center; position: relative; z-index: 10;">
+                <button type="button" id="btn-prev-history" class="btn-page" onclick="prevHistoryPage()">◀</button>
+                <span id="history-page-info" style="font-family:'Nunito',sans-serif; font-weight:800; font-size: 1.1rem; @(User.IsInRole("Student") ? "color:#ec6090;" : "color:#e2e8f0;")">1/1</span>
+                <button type="button" id="btn-next-history" class="btn-page" onclick="nextHistoryPage()">▶</button>
+            </div>
+        }
     </div>
 </section>
+
+<script>
+    let currentHistoryPage = 1;
+    const historyPerPage = 6;
+
+    window.addEventListener('DOMContentLoaded', () => {
+        initHistoryPagination();
+    });
+
+    function initHistoryPagination() {
+        const rows = document.getElementsByClassName('history-row-wrapper');
+        if (rows.length === 0) return;
+
+        showHistoryPage(1);
+    }
+
+    function showHistoryPage(page) {
+        const rows = document.getElementsByClassName('history-row-wrapper');
+        const totalPages = Math.ceil(rows.length / historyPerPage);
+
+        if (page < 1) page = 1;
+        if (page > totalPages) page = totalPages;
+
+        currentHistoryPage = page;
+
+        let displayedCount = 0;
+        for (let i = 0; i < rows.length; i++) {
+            if (i >= (page - 1) * historyPerPage && i < page * historyPerPage) {
+                rows[i].style.display = 'table-row';
+                displayedCount++;
+                const sttCell = rows[i].querySelector('.stt-cell');
+                if (sttCell) {
+                    sttCell.innerText = displayedCount;
+                }
+            } else {
+                rows[i].style.display = 'none';
+            }
+        }
+
+        const info = document.getElementById('history-page-info');
+        if (info) {
+            info.innerText = `${page} / ${totalPages}`;
+        }
+
+        const prevBtn = document.getElementById('btn-prev-history');
+        if (prevBtn) prevBtn.disabled = (page === 1);
+
+        const nextBtn = document.getElementById('btn-next-history');
+        if (nextBtn) nextBtn.disabled = (page === totalPages);
+    }
+
+    function prevHistoryPage() {
+        showHistoryPage(currentHistoryPage - 1);
+    }
+
+    function nextHistoryPage() {
+        showHistoryPage(currentHistoryPage + 1);
+    }
+</script>
