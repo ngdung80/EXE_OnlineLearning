@@ -29,14 +29,30 @@
     }
 
     <!-- Tabs Navigation -->
+    <style>
+        #transactionTabs .nav-link {
+            color: #6b7280;
+            border: none;
+            border-bottom: 3px solid transparent;
+            background: transparent;
+            padding: 10px 20px;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        #transactionTabs .nav-link.active,
+        #transactionTabs .nav-link:hover {
+            color: #e75485 !important;
+            border-bottom: 3px solid #e75485 !important;
+            background: transparent !important;
+        }
+    </style>
     <ul class="nav nav-tabs mb-4" id="transactionTabs" role="tablist" style="border-bottom: 2px solid #fce7f3;">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active fw-bold" id="packages-tab" data-bs-toggle="tab" data-bs-target="#packages" type="button" role="tab" aria-controls="packages" aria-selected="true" style="color: #e75485; border: none; border-bottom: 3px solid #e75485; background: transparent; padding: 10px 20px;">
+            <button class="nav-link active fw-bold" id="packages-tab" data-bs-toggle="tab" data-bs-target="#packages" type="button" role="tab" aria-controls="packages" aria-selected="true">
                 🛒 Mua gói học (@Model.Count())
             </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link fw-bold" id="wallet-tab" data-bs-toggle="tab" data-bs-target="#wallet" type="button" role="tab" aria-controls="wallet" aria-selected="false" style="color: #6b7280; border: none; border-bottom: 3px solid transparent; background: transparent; padding: 10px 20px;">
+            <button class="nav-link fw-bold" id="wallet-tab" data-bs-toggle="tab" data-bs-target="#wallet" type="button" role="tab" aria-controls="wallet" aria-selected="false">
                 💰 Nạp tiền ví (@walletTransactions.Count)
             </button>
         </li>
@@ -205,20 +221,16 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        var triggerTabList = [].slice.call(document.querySelectorAll('#transactionTabs button'))
-        triggerTabList.forEach(function (triggerEl) {
-            triggerEl.addEventListener('click', function (event) {
-                event.preventDefault()
-                triggerTabList.forEach(function (btn) {
-                    btn.style.color = '#6b7280';
-                    btn.style.borderBottom = '3px solid transparent';
-                });
-                this.style.color = '#e75485';
-                this.style.borderBottom = '3px solid #e75485';
-                
-                var tabTrigger = new bootstrap.Tab(this)
-                tabTrigger.show()
-            })
-        })
+        // Auto-activate tab based on URL query param e.g. ?tab=wallet
+        var urlParams = new URLSearchParams(window.location.search);
+        var activeTab = urlParams.get('tab');
+
+        if (activeTab === 'wallet') {
+            var walletTabEl = document.getElementById('wallet-tab');
+            if (walletTabEl) {
+                var tab = new bootstrap.Tab(walletTabEl);
+                tab.show();
+            }
+        }
     });
 </script>

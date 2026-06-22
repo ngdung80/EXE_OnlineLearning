@@ -79,7 +79,7 @@ public class TransactionController : Controller
         {
             TempData["Error"] = "Chỉ có thể duyệt giao dịch đang chờ (Pending).";
         }
-        return RedirectToAction("Index");
+        return RedirectToAction("Index", new { tab = "wallet" });
     }
 
     [HttpPost]
@@ -99,7 +99,7 @@ public class TransactionController : Controller
         {
             TempData["Error"] = "Chỉ có thể từ chối giao dịch đang chờ (Pending).";
         }
-        return RedirectToAction("Index");
+        return RedirectToAction("Index", new { tab = "wallet" });
     }
 
     [HttpPost]
@@ -112,7 +112,7 @@ public class TransactionController : Controller
         await _context.SaveChangesAsync();
         
         TempData["Success"] = "Đã xóa lịch sử giao dịch.";
-        return RedirectToAction("Index");
+        return RedirectToAction("Index", new { tab = "wallet" });
     }
 
     [HttpPost]
