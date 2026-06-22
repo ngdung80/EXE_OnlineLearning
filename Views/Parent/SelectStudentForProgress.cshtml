@@ -29,7 +29,7 @@
 
             @foreach (var student in Model)
             {
-                <a href="/Parent/StudentProgress?studentId=@student.UserId" class="student-btn">
+                <a href="/Parent/DetailedProgress?studentId=@student.UserId&gradeId=@gradeId" class="student-btn">
                     @if (!string.IsNullOrEmpty(student.Image))
                     {
                         <img src="@student.Image" class="stu-avatar" alt="@student.FullName"

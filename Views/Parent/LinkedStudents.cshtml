@@ -2,34 +2,289 @@
 @{
     ViewData["Title"] = "Học sinh liên kết";
 }
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 <style>
-    .parent-section { padding:80px 0; background:linear-gradient(135deg,#0f172a,#1e293b); min-height:80vh; }
-    .section-hd h2 { color:#ec6090; font-weight:700; margin-bottom:25px; }
-    .student-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:20px; }
-    .student-card { background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.09); border-radius:18px; padding:28px; text-align:center; transition:all .3s; }
-    .student-card:hover { transform:translateY(-5px); border-color:rgba(236,96,144,.4); box-shadow:0 16px 35px rgba(0,0,0,.25); }
-    .student-avatar { width:80px; height:80px; border-radius:50%; object-fit:cover; border:3px solid #ec6090; margin:0 auto 14px; display:block; }
-    .student-name { color:#e2e8f0; font-weight:700; font-size:1rem; margin-bottom:4px; }
-    .student-grade { color:#94a3b8; font-size:.83rem; margin-bottom:16px; }
-    .badge-active { display:inline-block; padding:4px 12px; background:rgba(16,185,129,.2); color:#10b981; border-radius:20px; font-size:.78rem; font-weight:600; }
-    .btn-view-progress { display:block; margin-top:14px; padding:9px; background:rgba(236,96,144,.15); color:#ec6090; border-radius:15px; text-decoration:none; font-size:.83rem; font-weight:600; transition:all .2s; }
-    .btn-view-progress:hover { background:rgba(236,96,144,.3); color:#ec6090; }
-    .add-student-card { background:rgba(255,255,255,.03); border:2px dashed rgba(255,255,255,.15); border-radius:18px; padding:28px; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:200px; color:#64748b; cursor:pointer; transition:all .2s; }
-    .add-student-card:hover { border-color:rgba(236,96,144,.4); color:#ec6090; }
-    .add-icon { font-size:2.5rem; margin-bottom:10px; }
-    .empty-state { text-align:center; padding:60px; color:#64748b; }
+    .parent-section { 
+        padding: 100px 0 80px; 
+        background: linear-gradient(135deg,#fdf2f8 0%,#f5f3ff 100%); 
+        min-height: 85vh; 
+        font-family: 'Nunito', sans-serif;
+    }
+    
+    .section-hd { 
+        text-align: center; 
+        margin-bottom: 40px; 
+    }
+    .section-hd h2 { 
+        font-size: 2.2rem; 
+        font-weight: 900; 
+        background: linear-gradient(135deg, #e75485 0%, #7c3aed 100%);
+        -webkit-background-clip: text; 
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        display: inline-flex; 
+        align-items: center; 
+        gap: 12px; 
+        margin-bottom: 8px;
+        font-family: 'Nunito', sans-serif;
+    }
+    .section-hd p {
+        color: #6b7280;
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .student-grid { 
+        display: grid; 
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); 
+        gap: 24px; 
+        margin-top: 20px;
+    }
+    
+    .student-card { 
+        background: rgba(255, 255, 255, 0.92); 
+        border: 2px solid #ede9fe; 
+        border-radius: 24px; 
+        padding: 32px 24px; 
+        text-align: center; 
+        transition: all .35s cubic-bezier(.175,.885,.32,1.275); 
+        box-shadow: 0 4px 16px rgba(124,58,237,.05);
+    }
+    .student-card:hover { 
+        transform: translateY(-8px); 
+        border-color: #e75485; 
+        box-shadow: 0 18px 40px rgba(231,84,133,.15); 
+    }
+    
+    .student-avatar { 
+        width: 90px; 
+        height: 90px; 
+        border-radius: 50%; 
+        object-fit: cover; 
+        border: 4px solid #e75485; 
+        margin: 0 auto 16px; 
+        display: block; 
+        box-shadow: 0 4px 16px rgba(231,84,133,.25);
+    }
+    
+    .student-name { 
+        color: #1e1b4b; 
+        font-weight: 900; 
+        font-size: 1.15rem; 
+        margin-bottom: 6px; 
+    }
+    
+    .student-grade { 
+        color: #6b7280; 
+        font-size: .88rem; 
+        font-weight: 600;
+        margin-bottom: 16px; 
+    }
+    
+    .badge-active { 
+        display: inline-block; 
+        padding: 5px 14px; 
+        background: #d1fae5; 
+        color: #065f46; 
+        border-radius: 999px; 
+        font-size: .8rem; 
+        font-weight: 700; 
+    }
+    
+    .btn-view-progress { 
+        display: block; 
+        margin-top: 18px; 
+        padding: 10px 16px; 
+        background: linear-gradient(135deg, #ec6090, #e75485); 
+        color: #fff; 
+        border-radius: 16px; 
+        text-decoration: none; 
+        font-size: .9rem; 
+        font-weight: 700; 
+        transition: all .3s ease; 
+        box-shadow: 0 4px 12px rgba(236,96,144,.2);
+    }
+    .btn-view-progress:hover { 
+        background: linear-gradient(135deg, #e75485, #ec6090); 
+        color: #fff; 
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(236,96,144,.35);
+    }
+    
+    .add-student-card { 
+        background: rgba(255, 255, 255, 0.6); 
+        border: 2px dashed #e75485; 
+        border-radius: 24px; 
+        padding: 32px 24px; 
+        text-align: center; 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        justify-content: center; 
+        min-height: 250px; 
+        color: #e75485; 
+        cursor: pointer; 
+        transition: all .3s ease; 
+    }
+    .add-student-card:hover { 
+        background: #fff1f5;
+        border-color: #e75485; 
+        color: #e75485; 
+        transform: translateY(-8px);
+        box-shadow: 0 18px 40px rgba(231,84,133,.12);
+    }
+    .add-icon { 
+        font-size: 2.8rem; 
+        margin-bottom: 12px; 
+        filter: drop-shadow(0 4px 8px rgba(231,84,133,.25));
+    }
+    .empty-state { 
+        text-align: center; 
+        padding: 60px 20px; 
+        color: #6b7280; 
+    }
+
+    /* Modal styling overrides */
+    .link-modal-content {
+        background: #fff; 
+        border: 2px solid #fbcfe8; 
+        border-radius: 28px; 
+        color: #1e1b4b; 
+        box-shadow: 0 20px 50px rgba(236,96,144,.07);
+        font-family: 'Nunito', sans-serif;
+    }
+    .link-modal-header {
+        border-bottom: 1px solid #f3f4f6; 
+        padding: 20px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .link-modal-title {
+        color: #e75485; 
+        font-weight: 900;
+        font-size: 1.25rem;
+        margin: 0;
+    }
+    .link-modal-body {
+        padding: 24px;
+    }
+    .link-modal-footer {
+        border-top: 1px solid #f3f4f6; 
+        padding: 16px 24px; 
+        display: flex; 
+        gap: 12px; 
+        justify-content: flex-end;
+    }
+    
+    /* Input & Button styling for Modal */
+    .link-input-wrapper {
+        position: relative;
+        width: 100%;
+    }
+    .link-input-wrapper i {
+        position: absolute; 
+        left: 14px; 
+        top: 50%; 
+        transform: translateY(-50%); 
+        color: #9ca3af;
+    }
+    .link-input-field {
+        width: 100%; 
+        padding: 12px 14px 12px 40px; 
+        background: #fff; 
+        border: 2px solid #ede9fe; 
+        border-radius: 12px; 
+        color: #1e1b4b; 
+        font-family: 'Nunito', sans-serif; 
+        font-size: .95rem;
+        font-weight: 600;
+        transition: all .2s;
+    }
+    .link-input-field:focus {
+        border-color: #e75485;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(231,84,133,.15);
+    }
+    .link-label {
+        color: #1e1b4b; 
+        font-weight: 800; 
+        display: block; 
+        margin-bottom: 8px;
+    }
+    
+    #btnSendLinkCode {
+        background: #fdf4ff; 
+        color: #e75485; 
+        border: 2px solid #fce7f3; 
+        border-radius: 12px; 
+        font-weight: 800; 
+        padding: 12px 18px; 
+        cursor: pointer;
+        transition: all .2s;
+    }
+    #btnSendLinkCode:hover:not(:disabled) {
+        background: #fff1f5;
+        border-color: #e75485;
+        transform: translateY(-1px);
+    }
+    #btnSendLinkCode:disabled {
+        background: #f3f4f6;
+        color: #9ca3af;
+        border-color: #e5e7eb;
+        cursor: not-allowed;
+    }
+    
+    .btn-modal-cancel {
+        background: #f3f4f6; 
+        color: #4b5563; 
+        border: none; 
+        padding: 12px 24px; 
+        border-radius: 14px; 
+        font-weight: 700; 
+        cursor: pointer;
+        transition: all .2s;
+    }
+    .btn-modal-cancel:hover {
+        background: #e5e7eb;
+        color: #1f2937;
+    }
+    .btn-modal-submit {
+        background: linear-gradient(135deg, #ec6090, #e75485); 
+        color: #fff; 
+        border: none; 
+        padding: 12px 24px; 
+        border-radius: 14px; 
+        font-weight: 800; 
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(236,96,144,.2);
+        transition: all .2s;
+    }
+    .btn-modal-submit:hover {
+        background: linear-gradient(135deg, #e75485, #ec6090);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(236,96,144,.3);
+    }
 </style>
 
 <section class="parent-section">
     <div class="container">
-        <div class="section-hd"><h2>👨‍👧‍👦 Học sinh liên kết của tôi</h2></div>
+        <div class="section-hd">
+            <h2>👨‍👧‍👦 Học sinh liên kết của tôi</h2>
+            <p>Quản lý và theo dõi tiến trình học tập của các con</p>
+        </div>
 
         @if (TempData["Error"] != null) {
-            <div style="background:rgba(239,68,68,.15);border:1px solid #ef4444;color:#ef4444;padding:12px;border-radius:10px;margin-bottom:20px;">@TempData["Error"]</div>
+            <div style="background:rgba(239,68,68,.1); border:1.5px solid #fecaca; color:#ef4444; padding:14px; border-radius:16px; margin-bottom:20px; font-weight:700; font-family:'Nunito',sans-serif;">
+                <i class="fas fa-exclamation-circle"></i> @TempData["Error"]
+            </div>
         }
         @if (TempData["Success"] != null) {
-            <div style="background:rgba(16,185,129,.15);border:1px solid #10b981;color:#10b981;padding:12px;border-radius:10px;margin-bottom:20px;">@TempData["Success"]</div>
+            <div style="background:rgba(16,185,129,.1); border:1.5px solid #a7f3d0; color:#059669; padding:14px; border-radius:16px; margin-bottom:20px; font-weight:700; font-family:'Nunito',sans-serif;">
+                <i class="fas fa-check-circle"></i> @TempData["Success"]
+            </div>
         }
 
         <div class="student-grid">
@@ -42,23 +297,23 @@
                         <div class="student-name">@s.FullName</div>
                         <div class="student-grade">@(s.Grade?.GradeName ?? "Chưa phân khối lớp")</div>
                         <span class="badge-active">Hoạt động</span>
-                        <a asp-controller="Parent" asp-action="StudentProgress" asp-route-studentId="@s.UserId" class="btn-view-progress">📊 Xem tiến trình</a>
+                        <a asp-controller="Parent" asp-action="DetailedProgress" asp-route-studentId="@s.UserId" class="btn-view-progress">📊 Xem tiến trình</a>
                     </div>
                 }
             }
             <div class="add-student-card" data-bs-toggle="modal" data-bs-target="#linkStudentModal">
                 <div class="add-icon">➕</div>
-                <p style="font-weight:600;">Thêm học sinh</p>
-                <p style="font-size:.8rem;margin-top:4px;">Nhập email tài khoản con để liên kết</p>
+                <p style="font-weight:800; margin-bottom:4px; font-size:1.1rem;">Thêm học sinh</p>
+                <p style="font-size:.85rem; margin:0; opacity:0.8;">Nhập email tài khoản con để liên kết</p>
             </div>
         </div>
 
         @if (Model == null || !Model.Any())
         {
             <div class="empty-state">
-                <div style="font-size:3rem;margin-bottom:15px;">👶</div>
-                <p>Chưa có học sinh nào được liên kết. Hãy nhập email của con để bắt đầu theo dõi!</p>
-                <button class="btn" data-bs-toggle="modal" data-bs-target="#linkStudentModal" style="display:inline-block;margin-top:15px;padding:12px 28px;background:linear-gradient(135deg,#ec6090,#e75485);color:#fff;border-radius:25px;border:none;font-weight:700;cursor:pointer;">➕ Liên kết tài khoản con</button>
+                <div style="font-size:4rem; margin-bottom:20px;">👶</div>
+                <p style="font-size:1.1rem; font-weight:700; color:#4b5563; margin-bottom:20px;">Chưa có học sinh nào được liên kết. Hãy nhập email của con để bắt đầu theo dõi!</p>
+                <button class="btn btn-modal-submit" data-bs-toggle="modal" data-bs-target="#linkStudentModal" style="display:inline-block; border-radius:99px; padding:14px 32px;">➕ Liên kết tài khoản con</button>
             </div>
         }
     </div>
@@ -67,37 +322,37 @@
 <!-- Modal Liên kết học sinh -->
 <div class="modal fade" id="linkStudentModal" tabindex="-1" aria-labelledby="linkStudentModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content" style="background:#1e293b; border: 1px solid rgba(255,255,255,.1); border-radius: 20px; color: #e2e8f0;">
-      <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,.06); padding: 20px;">
-        <h5 class="modal-title" id="linkStudentModalLabel" style="color:#ec6090; font-weight:700;"><i class="fas fa-link"></i> Liên kết tài khoản học sinh</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="background-color: transparent; border: none; color: #fff; font-size: 1.25rem;">&times;</button>
+    <div class="modal-content link-modal-content">
+      <div class="modal-header link-modal-header">
+        <h5 class="link-modal-title" id="linkStudentModalLabel"><i class="fas fa-link"></i> Liên kết tài khoản học sinh</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="color: #6b7280; font-size: 1.25rem; font-weight: 700; background: transparent; border: none;">&times;</button>
       </div>
       <form asp-controller="Parent" asp-action="LinkStudent" method="post">
         @Html.AntiForgeryToken()
-        <div class="modal-body" style="padding: 24px;">
-          <p style="font-size: 0.88rem; color: #94a3b8; margin-bottom: 20px;">Nhập địa chỉ email của con bạn (tài khoản Học sinh đã đăng ký trên hệ thống PLO) để liên kết và theo dõi tiến độ học tập.</p>
-          <div style="margin-bottom:18px;">
-              <label style="color:#e2e8f0; font-weight:600; display:block; margin-bottom:8px;">📧 Email của con</label>
+        <div class="modal-body link-modal-body">
+          <p style="font-size: 0.92rem; color: #6b7280; margin-bottom: 20px; line-height: 1.5; font-weight: 600;">Nhập địa chỉ email của con bạn (tài khoản Học sinh đã đăng ký trên hệ thống PLO) để liên kết và theo dõi tiến độ học tập.</p>
+          <div style="margin-bottom:20px;">
+              <label class="link-label">📧 Email của con</label>
               <div style="display:grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;">
-                  <div style="position:relative; width: 100%;">
-                      <i class="fas fa-envelope" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#94a3b8;"></i>
-                      <input type="email" name="studentEmail" id="studentEmail" required style="width:100%; padding:12px 14px 12px 40px; background:rgba(255,255,255,.06); border:2px solid rgba(255,255,255,.1); border-radius:12px; color:#fff; font-family:'Inter',sans-serif; font-size:.95rem;">
+                  <div class="link-input-wrapper">
+                      <i class="fas fa-envelope"></i>
+                      <input type="email" name="studentEmail" id="studentEmail" required class="link-input-field" placeholder="vi-du@email.com">
                   </div>
-                  <button type="button" class="btn" id="btnSendLinkCode" onclick="sendLinkCode()" style="background:#ede9fe; color:#7c3aed; border:2px solid #ddd6fe; border-radius:12px; font-weight:700; padding:12px 18px; cursor:pointer;">Gửi mã</button>
+                  <button type="button" class="btn" id="btnSendLinkCode" onclick="sendLinkCode()">Gửi mã</button>
               </div>
-              <span id="linkCodeStatus" style="font-size:.78rem; font-weight:700; display:block; margin-top:6px; min-height:18px;"></span>
+              <span id="linkCodeStatus" style="font-size:.78rem; font-weight:800; display:block; margin-top:6px; min-height:18px;"></span>
           </div>
           <div style="margin-bottom:0;">
-              <label style="color:#e2e8f0; font-weight:600; display:block; margin-bottom:8px;">🔑 Mã xác thực email</label>
-              <div style="position:relative;">
-                  <i class="fas fa-key" style="position:absolute; left:14px; top:50%; transform:translateY(-50%); color:#94a3b8;"></i>
-                  <input type="text" name="verificationCode" required placeholder="Nhập mã 6 số" style="width:100%; padding:12px 14px 12px 40px; background:rgba(255,255,255,.06); border:2px solid rgba(255,255,255,.1); border-radius:12px; color:#fff; font-family:'Inter',sans-serif; font-size:.95rem;">
+              <label class="link-label">🔑 Mã xác thực email</label>
+              <div class="link-input-wrapper">
+                  <i class="fas fa-key"></i>
+                  <input type="text" name="verificationCode" required placeholder="Nhập mã 6 số" class="link-input-field">
               </div>
           </div>
         </div>
-        <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,.06); padding: 16px 20px; display:flex; gap:10px; justify-content:flex-end;">
-          <button type="button" class="btn" data-bs-dismiss="modal" style="background:rgba(255,255,255,.1); color:#fff; border:none; padding:10px 20px; border-radius:12px; font-weight:600; cursor:pointer;">Hủy bỏ</button>
-          <button type="submit" class="btn" style="background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border:none; padding:10px 20px; border-radius:12px; font-weight:700; cursor:pointer;">Liên kết ngay</button>
+        <div class="modal-footer link-modal-footer">
+          <button type="button" class="btn btn-modal-cancel" data-bs-dismiss="modal">Hủy bỏ</button>
+          <button type="submit" class="btn btn-modal-submit">Liên kết ngay</button>
         </div>
       </form>
     </div>

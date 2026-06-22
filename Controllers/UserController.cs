@@ -189,7 +189,7 @@ public class ParentController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> StudentProgress(int studentId)
+    public async Task<IActionResult> StudentProgress(int studentId, int page = 1)
     {
         var parentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
         var student = await _userService.GetByIdAsync(studentId);
@@ -202,6 +202,7 @@ public class ParentController : Controller
         
         ViewBag.Student = student;
         ViewBag.Packages = packages;
+        ViewBag.CurrentPage = page;
         
         return View(attempts);
     }
@@ -227,7 +228,7 @@ public class ParentController : Controller
 
         // Nếu chỉ có 1 con → redirect thẳng đến trang tiến trình
         if (childrenInGrade.Count == 1)
-            return RedirectToAction(nameof(StudentProgress), new { studentId = childrenInGrade[0].UserId });
+            return RedirectToAction(nameof(DetailedProgress), new { studentId = childrenInGrade[0].UserId, gradeId = gradeId });
 
         // Nếu không có con nào → redirect về danh sách
         if (!childrenInGrade.Any())
@@ -239,9 +240,10 @@ public class ParentController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> DetailedProgress(int? studentId, int? gradeId, int? subjectId, int? chapterId, int? lessonId)
+    public async Task<IActionResult> DetailedProgress(int? studentId, int? gradeId, int? subjectId, int? chapterId, int? lessonId, int page = 1)
     {
         var parentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        ViewBag.CurrentPage = page;
         
         // Trace back selections from lessonId, chapterId, or subjectId if not explicitly provided
         if (lessonId.HasValue && !chapterId.HasValue)
@@ -333,6 +335,33 @@ public class ParentController : Controller
         {
             chapters = (await _chapterService.GetBySubjectIdAsync(selectedSubject.SubjectId))
                 .Where(c => c.Status == "Active").ToList();
+
+            if (selectedStudent != null)
+            {
+                var activeChapterIds = chapters.Select(c => c.ChapterId).ToList();
+
+                // Get all lessons for this subject
+                var allLessons = await _dbContext.Lessons
+                    .Include(l => l.Chapter)
+                    .Where(l => activeChapterIds.Contains(l.ChapterId) && l.Status == "Active")
+                    .ToListAsync();
+
+                // Get completed lessons list for the student
+                var completedLessonIds = await _dbContext.StudentLessonProgresses
+                    .Where(p => p.StudentId == selectedStudent.UserId && p.Lesson != null && activeChapterIds.Contains(p.Lesson.ChapterId))
+                    .Select(p => p.LessonId)
+                    .ToListAsync();
+
+                // Get all test attempts for this subject
+                var subjectTestAttempts = await _dbContext.TestAttempts
+                    .Include(a => a.Test)
+                    .Where(a => a.StudentId == selectedStudent.UserId && a.Test != null && a.Test.Lesson != null && activeChapterIds.Contains(a.Test.Lesson.ChapterId))
+                    .ToListAsync();
+
+                ViewBag.AllLessons = allLessons;
+                ViewBag.CompletedLessonIds = completedLessonIds;
+                ViewBag.SubjectTestAttempts = subjectTestAttempts;
+            }
         }
         ViewBag.Chapters = chapters;
         

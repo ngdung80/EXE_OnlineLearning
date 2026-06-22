@@ -12,6 +12,17 @@
     var streakDays = doneAttempts.Select(a => a.StartTime?.Date).Distinct().Count();
     var thisWeek = doneAttempts.Where(a => a.StartTime >= DateTime.Now.AddDays(-7)).Count();
     var accuracy = totalAttempts > 0 ? (int)Math.Round(avgScore * 10) : 0;
+
+    // Pagination calculations
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int pageSize = 7;
+    var totalPages = (int)Math.Ceiling((double)totalAttempts / pageSize);
+    if (totalPages < 1) totalPages = 1;
+    
+    var paginatedAttempts = Model?.OrderByDescending(a => a.StartTime)
+                                 .Skip((currentPage - 1) * pageSize)
+                                 .Take(pageSize)
+                                 .ToList() ?? new List<POT_System_ASPNET.Data.Entities.TestAttempt>();
 }
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -106,7 +117,40 @@
     .week-chart { display:flex; align-items:flex-end; gap:8px; height:80px; margin-top:12px; padding:0 4px; }
     .week-bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; }
     .week-bar { width:100%; border-radius:6px 6px 0 0; background:linear-gradient(135deg,#e75485,#ec6090); min-height:4px; transition:height .5s ease; }
-    .week-day { font-size:.7rem; color:#9ca3af; font-weight:700; }
+    /* Pagination */
+    .page-link-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 16px;
+        background: #fff;
+        border: 2px solid #ede9fe;
+        color: #7c3aed;
+        border-radius: 12px;
+        font-weight: 800;
+        text-decoration: none !important;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+    .page-link-btn:hover:not(.disabled):not(.active) {
+        background: #fff1f5;
+        border-color: #e75485;
+        color: #e75485;
+        transform: translateY(-1px);
+    }
+    .page-link-btn.active {
+        background: linear-gradient(135deg, #ec6090, #e75485);
+        color: #fff;
+        border-color: transparent;
+        box-shadow: 0 4px 10px rgba(236,96,144,0.25);
+    }
+    .page-link-btn.disabled {
+        background: #f3f4f6;
+        color: #cbd5e1;
+        border-color: #e5e7eb;
+        cursor: not-allowed;
+    }
 </style>
 
 <div class="dashboard-wrap">
@@ -263,7 +307,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (var attempt in Model!.OrderByDescending(a => a.StartTime).Take(10))
+                                    @foreach (var attempt in paginatedAttempts)
                                     {
                                         var timeSpent = (attempt.EndTime.HasValue && attempt.StartTime.HasValue)
                                             ? (attempt.EndTime.Value - attempt.StartTime.Value).ToString(@"mm\:ss")
@@ -289,6 +333,41 @@
                                 </tbody>
                             </table>
                         </div>
+
+                        @if (totalPages > 1)
+                        {
+                            <div class="pagination-wrap" style="display:flex; justify-content:center; align-items:center; gap:8px; margin-top:24px; font-family:'Nunito',sans-serif;">
+                                @if (currentPage > 1)
+                                {
+                                    <a asp-controller="Parent" asp-action="StudentProgress" asp-route-studentId="@student?.UserId" asp-route-page="@(currentPage - 1)" class="page-link-btn"><i class="fas fa-chevron-left"></i> Trước</a>
+                                }
+                                else
+                                {
+                                    <span class="page-link-btn disabled"><i class="fas fa-chevron-left"></i> Trước</span>
+                                }
+
+                                @for (int i = 1; i <= totalPages; i++)
+                                {
+                                    if (i == currentPage)
+                                    {
+                                        <span class="page-link-btn active">@i</span>
+                                    }
+                                    else
+                                    {
+                                        <a asp-controller="Parent" asp-action="StudentProgress" asp-route-studentId="@student?.UserId" asp-route-page="@i" class="page-link-btn">@i</a>
+                                    }
+                                }
+
+                                @if (currentPage < totalPages)
+                                {
+                                    <a asp-controller="Parent" asp-action="StudentProgress" asp-route-studentId="@student?.UserId" asp-route-page="@(currentPage + 1)" class="page-link-btn">Sau <i class="fas fa-chevron-right"></i></a>
+                                }
+                                else
+                                {
+                                    <span class="page-link-btn disabled">Sau <i class="fas fa-chevron-right"></i></span>
+                                }
+                            </div>
+                        }
                     }
                     else
                     {

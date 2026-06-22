@@ -288,6 +288,41 @@
     .att-table th, .att-table td { padding: 10px 10px; font-size: .8rem; }
     .bc-chip { font-size: .78rem; padding: 4px 10px; }
 }
+
+/* Pagination */
+.page-link-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    background: #fff;
+    border: 2px solid #ede9fe;
+    color: #7c3aed;
+    border-radius: 12px;
+    font-weight: 800;
+    text-decoration: none !important;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+.page-link-btn:hover:not(.disabled):not(.active) {
+    background: #fff1f5;
+    border-color: #e75485;
+    color: #e75485;
+    transform: translateY(-1px);
+}
+.page-link-btn.active {
+    background: linear-gradient(135deg, #ec6090, #e75485);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 4px 10px rgba(236,96,144,0.25);
+}
+.page-link-btn.disabled {
+    background: #f3f4f6;
+    color: #cbd5e1;
+    border-color: #e5e7eb;
+    cursor: not-allowed;
+}
 </style>
 
 <div class="dp-page">
@@ -421,24 +456,139 @@
         }
         else if (selChapter == null)
         {
-            <!-- STEP 4: Chọn chương -->
+            <!-- STEP 4: Tổng quan tiến độ môn học & Chọn chương -->
+            var allLessons = ViewBag.AllLessons as List<Lesson> ?? new List<Lesson>();
+            var completedLessonIds = ViewBag.CompletedLessonIds as List<int> ?? new List<int>();
+            var subjectAttempts = ViewBag.SubjectTestAttempts as List<TestAttempt> ?? new List<TestAttempt>();
+            
+            var totalLessonsCount = allLessons.Count;
+            var completedLessonsCount = allLessons.Count(l => completedLessonIds.Contains(l.LessonId));
+            var completionPercentage = totalLessonsCount > 0 ? (int)Math.Round((double)completedLessonsCount / totalLessonsCount * 100) : 0;
+            
+            var doneAttempts = subjectAttempts.Where(a => a.Score.HasValue).ToList();
+            var subjectAvgScore = doneAttempts.Any() ? doneAttempts.Average(a => a.Score!.Value) : 0.0;
+            var subjectHighScore = doneAttempts.Any() ? doneAttempts.Max(a => a.Score!.Value) : 0.0;
+
             <div class="step-hd">
-                <h2>📂 Chọn chương học</h2>
-                <p>Môn <strong>@selSubject.SubjectName</strong> – chọn chương muốn xem báo cáo.</p>
+                <h2>📈 Tổng quan môn học: @selSubject.SubjectName</h2>
+                <p>Theo dõi tiến độ học tập tổng quát của con trong môn học này</p>
             </div>
+
+            <!-- Dashboard Stats -->
+            <div class="answer-row" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:20px; margin-bottom:28px;">
+                <div class="answer-card green" style="background:#fff; border-radius:20px; padding:24px 22px; box-shadow:0 4px 16px rgba(0,0,0,.06); text-align:center; border-top:5px solid #10b981;">
+                    <div class="ac-icon" style="font-size:2rem; margin-bottom:8px;">✅</div>
+                    <div class="ac-num" style="font-size:2.2rem; font-weight:900; color:#1e1b4b; line-height:1.1; font-family:'Nunito',sans-serif;">@completedLessonsCount / @totalLessonsCount</div>
+                    <div class="ac-lbl" style="font-size:.82rem; font-weight:700; color:#9ca3af; margin-top:4px; text-transform:uppercase; letter-spacing:.5px;">Bài học hoàn thành</div>
+                    <div class="ac-sub" style="font-size:.8rem; color:#10b981; font-weight:700; margin-top:6px;">Đạt @completionPercentage% tiến độ</div>
+                </div>
+                <div class="answer-card purple" style="background:#fff; border-radius:20px; padding:24px 22px; box-shadow:0 4px 16px rgba(0,0,0,.06); text-align:center; border-top:5px solid #9333ea;">
+                    <div class="ac-icon" style="font-size:2rem; margin-bottom:8px;">⭐</div>
+                    <div class="ac-num" style="font-size:2.2rem; font-weight:900; color:#1e1b4b; line-height:1.1; font-family:'Nunito',sans-serif;">@subjectAvgScore.ToString("0.0")</div>
+                    <div class="ac-lbl" style="font-size:.82rem; font-weight:700; color:#9ca3af; margin-top:4px; text-transform:uppercase; letter-spacing:.5px;">Điểm trung bình</div>
+                    <div class="ac-sub" style="font-size:.8rem; color:#9333ea; font-weight:700; margin-top:6px;">Điểm cao nhất: @subjectHighScore.ToString("0.0")</div>
+                </div>
+                <div class="answer-card amber" style="background:#fff; border-radius:20px; padding:24px 22px; box-shadow:0 4px 16px rgba(0,0,0,.06); text-align:center; border-top:5px solid #f59e0b;">
+                    <div class="ac-icon" style="font-size:2rem; margin-bottom:8px;">📝</div>
+                    <div class="ac-num" style="font-size:2.2rem; font-weight:900; color:#1e1b4b; line-height:1.1; font-family:'Nunito',sans-serif;">@doneAttempts.Count</div>
+                    <div class="ac-lbl" style="font-size:.82rem; font-weight:700; color:#9ca3af; margin-top:4px; text-transform:uppercase; letter-spacing:.5px;">Bài kiểm tra đã làm</div>
+                    <div class="ac-sub" style="font-size:.8rem; color:#f59e0b; font-weight:700; margin-top:6px;">Tổng cộng @subjectAttempts.Count lượt làm</div>
+                </div>
+            </div>
+
+            <!-- Subject Progress Bar -->
+            <div style="margin-bottom:32px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <span style="font-size:.9rem; font-weight:800; color:#4b5563;">Tiến độ học lý thuyết môn học</span>
+                    <span style="font-size:.9rem; font-weight:900; color:#e75485;">@completionPercentage%</span>
+                </div>
+                <div style="background:#f3f4f6; border-radius:999px; height:16px; overflow:hidden; box-shadow:inset 0 2px 4px rgba(0,0,0,0.05);">
+                    <div style="width:@completionPercentage%; height:100%; background:linear-gradient(90deg, #e75485, #7c3aed); border-radius:999px; transition:width 1s ease;"></div>
+                </div>
+            </div>
+
+            <div class="step-hd" style="border-bottom:none; margin-bottom:20px; padding-bottom:0; text-align:left;">
+                <h3 style="font-size:1.30rem; font-weight:900; color:#1e1b4b; margin:0;"><i class="fas fa-list-ol" style="color:#7c3aed; margin-right:8px;"></i> Danh sách chương và bài học</h3>
+                <p style="font-size:0.9rem; color:#6b7280; font-weight:600; margin-top:4px;">Xem tiến trình học tập từng bài và click Xem chi tiết để xem lịch sử làm bài</p>
+            </div>
+
             @if (chapters.Any())
             {
-                <div class="chap-list">
+                <div class="chapters-progress-wrap" style="display:flex; flex-direction:column; gap:24px; width:100%;">
                     @for (int i = 0; i < chapters.Count; i++)
                     {
                         var ch = chapters[i];
-                        <a href="?studentId=@selStudent.UserId&gradeId=@selGrade.GradeId&subjectId=@selSubject.SubjectId&chapterId=@ch.ChapterId" class="chap-item">
-                            <div class="chap-left">
-                                <span class="chap-num">@(i+1)</span>
-                                <span class="chap-name">@ch.ChapterName</span>
+                        var chLessons = allLessons.Where(l => l.ChapterId == ch.ChapterId).ToList();
+                        
+                        <div class="chapter-progress-card" style="background:#fff; border:2px solid #ede9fe; border-radius:24px; padding:28px; box-shadow:0 4px 12px rgba(124,58,237,.03);">
+                            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+                                <h3 style="font-size:1.15rem; font-weight:900; color:#1e1b4b; margin:0; display:flex; align-items:center; gap:12px;">
+                                    <span style="background:linear-gradient(135deg,#fce7f3,#ede9fe); color:#e75485; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.95rem; font-weight:900;">@(i+1)</span>
+                                    @ch.ChapterName
+                                </h3>
+                                <a href="?studentId=@selStudent?.UserId&gradeId=@selGrade?.GradeId&subjectId=@selSubject?.SubjectId&chapterId=@ch.ChapterId" style="font-size:0.82rem; font-weight:800; color:#7c3aed; text-decoration:none;">Chỉ xem chương này →</a>
                             </div>
-                            <i class="fa fa-arrow-right chap-arr"></i>
-                        </a>
+
+                            @if (chLessons.Any())
+                            {
+                                <div style="overflow-x:auto;">
+                                    <table class="att-table" style="width:100%; border-collapse:collapse;">
+                                        <thead>
+                                            <tr style="border-bottom:2px solid #f3f4f6;">
+                                                <th style="padding:10px 14px; text-align:left; font-size:.78rem; font-weight:800; color:#9ca3af; text-transform:uppercase; letter-spacing:.5px;">Bài học</th>
+                                                <th style="padding:10px 14px; text-align:left; font-size:.78rem; font-weight:800; color:#9ca3af; text-transform:uppercase; letter-spacing:.5px;">Trạng thái học lý thuyết</th>
+                                                <th style="padding:10px 14px; text-align:left; font-size:.78rem; font-weight:800; color:#9ca3af; text-transform:uppercase; letter-spacing:.5px;">Kết quả luyện tập</th>
+                                                <th style="padding:10px 14px; text-align:left; font-size:.78rem; font-weight:800; color:#9ca3af; text-transform:uppercase; letter-spacing:.5px; width:140px;">Hành động</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var l in chLessons)
+                                            {
+                                                var isCompleted = completedLessonIds.Contains(l.LessonId);
+                                                var lessonAttempts = subjectAttempts.Where(a => a.Test?.LessonId == l.LessonId).ToList();
+                                                var scoredAttempts = lessonAttempts.Where(a => a.Score.HasValue).ToList();
+                                                var bestScore = scoredAttempts.Any() ? scoredAttempts.Max(a => a.Score!.Value) : (double?)null;
+                                                
+                                                <tr style="border-bottom:1px solid #f9fafb;">
+                                                    <td style="padding:14px; font-weight:800; color:#1e1b4b; font-size:0.95rem;">@l.LessonName</td>
+                                                    <td style="padding:14px;">
+                                                        @if (isCompleted)
+                                                        {
+                                                            <span class="badge" style="background:#d1fae5; color:#065f46; padding:6px 12px; border-radius:10px; font-size:.75rem; font-weight:800; display:inline-flex; align-items:center; gap:5px;"><i class="fas fa-check-circle"></i> Đã hoàn thành</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="badge" style="background:#f3f4f6; color:#6b7280; padding:6px 12px; border-radius:10px; font-size:.75rem; font-weight:800; display:inline-flex; align-items:center; gap:5px;"><i class="far fa-circle"></i> Chưa hoàn thành</span>
+                                                        }
+                                                    </td>
+                                                    <td style="padding:14px;">
+                                                        @if (bestScore.HasValue)
+                                                        {
+                                                            var scClass = bestScore >= 8 ? "hi" : bestScore >= 5 ? "md" : "lo";
+                                                            <div style="display:flex; flex-direction:column; gap:4px;">
+                                                                <div><span class="sc @scClass" style="display:inline-block; padding: 4px 10px; border-radius: 8px; font-weight:900; font-size:0.8rem;">@bestScore.Value.ToString("0.0") / 10</span></div>
+                                                                <span style="font-size:0.75rem; color:#6b7280; font-weight:700;">(Luyện tập: @lessonAttempts.Count lần)</span>
+                                                            </div>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span style="color:#9ca3af; font-size:.85rem; font-weight:700;">Chưa luyện tập</span>
+                                                        }
+                                                    </td>
+                                                    <td style="padding:14px;">
+                                                        <a href="?studentId=@selStudent?.UserId&gradeId=@selGrade?.GradeId&subjectId=@selSubject?.SubjectId&chapterId=@ch.ChapterId&lessonId=@l.LessonId" style="background:rgba(124,58,237,.06); color:#7c3aed; border:1.5px solid rgba(124,58,237,.15); border-radius:10px; font-weight:800; font-size:.78rem; padding:6px 12px; text-decoration:none; display:inline-flex; align-items:center; gap:5px; transition:all 0.2s;"><i class="fas fa-search"></i> Xem chi tiết</a>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <p style="color:#9ca3af; font-size:.88rem; margin:0; font-style:italic;">Không có bài học nào trong chương này.</p>
+                            }
+                        </div>
                     }
                 </div>
             }
@@ -508,6 +658,17 @@
 
                     @if (attempts.Any())
                     {
+                        int currentPage = ViewBag.CurrentPage ?? 1;
+                        int pageSize = 7;
+                        var totalAttemptsCount = attempts.Count;
+                        var totalPages = (int)Math.Ceiling((double)totalAttemptsCount / pageSize);
+                        if (totalPages < 1) totalPages = 1;
+
+                        var paginatedAttempts = attempts
+                            .Skip((currentPage - 1) * pageSize)
+                            .Take(pageSize)
+                            .ToList();
+
                         <div style="overflow-x:auto;">
                             <table class="att-table">
                                 <thead><tr>
@@ -519,7 +680,7 @@
                                     <th>Chi tiết</th>
                                 </tr></thead>
                                 <tbody>
-                                @foreach (var a in attempts)
+                                @foreach (var a in paginatedAttempts)
                                 {
                                     var sc = (a.Score ?? 0) >= 8 ? "hi" : (a.Score ?? 0) >= 5 ? "md" : "lo";
                                     var dur = (a.EndTime.HasValue && a.StartTime.HasValue) ? (a.EndTime.Value - a.StartTime.Value).ToString(@"mm\:ss") : "—";
@@ -536,6 +697,62 @@
                             </table>
                         </div>
 
+                        @if (totalPages > 1)
+                        {
+                            <div class="pagination-wrap" style="display:flex; justify-content:center; align-items:center; gap:8px; margin-top:24px; margin-bottom:12px; font-family:'Nunito',sans-serif;">
+                                @if (currentPage > 1)
+                                {
+                                    <a asp-controller="Parent" asp-action="DetailedProgress" 
+                                       asp-route-studentId="@selStudent?.UserId" 
+                                       asp-route-gradeId="@selGrade?.GradeId" 
+                                       asp-route-subjectId="@selSubject?.SubjectId" 
+                                       asp-route-chapterId="@selChapter?.ChapterId" 
+                                       asp-route-lessonId="@selLesson?.LessonId" 
+                                       asp-route-page="@(currentPage - 1)" 
+                                       class="page-link-btn"><i class="fas fa-chevron-left"></i> Trước</a>
+                                }
+                                else
+                                {
+                                    <span class="page-link-btn disabled"><i class="fas fa-chevron-left"></i> Trước</span>
+                                }
+
+                                @for (int i = 1; i <= totalPages; i++)
+                                {
+                                    if (i == currentPage)
+                                    {
+                                        <span class="page-link-btn active">@i</span>
+                                    }
+                                    else
+                                    {
+                                        <a asp-controller="Parent" asp-action="DetailedProgress" 
+                                           asp-route-studentId="@selStudent?.UserId" 
+                                           asp-route-gradeId="@selGrade?.GradeId" 
+                                           asp-route-subjectId="@selSubject?.SubjectId" 
+                                           asp-route-chapterId="@selChapter?.ChapterId" 
+                                           asp-route-lessonId="@selLesson?.LessonId" 
+                                           asp-route-page="@i" 
+                                           class="page-link-btn">@i</a>
+                                    }
+                                }
+
+                                @if (currentPage < totalPages)
+                                {
+                                    <a asp-controller="Parent" asp-action="DetailedProgress" 
+                                       asp-route-studentId="@selStudent?.UserId" 
+                                       asp-route-gradeId="@selGrade?.GradeId" 
+                                       asp-route-subjectId="@selSubject?.SubjectId" 
+                                       asp-route-chapterId="@selChapter?.ChapterId" 
+                                       asp-route-lessonId="@selLesson?.LessonId" 
+                                       asp-route-page="@(currentPage + 1)" 
+                                       class="page-link-btn">Sau <i class="fas fa-chevron-right"></i></a>
+                                }
+                                else
+                                {
+                                    <span class="page-link-btn disabled">Sau <i class="fas fa-chevron-right"></i></span>
+                                }
+                            </div>
+                        }
+
                         var best = attempts.Max(x => x.Score ?? 0);
                         var adviceText = best >= 8 ? "Bé nắm bài rất chắc, tuyệt vời! 🏆"
                                        : best >= 5 ? "Bé hiểu bài khá, hãy ôn lại các câu sai."
@@ -543,7 +760,7 @@
                         <div class="advice-box">
                             <span style="font-size:1.3rem;">💡</span>
                             <span>
-                                Bé <strong>@selStudent.FullName</strong> đã làm <strong>@attempts.Count</strong> bài kiểm tra.
+                                Bé <strong>@selStudent?.FullName</strong> đã làm <strong>@attempts.Count</strong> bài kiểm tra.
                                 Điểm cao nhất: <strong>@best.ToString("0.0")/10</strong>. @adviceText
                             </span>
                         </div>
