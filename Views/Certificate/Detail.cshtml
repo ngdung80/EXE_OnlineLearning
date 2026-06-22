@@ -13,15 +13,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chứng chỉ - @(student?.FullName ?? student?.Username)</title>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Pinyon+Script&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Pacifico&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     
     <style>
         body {
             margin: 0;
             padding: 0;
-            background-color: #f0f2f5;
-            font-family: 'Cormorant Garamond', serif;
+            background-color: #fce7f3;
+            font-family: 'Nunito', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -31,98 +31,125 @@
 
         /* Certificate Container */
         .certificate-container {
-            width: 980px;
-            height: 690px;
-            padding: 50px 60px;
+            width: 1000px;
+            height: 710px;
+            padding: 45px 55px;
             position: relative;
-            background-color: #fefcf9;
-            /* Premium subtle paper texture + security watermark */
+            background-color: #fffefb;
             background-image: 
-                radial-gradient(circle at 50% 50%, rgba(218, 165, 32, 0.02) 0%, transparent 80%),
-                linear-gradient(rgba(218, 165, 32, 0.01) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(218, 165, 32, 0.01) 1px, transparent 1px);
-            background-size: 100% 100%, 20px 20px, 20px 20px;
-            border: 24px solid #ffffff;
-            box-shadow: 0 30px 70px rgba(27, 38, 59, 0.12);
-            border-radius: 4px;
+                radial-gradient(circle at 10% 20%, rgba(255, 182, 193, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(167, 139, 250, 0.1) 0%, transparent 40%);
+            border: 20px solid #ffccd8; /* Pastel pink outer border */
+            border-radius: 40px;
+            box-shadow: 0 20px 50px rgba(236, 96, 144, 0.15);
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
             overflow: hidden;
+            z-index: 1;
         }
 
-        /* Royal Borders */
-        .certificate-border-outer {
+        /* Inner thin pink border */
+        .inner-border {
             position: absolute;
-            top: 12px;
-            bottom: 12px;
-            left: 12px;
-            right: 12px;
-            border: 5px double #1a2e40;
+            top: 10px;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            border: 3px solid #ffb3c6;
+            border-radius: 28px;
             pointer-events: none;
+            z-index: 2;
         }
 
-        .certificate-border-inner {
+        /* Inner dashed purple border */
+        .dashed-border {
             position: absolute;
-            top: 24px;
-            bottom: 24px;
-            left: 24px;
-            right: 24px;
-            border: 1px solid #c5a059;
+            top: 18px;
+            bottom: 18px;
+            left: 18px;
+            right: 18px;
+            border: 2px dashed #c084fc;
+            border-radius: 22px;
             pointer-events: none;
+            z-index: 2;
+            opacity: 0.6;
         }
 
-        /* Ornate Corner Elements */
-        .corner-ornament {
+        /* Decorative SVGs in corners */
+        .deco-top-left {
             position: absolute;
-            width: 32px;
-            height: 32px;
-            border: 2px solid #c5a059;
-            pointer-events: none;
-            z-index: 5;
+            top: 25px;
+            left: 25px;
+            z-index: 3;
         }
-        .corner-tl { top: 32px; left: 32px; border-right: none; border-bottom: none; }
-        .corner-tr { top: 32px; right: 32px; border-left: none; border-bottom: none; }
-        .corner-bl { bottom: 32px; left: 32px; border-right: none; border-top: none; }
-        .corner-br { bottom: 32px; right: 32px; border-left: none; border-top: none; }
 
-        /* Corner Dots */
-        .corner-dot {
+        .deco-top-right {
             position: absolute;
-            width: 6px;
-            height: 6px;
-            background-color: #1a2e40;
+            top: 25px;
+            right: 25px;
+            z-index: 3;
+        }
+
+        .deco-bottom-left {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 3;
+        }
+
+        .deco-bottom-right {
+            position: absolute;
+            bottom: 25px;
+            right: 25px;
+            z-index: 3;
+        }
+
+        /* Floating decoration bubbles/stars */
+        .floating-bubble {
+            position: absolute;
             border-radius: 50%;
-            z-index: 5;
+            opacity: 0.6;
+            pointer-events: none;
         }
-        .dot-tl { top: 40px; left: 40px; }
-        .dot-tr { top: 40px; right: 40px; }
-        .dot-bl { bottom: 40px; left: 40px; }
-        .dot-br { bottom: 40px; right: 40px; }
+        .bubble-1 { width: 12px; height: 12px; background: #fbbf24; top: 120px; left: 160px; }
+        .bubble-2 { width: 8px; height: 8px; background: #ec6090; top: 220px; right: 150px; }
+        .bubble-3 { width: 10px; height: 10px; background: #a78bfa; bottom: 180px; left: 170px; }
+        .bubble-4 { width: 9px; height: 9px; background: #60a5fa; top: 110px; right: 280px; }
+        
+        .floating-star {
+            position: absolute;
+            font-size: 16px;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .star-1 { color: #a78bfa; top: 100px; left: 240px; transform: rotate(15deg); }
+        .star-2 { color: #fca5a5; top: 130px; right: 220px; transform: rotate(-20deg); }
+        .star-3 { color: #fde047; bottom: 180px; right: 180px; transform: rotate(10deg); }
 
         /* Header block */
         .header {
             text-align: center;
-            margin-top: 15px;
+            margin-top: 10px;
+            z-index: 4;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
         .logo-img {
-            height: 55px;
-            margin-bottom: 8px;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));
+            height: 52px;
+            margin-bottom: 6px;
         }
 
         .academy-name {
-            font-family: 'Cinzel', serif;
+            font-family: 'Nunito', sans-serif;
             font-size: 0.85rem;
-            color: #1a2e40;
-            letter-spacing: 5px;
-            font-weight: 700;
+            color: #4b5563;
+            letter-spacing: 2px;
+            font-weight: 800;
             margin: 0;
             text-transform: uppercase;
         }
@@ -131,67 +158,107 @@
         .content {
             text-align: center;
             width: 100%;
-            z-index: 2;
-            padding: 0 40px;
+            z-index: 4;
+            padding: 0 60px;
             box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .main-title {
-            font-family: 'Cinzel', serif;
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin: 5px 0 10px 0;
-            letter-spacing: 4px;
-            color: #1a2e40;
-            position: relative;
-            display: inline-block;
-        }
-        
-        .main-title::after {
-            content: '';
-            display: block;
-            width: 120px;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, #c5a059, transparent);
-            margin: 8px auto 0 auto;
+            font-family: 'Nunito', sans-serif;
+            font-size: 2.3rem;
+            font-weight: 900;
+            margin: 0 0 8px 0;
+            letter-spacing: 1px;
+            color: #1e1b4b;
         }
 
         .subtitle {
-            font-family: 'Cormorant Garamond', serif;
-            font-style: italic;
-            font-size: 1.25rem;
-            color: #5c677d;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.05rem;
+            color: #6b7280;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .subtitle i {
+            color: #ec6090;
+            font-size: 0.8rem;
+        }
+
+        /* Student name script wrapper */
+        .student-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
             margin: 5px 0;
         }
 
         .student-name {
-            font-family: 'Pinyon Script', cursive;
-            font-size: 5rem;
-            color: #1a2e40;
-            margin: 10px 0;
+            font-family: 'Pacifico', cursive;
+            font-size: 3.8rem;
+            color: #903df4; /* Cursive Purple */
+            margin: 0;
             font-weight: 400;
-            text-shadow: 1px 1px 0px rgba(255,255,255,0.8);
-            background: linear-gradient(135deg, #1a2e40 0%, #3a506b 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            text-align: center;
+            text-transform: lowercase;
+            text-shadow: 
+                -3px -3px 0 #fff,  
+                 3px -3px 0 #fff,
+                -3px  3px 0 #fff,
+                 3px  3px 0 #fff,
+                 0px  4px 10px rgba(144, 61, 244, 0.25);
+            line-height: 1.4;
         }
 
         .description {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.35rem;
-            color: #2b2d42;
-            max-width: 780px;
-            margin: 15px auto 0 auto;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.15rem;
+            color: #374151;
+            max-width: 720px;
+            margin: 10px auto 0 auto;
             line-height: 1.6;
-            font-weight: 500;
+            font-weight: 700;
         }
 
         .highlight-text {
-            font-family: 'Montserrat', sans-serif;
+            color: #7c3aed;
+            font-weight: 800;
+        }
+
+        /* Classification badge (Giỏi/Khá) */
+        .classification-badge {
+            display: inline-flex;
+            align-items: center;
+            background: #fff;
+            border: 2px dashed #903df4;
+            border-radius: 999px;
+            padding: 6px 20px;
+            margin-top: 14px;
+            box-shadow: 0 4px 10px rgba(144, 61, 244, 0.08);
+        }
+        .badge-icon {
+            margin-right: 6px;
+            display: flex;
+            align-items: center;
+        }
+        .badge-label {
+            font-family: 'Nunito', sans-serif;
             font-weight: 700;
-            color: #1a2e40;
-            border-bottom: 1px double #c5a059;
-            padding-bottom: 2px;
+            color: #4b5563;
+            font-size: 0.95rem;
+            margin-right: 4px;
+        }
+        .badge-value {
+            font-family: 'Nunito', sans-serif;
+            font-weight: 900;
+            color: #903df4;
+            font-size: 1.15rem;
         }
 
         /* Footer Section */
@@ -200,8 +267,9 @@
             width: 100%;
             justify-content: space-between;
             align-items: flex-end;
-            padding: 0 40px 10px 40px;
+            padding: 0 40px;
             box-sizing: border-box;
+            z-index: 4;
         }
 
         .date-box {
@@ -210,93 +278,89 @@
         }
         
         .meta-label {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 700;
-            font-size: 0.75rem;
-            letter-spacing: 1.5px;
-            color: #5c677d;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
+            font-size: 0.8rem;
+            color: #6b7280;
             text-transform: uppercase;
-            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
         }
 
         .meta-value {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 1.15rem;
-            color: #1a2e40;
-            font-weight: 700;
-            border-top: 1px solid #e2e8f0;
-            padding-top: 8px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.05rem;
+            color: #1f2937;
+            font-weight: 800;
+            border-top: 2px dashed #fca5a5;
+            padding-top: 6px;
         }
 
         .signature-box {
             text-align: center;
-            width: 220px;
+            width: 240px;
         }
 
         .signature-text {
-            font-family: 'Pinyon Script', cursive;
-            font-size: 2.8rem;
-            color: #1a2e40;
-            line-height: 0.8;
-            margin-bottom: 5px;
-            transform: rotate(-3deg);
+            font-family: 'Pacifico', cursive;
+            font-size: 1.7rem;
+            color: #1e1b4b;
+            line-height: 1;
+            margin-bottom: 2px;
+            transform: rotate(-2deg);
         }
 
         .signature-line {
-            border-top: 1px solid #e2e8f0;
-            padding-top: 8px;
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 700;
+            border-top: 2px dashed #a78bfa;
+            padding-top: 6px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
             font-size: 0.75rem;
-            letter-spacing: 1.5px;
-            color: #5c677d;
+            letter-spacing: 0.5px;
+            color: #4b5563;
             text-transform: uppercase;
         }
 
         /* Gold Seal Component */
         .seal-container {
-            width: 120px;
-            height: 120px;
+            width: 110px;
+            height: 110px;
             position: relative;
-            margin-bottom: -15px;
             display: flex;
             justify-content: center;
             align-items: center;
+            margin-bottom: -10px;
         }
 
-        /* Golden Starburst Badge */
         .seal-bg {
-            width: 90px;
-            height: 90px;
-            background: radial-gradient(circle, #fcd34d, #d97706, #b45309);
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, #ffe066, #f5b041, #d35400);
             border-radius: 50%;
-            box-shadow: 
-                0 6px 20px rgba(180, 83, 9, 0.25), 
-                inset 0 0 15px rgba(255,255,255,0.4);
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
             z-index: 10;
-            border: 2px solid #fef3c7;
+            border: 3px solid #fff;
+            box-shadow: 0 4px 14px rgba(211, 84, 0, 0.25);
         }
 
         /* Starburst teeth background */
         .seal-bg::before {
             content: "";
             position: absolute;
-            width: 98px;
-            height: 98px;
-            background: repeating-conic-gradient(from 0deg, #d97706 0deg 5deg, #b45309 5deg 10deg);
+            width: 88px;
+            height: 88px;
+            background: repeating-conic-gradient(from 0deg, #f5b041 0deg 10deg, #d35400 10deg 20deg);
             border-radius: 50%;
             z-index: -1;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
 
         .seal-inner-circle {
-            width: 76px;
-            height: 76px;
-            border: 1px double rgba(255, 255, 255, 0.6);
+            width: 66px;
+            height: 66px;
+            border: 2px dashed rgba(255, 255, 255, 0.8);
             border-radius: 50%;
             display: flex;
             flex-direction: column;
@@ -305,54 +369,41 @@
         }
 
         .seal-text {
-            font-family: 'Cinzel', serif;
+            font-family: 'Nunito', sans-serif;
             color: #ffffff;
-            font-size: 0.5rem;
-            font-weight: 700;
+            font-size: 0.48rem;
+            font-weight: 900;
             text-align: center;
-            line-height: 1.3;
-            letter-spacing: 1px;
-            text-shadow: 1px 1px 1px rgba(0,0,0,0.4);
+            line-height: 1.2;
+            letter-spacing: 0.5px;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
         }
 
         .seal-star {
-            font-size: 0.65rem;
-            color: #fef3c7;
+            font-size: 0.6rem;
+            color: #fffbeb;
             margin-top: 1px;
         }
 
         /* Ribbon tails */
         .ribbon-l, .ribbon-r {
             position: absolute;
-            width: 24px;
-            height: 75px;
-            background: linear-gradient(180deg, #dc2626, #991b1b);
-            top: 70px;
+            width: 22px;
+            height: 62px;
+            background: linear-gradient(180deg, #ff6b8b, #ff4757);
+            top: 52px;
             z-index: 5;
             clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 85%, 0 100%);
-            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.15));
         }
         
         .ribbon-l {
-            left: 32px;
-            transform: rotate(18deg);
+            left: 26px;
+            transform: rotate(16deg);
         }
         
         .ribbon-r {
-            right: 32px;
-            transform: rotate(-18deg);
-        }
-
-        /* Certificate ID Code */
-        .cert-id {
-            position: absolute;
-            top: 40px;
-            right: 45px;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 0.65rem;
-            font-weight: 600;
-            color: #5c677d;
-            letter-spacing: 0.5px;
+            right: 26px;
+            transform: rotate(-16deg);
         }
 
         /* Controls Block */
@@ -360,13 +411,14 @@
             margin-top: 25px;
             display: flex;
             gap: 15px;
+            z-index: 10;
         }
         
         .btn {
             padding: 12px 26px;
             border-radius: 30px;
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 700;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
             font-size: 0.9rem;
             text-decoration: none;
             cursor: pointer;
@@ -409,10 +461,9 @@
             }
             .certificate-container {
                 box-shadow: none !important;
-                border: none !important;
                 margin: 0 !important;
-                width: 980px;
-                height: 690px;
+                width: 1000px;
+                height: 710px;
                 page-break-inside: avoid;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
@@ -425,59 +476,120 @@
     <!-- Certificate Container -->
     <div class="certificate-container">
         <!-- Borders -->
-        <div class="certificate-border-outer"></div>
-        <div class="certificate-border-inner"></div>
+        <div class="inner-border"></div>
+        <div class="dashed-border"></div>
         
-        <!-- Corners -->
-        <div class="corner-ornament corner-tl"></div>
-        <div class="corner-ornament corner-tr"></div>
-        <div class="corner-ornament corner-bl"></div>
-        <div class="corner-ornament corner-br"></div>
+        <!-- Corner Decorations (Cute SVGs) -->
+        <!-- Top Left: Star and Rainbow -->
+        <svg class="deco-top-left" width="100" height="100" viewBox="0 0 120 120">
+            <path d="M10 90 Q 30 70 80 50" stroke="#fca5a5" stroke-width="8" fill="none" stroke-linecap="round"/>
+            <path d="M15 95 Q 35 75 85 55" stroke="#fde047" stroke-width="8" fill="none" stroke-linecap="round"/>
+            <path d="M20 100 Q 40 80 90 60" stroke="#93c5fd" stroke-width="8" fill="none" stroke-linecap="round"/>
+            <polygon points="80,25 85,38 98,40 88,50 91,63 80,55 69,63 72,50 62,40 75,38" fill="#fde047" stroke="#ca8a04" stroke-width="2"/>
+            <circle cx="76" cy="44" r="1.5" fill="#000"/>
+            <circle cx="84" cy="44" r="1.5" fill="#000"/>
+            <path d="M78 48 Q 80 50 82 48" stroke="#000" stroke-width="1.5" fill="none"/>
+        </svg>
 
-        <!-- Dots -->
-        <div class="corner-dot dot-tl"></div>
-        <div class="corner-dot dot-tr"></div>
-        <div class="corner-dot dot-bl"></div>
-        <div class="corner-dot dot-br"></div>
+        <!-- Top Right: Book -->
+        <svg class="deco-top-right" width="100" height="100" viewBox="0 0 120 120">
+            <path d="M20 70 Q 40 50 60 55 Q 80 50 100 70 L 100 30 Q 80 10 60 15 Q 40 10 20 30 Z" fill="#fff" stroke="#ec6090" stroke-width="3"/>
+            <path d="M60 15 L 60 55" stroke="#ec6090" stroke-width="2"/>
+            <path d="M20 70 L 20 73 Q 40 53 60 58 Q 80 53 100 73 L 100 70" fill="none" stroke="#db2777" stroke-width="3"/>
+            <text x="35" y="38" font-family="'Nunito', sans-serif" font-weight="900" font-size="16" fill="#ef4444">A</text>
+            <text x="75" y="35" font-family="'Nunito', sans-serif" font-weight="900" font-size="16" fill="#3b82f6">B</text>
+            <text x="70" y="48" font-family="'Nunito', sans-serif" font-weight="900" font-size="14" fill="#eab308">C</text>
+        </svg>
 
-        <!-- Watermark watermark pattern inside container -->
-        <div style="position:absolute; top:52%; left:50%; transform:translate(-50%, -50%); font-size:15rem; font-family:'Cinzel', serif; color:rgba(197, 160, 89, 0.03); font-weight:800; pointer-events:none; z-index:1; letter-spacing:15px;">PLO</div>
+        <!-- Bottom Left: Blocks and Pencil -->
+        <svg class="deco-bottom-left" width="110" height="110" viewBox="0 0 140 140">
+            <rect x="20" y="80" width="32" height="32" rx="6" fill="#f87171" stroke="#dc2626" stroke-width="2"/>
+            <text x="29" y="103" font-family="'Nunito', sans-serif" font-weight="900" font-size="18" fill="#fff">A</text>
+            <rect x="45" y="93" width="32" height="32" rx="6" fill="#a78bfa" stroke="#7c3aed" stroke-width="2"/>
+            <text x="54" y="116" font-family="'Nunito', sans-serif" font-weight="900" font-size="18" fill="#fff">B</text>
+            <rect x="62" y="70" width="32" height="32" rx="6" fill="#fbbf24" stroke="#d97706" stroke-width="2"/>
+            <text x="71" y="93" font-family="'Nunito', sans-serif" font-weight="900" font-size="18" fill="#fff">C</text>
+            <g transform="translate(10, 50) rotate(-45)">
+                <rect x="0" y="0" width="10" height="45" fill="#fbbf24"/>
+                <polygon points="0,0 5,-10 10,0" fill="#fca5a5"/>
+                <polygon points="3,-7 5,-10 7,-7" fill="#000"/>
+                <rect x="0" y="40" width="10" height="5" fill="#f43f5e"/>
+            </g>
+        </svg>
 
-        <!-- Certificate ID -->
-        <div class="cert-id">Mã số: PLO-@(student?.UserId.ToString("D4"))-@(chapter?.ChapterId.ToString("D4"))</div>
+        <!-- Bottom Right: Trophy -->
+        <svg class="deco-bottom-right" width="110" height="110" viewBox="0 0 130 130">
+            <path d="M40 30 L 90 30 L 85 70 C 85 85 45 85 45 70 Z" fill="#fbbf24" stroke="#d97706" stroke-width="2"/>
+            <rect x="55" y="85" width="20" height="15" fill="#7c3aed" stroke="#6d28d9" stroke-width="2"/>
+            <rect x="45" y="100" width="40" height="8" rx="2" fill="#374151"/>
+            <path d="M40 40 H 30 V 55 H 41" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round"/>
+            <path d="M90 40 H 100 V 55 H 89" fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round"/>
+            <polygon points="65,42 67,48 73,49 68,54 70,60 65,56 60,60 62,54 57,49 63,48" fill="#fff"/>
+        </svg>
+
+        <!-- Floating bubbles/stars background -->
+        <div class="floating-bubble bubble-1"></div>
+        <div class="floating-bubble bubble-2"></div>
+        <div class="floating-bubble bubble-3"></div>
+        <div class="floating-bubble bubble-4"></div>
+        <div class="floating-star star-1">★</div>
+        <div class="floating-star star-2">★</div>
+        <div class="floating-star star-3">★</div>
 
         <!-- Header -->
         <div class="header">
-            <img src="/assets/images/logo.png" alt="PLO Logo" class="logo-img" />
+            <img src="/assets/images/logo.png" alt="PLO Logo" class="logo-img" onerror="this.style.display='none'" />
             <h5 class="academy-name">PLO Online Academy</h5>
         </div>
 
         <!-- Content -->
         <div class="content">
-            <h1 class="main-title">CHỨNG NHẬN HOÀN THÀNH</h1>
-            <p class="subtitle">Chứng chỉ này được trân trọng trao tặng cho</p>
-            
-            <div class="student-name">@(student?.FullName ?? student?.Username)</div>
-            
-            <p class="description" style="margin-bottom: 8px;">
-                Đã hoàn thành chương học <span class="highlight-text">@chapter?.ChapterName</span> 
-                thuộc lộ trình đào tạo <span class="highlight-text">Tiếng Anh @grade?.GradeName</span>.
+            <h1 class="main-title">CHỨNG NHẬN <span style="color: #ec6090;">HOÀN THÀNH</span></h1>
+            <p class="subtitle">
+                <i class="fa fa-heart"></i> 
+                <span>Chứng chỉ này được trân trọng trao tặng cho</span> 
+                <i class="fa fa-heart"></i>
             </p>
-            <div style="font-family: 'Cinzel', serif; font-size: 1rem; color: #1a2e40; letter-spacing: 2px; font-weight: 700; text-transform: uppercase; margin-top: 12px; margin-bottom: 5px;">
-                Xếp loại: 
+            
+            <div class="student-container">
+                <!-- Left Sparkle lines -->
+                <svg width="35" height="35" viewBox="0 0 40 40" style="vertical-align: middle; margin-right: 12px;">
+                    <path d="M30 20 L 10 20 M30 15 L 15 5 M30 25 L 15 35" stroke="#ec6090" stroke-width="4" stroke-linecap="round"/>
+                </svg>
+                
+                <span class="student-name">@((student?.FullName ?? student?.Username ?? "học sinh").ToLower())</span>
+                
+                <!-- Right Sparkle lines -->
+                <svg width="35" height="35" viewBox="0 0 40 40" style="vertical-align: middle; margin-left: 12px;">
+                    <path d="M10 20 L 30 20 M10 15 L 25 5 M10 25 L 25 35" stroke="#ec6090" stroke-width="4" stroke-linecap="round"/>
+                </svg>
+            </div>
+            
+            <p class="description">
                 @if (ViewBag.Classification == "Xuất sắc")
                 {
-                    <span style="color: #d97706; border-bottom: 2px solid #d97706; padding: 0 8px;">Xuất sắc 🌟</span>
-                }
-                else if (ViewBag.Classification == "Giỏi")
-                {
-                    <span style="color: #10b981; border-bottom: 2px solid #10b981; padding: 0 8px;">Giỏi ✨</span>
+                    <span>Đã hoàn thành <span class="highlight-text">xuất sắc</span> chương học <span class="highlight-text">@chapter?.ChapterName</span> thuộc lộ trình đào tạo <span class="highlight-text">Tiếng Anh @grade?.GradeName</span>.</span>
                 }
                 else
                 {
-                    <span style="color: #3b82f6; border-bottom: 2px solid #3b82f6; padding: 0 8px;">Khá / Đạt</span>
+                    <span>Đã hoàn thành chương học <span class="highlight-text">@chapter?.ChapterName</span> thuộc lộ trình đào tạo <span class="highlight-text">Tiếng Anh @grade?.GradeName</span>.</span>
                 }
-            </div>
+            </p>
+
+            @if (ViewBag.Classification == "Giỏi" || ViewBag.Classification == "Khá")
+            {
+                <div class="classification-badge">
+                    <span class="badge-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24">
+                            <circle cx="12" cy="10" r="7" fill="#fbbf24" stroke="#d97706" stroke-width="1.5"/>
+                            <polygon points="12,5 14,9 18,9 15,12 16,16 12,14 8,16 9,12 6,9 10,9" fill="#fff"/>
+                            <path d="M9 16 L 7 22 L 12 20 L 17 22 L 15 16" fill="#ff6b8b" stroke="#e11d48" stroke-width="1"/>
+                        </svg>
+                    </span>
+                    <span class="badge-label">Xếp loại:</span>
+                    <span class="badge-value">@ViewBag.Classification</span>
+                </div>
+            }
         </div>
 
         <!-- Footer -->
@@ -494,21 +606,8 @@
                 <div class="seal-bg">
                     <div class="seal-inner-circle">
                         <div class="seal-text">
-                            @if (ViewBag.Classification == "Xuất sắc")
-                            {
-                                @:PLO SYSTEM<br><strong>XUẤT SẮC</strong><br>DISTINCTION
-                                <div class="seal-star">★★★</div>
-                            }
-                            else if (ViewBag.Classification == "Giỏi")
-                            {
-                                @:PLO SYSTEM<br><strong>LOẠI GIỎI</strong><br>MERIT
-                                <div class="seal-star">★★</div>
-                            }
-                            else
-                            {
-                                @:PLO SYSTEM<br><strong>LOẠI KHÁ</strong><br>PASS
-                                <div class="seal-star">★</div>
-                            }
+                            PLO OFFICIAL<br>SEAL
+                            <div class="seal-star">★</div>
                         </div>
                     </div>
                 </div>

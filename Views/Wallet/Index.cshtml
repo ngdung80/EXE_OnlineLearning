@@ -271,23 +271,13 @@
                     <div class="topup-section">
                         <div class="topup-title">Chọn số tiền muốn nạp</div>
                         <div class="topup-grid">
-                            @foreach (var kv in new[] {
-                                (99000,  "= Gói Cơ Bản"),
-                                (200000, "Nạp thêm"),
-                                (259000, "= Gói Tiêu Chuẩn"),
-                                (300000, "Nạp thêm"),
-                                (499000, "= Gói Cao Cấp"),
-                                (500000, "Nạp thêm"),
-                                (1000000, "Nạp lớn"),
-                                (2000000, "VIP")
-                            })
+                            @foreach (var amt in new[] { 99000, 200000, 259000, 300000, 499000, 500000, 1000000, 2000000 })
                             {
                                 <form asp-controller="Payment" asp-action="CreateTopUpUrl" method="post" style="margin:0;">
                                     @Html.AntiForgeryToken()
-                                    <input type="hidden" name="amount" value="@kv.Item1">
+                                    <input type="hidden" name="amount" value="@amt">
                                     <button type="submit" class="btn-topup-amt w-100">
-                                        @kv.Item1.ToString("N0") đ
-                                        <span class="amt-label">@kv.Item2</span>
+                                        @amt.ToString("N0") đ
                                     </button>
                                 </form>
                             }

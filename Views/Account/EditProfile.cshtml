@@ -2,7 +2,7 @@
 @{
     ViewData["Title"] = "Chỉnh sửa thông tin";
 }
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
 <style>
@@ -12,15 +12,15 @@
         min-height: 80vh;
         position: relative;
         overflow: hidden;
-        font-family: 'Nunito', sans-serif !important;
+        font-family: 'Inter', sans-serif !important;
         color: #1e1b4b;
     }
     .edit-section *:not(i):not(.fa) {
-        font-family: 'Nunito', sans-serif !important;
+        font-family: 'Inter', sans-serif !important;
     }
 
     .edit-card {
-        background: rgba(255, 255, 255, 0.88) !important;
+        background: rgba(255, 255, 255, 0.9) !important;
         backdrop-filter: blur(20px) !important;
         -webkit-backdrop-filter: blur(20px) !important;
         border: 4px solid #fbcfe8 !important;
@@ -34,7 +34,7 @@
     }
 
     .edit-card h2 { color:#ec6090; font-weight:900; margin-bottom:30px; font-size:2.2rem; }
-    .form-label { color:#4f46e5; font-size:.95rem; font-weight: 800; }
+    .form-label { color:#ec6090; font-size:.95rem; font-weight: 800; }
     .form-control { background: #ffffff !important; border: 2px solid #e5e7eb !important; color:#1e1b4b; border-radius:15px; padding:12px 15px; font-weight: 700; }
     .form-control:focus { background:#fff; border-color:#ec6090; box-shadow: 0 0 0 4px rgba(236, 96, 144, 0.1) !important; color:#1e1b4b; outline:none; }
     .form-control::placeholder { color:#a5b4fc; }
@@ -151,8 +151,23 @@
 
                     <form asp-action="EditProfile" method="post" enctype="multipart/form-data">
                         @Html.AntiForgeryToken()
-                        <div class="text-center mb-4">
-                            <img src="@(Model?.Image ?? "/assets/images/profile-header.jpg")" class="current-avatar" id="previewImg" alt="Avatar">
+                        <div class="text-center mb-4" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;">
+                            <div id="avatarContainer">
+                                @if (Model?.Image != null && Model.Image.StartsWith("VIP_"))
+                                {
+                                    <div class="vip-avatar-frame @Model.Image.ToLower()" style="margin: 0 auto;">
+                                        <div class="vip-avatar-effect-bg"></div>
+                                        <div class="vip-avatar-glow"></div>
+                                        <div class="vip-avatar-emoji">
+                                            @(Model.Image == "VIP_1" ? "⭐" : Model.Image == "VIP_2" ? "🌊" : Model.Image == "VIP_3" ? "🤖" : Model.Image == "VIP_4" ? "🔥" : "🌌")
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <img src="@(Model?.Image ?? "/assets/images/profile-header.jpg")" class="current-avatar" id="previewImg" alt="Avatar" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #ec6090; box-shadow: 0 8px 20px rgba(236,96,144,0.2);">
+                                }
+                            </div>
                             <div class="mt-3">
                                 <label class="btn-cancel" style="cursor:pointer;font-size:.85rem;padding:8px 20px;">📷 Đổi ảnh đại diện
                                     <input type="file" name="imageFile" id="imageFile" accept="image/*" style="display:none" onchange="previewImg(this)">
@@ -199,7 +214,9 @@
     function previewImg(input) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
-            reader.onload = e => document.getElementById('previewImg').src = e.target.result;
+            reader.onload = e => {
+                document.getElementById('avatarContainer').innerHTML = `<img src="${e.target.result}" class="current-avatar" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #ec6090; box-shadow: 0 8px 20px rgba(236,96,144,0.2);">`;
+            };
             reader.readAsDataURL(input.files[0]);
         }
     }

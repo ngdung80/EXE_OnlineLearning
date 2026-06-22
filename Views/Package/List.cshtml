@@ -76,6 +76,9 @@
             </div>
         }
 
+        @{
+            var trialPkg = Model?.FirstOrDefault(p => p.Price == 0 || p.PackageName.Contains("Thử"));
+        }
         <!-- Package Cards -->
         <div class="pkg-grid">
             <!-- Free Trial (static) -->
@@ -95,7 +98,18 @@
                 {
                     <a asp-controller="Account" asp-action="Register" class="btn-buy outline" id="trial-cta">Bắt đầu miễn phí</a>
                 }
-                else if (!User.IsInRole("Parent"))
+                else if (User.IsInRole("Parent"))
+                {
+                    if (trialPkg != null)
+                    {
+                        <a asp-controller="Package" asp-action="Purchase" asp-route-packageId="@trialPkg.PackageId" class="btn-buy outline" id="trial-cta">Đăng ký học thử cho con</a>
+                    }
+                    else
+                    {
+                        <button class="btn-buy outline" id="trial-cta" disabled>Đăng ký học thử</button>
+                    }
+                }
+                else
                 {
                     <button class="btn-buy" disabled>Chỉ dành cho Phụ huynh</button>
                 }
@@ -116,7 +130,7 @@
                     string[] features = new string[0];
                     bool featured = false;
 
-                    if (pkg.PackageName.Contains("Cơ Bản") || pkg.Duration == 1)
+                    if (pkg.PackageName.Contains("Cơ Bản") || pkg.Duration == 1 || pkg.Duration == 30)
                     {
                         tierName = "⭐ Gói Cơ Bản";
                         tagline = "Lộ trình học chính thức 1 tháng";
@@ -126,7 +140,7 @@
                             "Gửi báo cáo chi tiết kết quả học tập tự động cho phụ huynh vào cuối tuần."
                         };
                     }
-                    else if (pkg.PackageName.Contains("Tiêu Chuẩn") || pkg.Duration == 3)
+                    else if (pkg.PackageName.Contains("Tiêu Chuẩn") || pkg.Duration == 3 || pkg.Duration == 90)
                     {
                         tierName = "🚀 Gói Tiêu Chuẩn";
                         tagline = "Lộ trình học chính thức 3 tháng";
@@ -138,7 +152,7 @@
                         };
                         featured = true; // Đặt gói Tiêu Chuẩn làm gói phổ biến nhất giống như ảnh
                     }
-                    else if (pkg.PackageName.Contains("Cao Cấp") || pkg.Duration == 6)
+                    else if (pkg.PackageName.Contains("Cao Cấp") || pkg.Duration == 6 || pkg.Duration == 180)
                     {
                         tierName = "👑 Gói Cao Cấp";
                         tagline = "Lộ trình học chính thức 6 tháng";
@@ -160,8 +174,8 @@
                         <div class="pkg-tier">@tierName</div>
                         <div class="pkg-name">@pkg.PackageName</div>
                         <div class="pkg-tagline">@tagline</div>
-                        <div class="pkg-price">@pkg.Price.ToString("N0")đ <small>/ @pkg.Duration tháng</small></div>
-                        <div class="pkg-duration">📅 Hạn sử dụng @pkg.Duration tháng</div>
+                        <div class="pkg-price">@pkg.Price.ToString("N0")đ <small>/ @(pkg.Duration >= 30 ? (pkg.Duration / 30) + " tháng" : pkg.Duration + " ngày")</small></div>
+                        <div class="pkg-duration">📅 Hạn sử dụng @(pkg.Duration >= 30 ? (pkg.Duration / 30) + " tháng" : pkg.Duration + " ngày")</div>
                         <ul class="pkg-features">
                             @foreach (var f in features)
                             {
@@ -197,21 +211,20 @@
                     <thead>
                         <tr>
                             <th style="min-width:200px;">Tính năng</th>
-                            <th>Free Trial</th>
-                            <th>Gói Cơ Bản</th>
-                            <th style="background:#c2185b;">Gói Tiêu Chuẩn ⭐</th>
-                            <th>Gói Cao Cấp</th>
+                            <th>Free Trial (7 ngày)</th>
+                            <th>Gói Cơ Bản (1 Tháng)</th>
+                            <th style="background:#c2185b;">Gói Cao Cấp (6 Tháng) ⭐</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td>Bài học nền tảng</td><td><span class="ct-val">5 bài</span></td><td class="ct-yes">✓ Tất cả</td><td class="ct-yes">✓ Tất cả</td><td class="ct-yes">✓ Tất cả</td></tr>
-                        <tr><td>Mascot & phần thưởng sao</td><td class="ct-yes">✓</td><td class="ct-yes">✓</td><td class="ct-yes">✓</td><td class="ct-yes">✓</td></tr>
-                        <tr><td>Báo cáo cho phụ huynh</td><td><span class="ct-val">Mẫu</span></td><td><span class="ct-val">Cuối tuần</span></td><td class="ct-yes">✓ Tuần đầy đủ</td><td class="ct-yes">✓ Toàn diện thông minh</td></tr>
-                        <tr><td>AI điều chỉnh lộ trình</td><td class="ct-no">—</td><td class="ct-yes">✓ Tự động</td><td class="ct-yes">✓ Tự động</td><td class="ct-yes">✓ Tối ưu nâng cao</td></tr>
-                        <tr><td>Tạo đề luyện tập với AI</td><td class="ct-no">—</td><td class="ct-yes">✓ Hàng tuần</td><td class="ct-yes">✓ Hàng tuần</td><td class="ct-yes">✓ Hàng tuần</td></tr>
-                        <tr><td>Phân tích kỹ năng chuyên sâu</td><td class="ct-no">—</td><td class="ct-no">—</td><td class="ct-yes">✓ Nâng cao</td><td class="ct-yes">✓ Toàn diện</td></tr>
-                        <tr><td>Hỗ trợ kỹ thuật & vận hành</td><td class="ct-no">—</td><td class="ct-no">—</td><td class="ct-yes">✓ Ưu tiên 24/7</td><td class="ct-yes">✓ Ưu tiên 24/7</td></tr>
-                        <tr><td>Chứng nhận hoàn thành</td><td class="ct-no">—</td><td class="ct-no">—</td><td class="ct-no">—</td><td class="ct-yes">✓ Tự động (6 tháng)</td></tr>
+                        <tr><td>Bài học nền tảng</td><td class="ct-yes">✓ Tất cả</td><td class="ct-yes">✓ Tất cả</td><td class="ct-yes">✓ Tất cả</td></tr>
+                        <tr><td>Mascot & phần thưởng sao</td><td class="ct-yes">✓</td><td class="ct-yes">✓</td><td class="ct-yes">✓</td></tr>
+                        <tr><td>Báo cáo cho phụ huynh</td><td class="ct-yes">✓ Toàn diện</td><td class="ct-yes">✓ Toàn diện</td><td class="ct-yes">✓ Toàn diện</td></tr>
+                        <tr><td>AI điều chỉnh lộ trình</td><td class="ct-yes">✓ Tự động</td><td class="ct-yes">✓ Tự động</td><td class="ct-yes">✓ Tự động</td></tr>
+                        <tr><td>Tạo đề luyện tập với AI</td><td class="ct-yes">✓ Hàng tuần</td><td class="ct-yes">✓ Hàng tuần</td><td class="ct-yes">✓ Hàng tuần</td></tr>
+                        <tr><td>Phân tích kỹ năng chuyên sâu</td><td class="ct-yes">✓ Toàn diện</td><td class="ct-yes">✓ Toàn diện</td><td class="ct-yes">✓ Toàn diện</td></tr>
+                        <tr><td>Hỗ trợ kỹ thuật & vận hành</td><td class="ct-yes">✓ Ưu tiên 24/7</td><td class="ct-yes">✓ Ưu tiên 24/7</td><td class="ct-yes">✓ Ưu tiên 24/7</td></tr>
+                        <tr><td>Chứng nhận hoàn thành</td><td class="ct-no">—</td><td class="ct-no">—</td><td class="ct-yes">✓ Tự động cấp</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -238,7 +251,7 @@
                     </div>
                     <div class="faq-item">
                         <div class="faq-q">🧒 Gói phù hợp nhất cho trẻ mấy tuổi?</div>
-                        <div class="faq-a">PLO được thiết kế chuyên biệt cho trẻ <strong>6–7 tuổi</strong> (Lớp 1 & Lớp 2). Tất cả nội dung, giao diện và thời lượng bài học được nghiên cứu phù hợp với sự phát triển nhận thức của trẻ ở độ tuổi này. Gói Standard phù hợp nhất vì có AI điều chỉnh lộ trình theo trình độ thực của từng bé.</div>
+                        <div class="faq-a">PLO được thiết kế chuyên biệt cho trẻ <strong>6–7 tuổi</strong> (Lớp 1 & Lớp 2). Tất cả nội dung, giao diện và thời lượng bài học được nghiên cứu phù hợp với sự phát triển nhận thức của trẻ ở độ tuổi này. Gói Cao Cấp phù hợp nhất vì có AI điều chỉnh lộ trình theo trình độ thực của từng bé.</div>
                     </div>
                 </div>
             </div>

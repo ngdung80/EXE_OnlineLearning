@@ -25,7 +25,7 @@
                     <div class="mb-4 text-center">
                         <h4 style="color: #ec6090; font-weight: 700;">@package?.PackageName</h4>
                         <p class="text-muted">@package?.Description</p>
-                        <h2 style="font-weight: 800; color: #333;">@package?.Price.ToString("N0") VNĐ <span style="font-size: 1rem; color: #999;">/ @package?.Duration tháng</span></h2>
+                        <h2 style="font-weight: 800; color: #333;">@package?.Price.ToString("N0") VNĐ <span style="font-size: 1rem; color: #999;">/ @(package?.Duration >= 30 ? (package.Duration / 30) + " tháng" : package?.Duration + " ngày")</span></h2>
                     </div>
 
                     <form id="purchaseForm" method="post">
@@ -59,31 +59,43 @@
                             </select>
                         </div>
 
-                        <div class="mb-4">
-                            <label class="form-label" style="font-weight: 600;">Phương thức thanh toán</label>
-                            
-                            <div class="form-check custom-radio mb-3 p-3" style="border: 1px solid #ddd; border-radius: 10px;">
-                                <input class="form-check-input ms-1 mt-1" type="radio" name="paymentMethod" id="payWallet" value="wallet" checked>
-                                <label class="form-check-label ms-2 d-flex align-items-center" for="payWallet">
-                                    <i class="fas fa-wallet text-warning fs-4 me-3"></i> 
-                                    <div>
-                                        <div style="font-weight: 600;">Thanh toán bằng Ví nội bộ</div>
-                                        <small class="text-muted">Tiền sẽ được trừ trực tiếp vào số dư ví của bạn</small>
-                                    </div>
-                                </label>
+                        @if (package?.Price == 0)
+                        {
+                            <div class="mb-4 p-4 text-center" style="background: rgba(40,167,69,0.1); border: 2px dashed #28a745; border-radius: 15px;">
+                                <span class="fs-1">🎁</span>
+                                <h5 class="mt-2 text-success" style="font-weight: 700;">Gói học thử MIỄN PHÍ</h5>
+                                <p class="text-muted mb-0">Bạn sẽ nhận được 7 ngày dùng thử đầy đủ tính năng mà không tốn phí.</p>
                             </div>
+                            <input type="hidden" name="paymentMethod" value="wallet" />
+                        }
+                        else
+                        {
+                            <div class="mb-4">
+                                <label class="form-label" style="font-weight: 600;">Phương thức thanh toán</label>
+                                
+                                <div class="form-check custom-radio mb-3 p-3" style="border: 1px solid #ddd; border-radius: 10px;">
+                                    <input class="form-check-input ms-1 mt-1" type="radio" name="paymentMethod" id="payWallet" value="wallet" checked>
+                                    <label class="form-check-label ms-2 d-flex align-items-center" for="payWallet">
+                                        <i class="fas fa-wallet text-warning fs-4 me-3"></i> 
+                                        <div>
+                                            <div style="font-weight: 600;">Thanh toán bằng Ví nội bộ</div>
+                                            <small class="text-muted">Tiền sẽ được trừ trực tiếp vào số dư ví của bạn</small>
+                                        </div>
+                                    </label>
+                                </div>
 
-                            <div class="form-check custom-radio p-3" style="border: 1px solid #ddd; border-radius: 10px;">
-                                <input class="form-check-input ms-1 mt-1" type="radio" name="paymentMethod" id="payVNPay" value="vnpay">
-                                <label class="form-check-label ms-2 d-flex align-items-center" for="payVNPay">
-                                    <i class="fas fa-qrcode text-primary fs-4 me-3"></i>
-                                    <div>
-                                        <div style="font-weight: 600;">Chuyển khoản VietQR</div>
-                                        <small class="text-muted">Quét mã VietQR trên ứng dụng ngân hàng. Tự động xác nhận khi nhận được tiền.</small>
-                                    </div>
-                                </label>
+                                <div class="form-check custom-radio p-3" style="border: 1px solid #ddd; border-radius: 10px;">
+                                    <input class="form-check-input ms-1 mt-1" type="radio" name="paymentMethod" id="payVNPay" value="vnpay">
+                                    <label class="form-check-label ms-2 d-flex align-items-center" for="payVNPay">
+                                        <i class="fas fa-qrcode text-primary fs-4 me-3"></i>
+                                        <div>
+                                            <div style="font-weight: 600;">Chuyển khoản VietQR</div>
+                                            <small class="text-muted">Quét mã VietQR trên ứng dụng ngân hàng. Tự động xác nhận khi nhận được tiền.</small>
+                                        </div>
+                                    </label>
+                                </div>
                             </div>
-                        </div>
+                        }
 
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn text-white py-3" style="background: linear-gradient(135deg, #ec6090, #e75485); border-radius: 10px; font-weight: 700; font-size: 1.1rem; border: none;">Xác nhận thanh toán</button>

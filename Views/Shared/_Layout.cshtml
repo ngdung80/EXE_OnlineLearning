@@ -72,6 +72,7 @@
         .main-nav .nav li a:hover, .main-nav .nav li a.active { color:#e75485 !important; }        .background-header .main-nav .nav li a:hover, .background-header .main-nav .nav li a.active { color:#e75485 !important; }
         .main-nav .nav .profile-link img { width:30px; height:30px; border-radius:50%; margin-left:8px; }
         .dropdown { display:none; position:absolute; top:100%; left:0; min-width:220px; z-index:1000; text-align:center; padding:12px; }
+        .main-nav .nav .profile-link .dropdown { left: auto !important; right: 0 !important; }
         .nav li:hover .dropdown { display:block; }
         .dropdown a { display:inline-block; margin:6px; padding:8px 20px; text-decoration:none; font-size:14px; font-weight:600; border-radius:999px; background-color:#ff66b2; color:black; transition:all .3s ease; box-shadow:0 3px 6px rgba(0,0,0,.1); }
         .dropdown a:hover { background-color:#e60073; transform:translateY(-2px); box-shadow:0 5px 10px rgba(0,0,0,.2); }
@@ -85,6 +86,230 @@
         @@keyframes slideIn { from { opacity:0; transform:translateX(50px); } to { opacity:1; transform:translateX(0); } }
         .admin-section, .user-section, .wallet-section, .form-section, .parent-section, .notif-section, .lesson-section, .detail-section, .mgmt-section, .ch-section, .ai-section, .chat-section, .profile-section, .edit-section, .pwd-section, .denied-section, .result-section, .list-section, .hist-section, .sub-section {
             padding-top: 120px !important;
+        }
+
+        /* Spacing overrides for student theme to prevent header overflow */
+        body.student-theme .main-nav .nav {
+            gap: 6px !important;
+        }
+        body.student-theme .main-nav .nav li a {
+            font-size: 13px !important;
+            padding: 8px 6px !important;
+        }
+        body.student-theme .main-nav .nav .profile-link a {
+            padding: 4px 10px !important;
+        }
+        body.student-theme .header-area .main-nav #search input {
+            width: 150px !important;
+        }
+        body.student-theme .header-area .main-nav #search input:focus {
+            width: 200px !important;
+        }
+        body.student-theme .logo-text {
+            font-size: 22px !important;
+        }
+
+        /* VIP Animated Avatars Design System */
+        .vip-avatar-frame {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            background: #000;
+        }
+        .vip-avatar-frame:hover {
+            transform: scale(1.08) rotate(3deg);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+        .vip-avatar-frame.mini {
+            width: 32px !important;
+            height: 32px !important;
+            border-width: 1.5px !important;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15) !important;
+            border-radius: 50% !important;
+        }
+        .vip-avatar-frame.mini:hover {
+            transform: scale(1.15) !important;
+        }
+        
+        .vip-avatar-effect-bg {
+            position: absolute;
+            top: -10%; left: -10%; right: -10%; bottom: -10%;
+            z-index: 1;
+            background-size: 200% 200%;
+        }
+        
+        .vip-avatar-glow {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: 50%;
+            z-index: 2;
+            border: 4px solid transparent;
+            pointer-events: none;
+        }
+        .vip-avatar-frame.mini .vip-avatar-glow {
+            border-width: 2px !important;
+        }
+        
+        .vip-avatar-emoji {
+            z-index: 3;
+            font-size: 3rem;
+            transform-origin: center;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .vip-avatar-frame.mini .vip-avatar-emoji {
+            font-size: 1rem !important;
+        }
+
+        /* VIP_1: Sparkle Cadet (⭐) */
+        .vip-avatar-frame.vip_1 .vip-avatar-effect-bg {
+            background: linear-gradient(135deg, #1e1b4b, #312e81, #4338ca);
+            animation: gradientShift 6s ease infinite;
+        }
+        .vip-avatar-frame.vip_1 .vip-avatar-glow {
+            border-color: #fbbf24;
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.7), inset 0 0 10px rgba(251, 191, 36, 0.5);
+            animation: pulseGlow 2s ease-in-out infinite alternate;
+        }
+        .vip-avatar-frame.vip_1 .vip-avatar-emoji {
+            animation: spinStar 8s linear infinite;
+        }
+
+        /* VIP_2: Aqua Explorer (🌊) */
+        .vip-avatar-frame.vip_2 .vip-avatar-effect-bg {
+            background: linear-gradient(180deg, #0284c7, #0369a1, #1e3a8a);
+            animation: waveShift 4s ease-in-out infinite alternate;
+        }
+        .vip-avatar-frame.vip_2 .vip-avatar-glow {
+            border-color: #38bdf8;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.6), inset 0 0 12px rgba(56, 189, 248, 0.4);
+            animation: waveGlow 2.5s ease-in-out infinite alternate;
+        }
+        .vip-avatar-frame.vip_2 .vip-avatar-emoji {
+            animation: swayWave 2.5s ease-in-out infinite alternate;
+        }
+
+        /* VIP_3: Cyber Hero (🤖) */
+        .vip-avatar-frame.vip_3 .vip-avatar-effect-bg {
+            background: linear-gradient(135deg, #0f172a, #1e293b, #0f172a);
+            background-image: radial-gradient(rgba(6, 182, 212, 0.15) 1px, transparent 0);
+            background-size: 10px 10px;
+        }
+        .vip-avatar-frame.vip_3 .vip-avatar-glow {
+            border-color: #06b6d4;
+            box-shadow: 0 0 18px rgba(6, 182, 212, 0.8), inset 0 0 8px rgba(6, 182, 212, 0.5);
+            animation: cyberScan 1.8s linear infinite;
+        }
+        .vip-avatar-frame.vip_3 .vip-avatar-emoji {
+            animation: glitchRobot 3s linear infinite;
+        }
+
+        /* VIP_4: Fire Phoenix (🔥) */
+        .vip-avatar-frame.vip_4 .vip-avatar-effect-bg {
+            background: linear-gradient(0deg, #991b1b, #dc2626, #ea580c);
+            animation: fireShift 3s ease infinite;
+        }
+        .vip-avatar-frame.vip_4 .vip-avatar-glow {
+            border-color: #f97316;
+            box-shadow: 0 0 25px rgba(249, 115, 22, 0.85), inset 0 0 15px rgba(249, 115, 22, 0.6);
+            animation: fireFlicker 0.15s ease-in-out infinite alternate;
+        }
+        .vip-avatar-frame.vip_4 .vip-avatar-emoji {
+            animation: bounceFire 1.2s ease-in-out infinite alternate;
+        }
+
+        /* VIP_5: Cosmic Overlord (🌌) */
+        .vip-avatar-frame.vip_5 .vip-avatar-effect-bg {
+            background: linear-gradient(135deg, #581c87, #0f172a, #701a75, #1e1b4b);
+            background-size: 300% 300%;
+            animation: cosmicRotate 10s ease infinite;
+        }
+        .vip-avatar-frame.vip_5 .vip-avatar-glow {
+            border-color: #d946ef;
+            box-shadow: 0 0 30px rgba(217, 70, 239, 0.9), inset 0 0 20px rgba(217, 70, 239, 0.6);
+            animation: rainbowBorder 6s linear infinite;
+        }
+        .vip-avatar-frame.vip_5 .vip-avatar-emoji {
+            animation: swirlGalaxy 15s linear infinite;
+        }
+
+        /* Animations */
+        @@keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @@keyframes pulseGlow {
+            0% { box-shadow: 0 0 10px rgba(251, 191, 36, 0.4), inset 0 0 5px rgba(251, 191, 36, 0.2); }
+            100% { box-shadow: 0 0 25px rgba(251, 191, 36, 0.9), inset 0 0 15px rgba(251, 191, 36, 0.7); }
+        }
+        @@keyframes spinStar {
+            0% { transform: rotate(0deg) scale(0.95); }
+            50% { transform: rotate(180deg) scale(1.05); }
+            100% { transform: rotate(360deg) scale(0.95); }
+        }
+        @@keyframes waveShift {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(-5px) scale(1.05); }
+        }
+        @@keyframes waveGlow {
+            0% { border-color: #0284c7; box-shadow: 0 0 10px rgba(2, 132, 199, 0.4); }
+            100% { border-color: #38bdf8; box-shadow: 0 0 25px rgba(56, 189, 248, 0.8); }
+        }
+        @@keyframes swayWave {
+            0% { transform: rotate(-8deg) translateX(-2px); }
+            100% { transform: rotate(8deg) translateX(2px); }
+        }
+        @@keyframes cyberScan {
+            0% { border-color: #0891b2; box-shadow: 0 0 10px rgba(8, 145, 178, 0.4); }
+            50% { border-color: #22d3ee; box-shadow: 0 0 22px rgba(34, 211, 238, 0.9); }
+            100% { border-color: #0891b2; box-shadow: 0 0 10px rgba(8, 145, 178, 0.4); }
+        }
+        @@keyframes glitchRobot {
+            0%, 90%, 100% { transform: translate(0) scale(1); }
+            92% { transform: translate(-3px, 2px) skewX(5deg); }
+            94% { transform: translate(3px, -2px) skewX(-5deg); }
+            96% { transform: translate(-2px, -2px) scale(1.05); }
+            98% { transform: translate(2px, 1px) scale(0.95); }
+        }
+        @@keyframes fireShift {
+            0% { background-position: 50% 0%; }
+            50% { background-position: 50% 100%; }
+            100% { background-position: 50% 0%; }
+        }
+        @@keyframes fireFlicker {
+            0% { opacity: 0.85; box-shadow: 0 0 15px rgba(249, 115, 22, 0.6); }
+            100% { opacity: 1; box-shadow: 0 0 28px rgba(249, 115, 22, 0.95); }
+        }
+        @@keyframes bounceFire {
+            0% { transform: translateY(3px) scaleY(0.92); }
+            100% { transform: translateY(-5px) scaleY(1.08); }
+        }
+        @@keyframes cosmicRotate {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+        @@keyframes rainbowBorder {
+            0% { border-color: #d946ef; box-shadow: 0 0 20px rgba(217, 70, 239, 0.7); }
+            33% { border-color: #6366f1; box-shadow: 0 0 20px rgba(99, 102, 241, 0.7); }
+            66% { border-color: #06b6d4; box-shadow: 0 0 20px rgba(6, 182, 212, 0.7); }
+            100% { border-color: #d946ef; box-shadow: 0 0 20px rgba(217, 70, 239, 0.7); }
+        }
+        @@keyframes swirlGalaxy {
+            0% { transform: rotate(0deg) scale(0.95); }
+            50% { transform: rotate(180deg) scale(1.05); }
+            100% { transform: rotate(360deg) scale(0.95); }
         }
 
         /* Student Role Bright Kid Theme Override Rules */
@@ -581,7 +806,7 @@
                             <img src="~/assets/images/logo.png" asp-append-version="true" alt="PLO Logo">
                             <span class="logo-text">PLO</span>
                         </a>
-                        @if (!User.IsInRole("Admin") && !User.IsInRole("Content Manager") && !User.IsInRole("Content Approver"))
+                        @if (!User.IsInRole("Admin") && !User.IsInRole("Content Manager") && !User.IsInRole("Content Approver") && !User.IsInRole("Student"))
                         {
                             <div class="search-input">
                                 <form id="search" action="#">
@@ -651,11 +876,33 @@
                                     <li><a asp-controller="AI" asp-action="Chat" class="@(isAIActive ? "active" : "")">Trợ lý AI</a></li>
                                     <li><a asp-controller="Test" asp-action="Practice" class="@(isPracticeActive ? "active" : "")">Luyện tập</a></li>
                                     <li><a asp-controller="Test" asp-action="History" class="@(isHistoryActive ? "active" : "")">Lịch sử làm bài</a></li>
+                                    <li><a asp-controller="Account" asp-action="AvatarShop" class="@(activeCtrl == "Account" && activeAct == "AvatarShop" ? "active" : "")"><i class="fa fa-shopping-cart" style="margin-right: 5px;"></i> Cửa hàng sao</a></li>
                                 }
                                 <li class="profile-link">
-                                    <a asp-controller="Account" asp-action="Profile">
-                                        @User.FindFirst("FullName")?.Value
-                                        <img src="@(User.FindFirst("Image")?.Value ?? "/assets/images/profile-header.jpg")" alt="" onerror="this.src='/assets/images/profile-header.jpg'">
+                                    <a asp-controller="Account" asp-action="Profile" style="display: flex; align-items: center; gap: 8px;">
+                                        <span>@User.FindFirst("FullName")?.Value</span>
+                                        @if (User.IsInRole("Student"))
+                                        {
+                                            <span style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.72rem; font-weight: 800; display: inline-flex; align-items: center; gap: 3px; box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3); border: 1px solid rgba(255, 255, 255, 0.4);"><i class="fas fa-star" style="color: white !important;"></i> @(Context.Session.GetString("StudentStars") ?? "0")</span>
+                                        }
+                                        
+                                        @{
+                                            var layoutUserImage = User.FindFirst("Image")?.Value;
+                                            if (layoutUserImage != null && layoutUserImage.StartsWith("VIP_"))
+                                            {
+                                                <div class="vip-avatar-frame mini @layoutUserImage.ToLower()" title="Avatar VIP">
+                                                    <div class="vip-avatar-effect-bg"></div>
+                                                    <div class="vip-avatar-glow"></div>
+                                                    <div class="vip-avatar-emoji">
+                                                        @(layoutUserImage == "VIP_1" ? "⭐" : layoutUserImage == "VIP_2" ? "🌊" : layoutUserImage == "VIP_3" ? "🤖" : layoutUserImage == "VIP_4" ? "🔥" : "🌌")
+                                                    </div>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <img src="@(layoutUserImage ?? "/assets/images/profile-header.jpg")" alt="" onerror="this.src='/assets/images/profile-header.jpg'" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                                            }
+                                        }
                                     </a>
                                     <div class="dropdown">
                                         <a asp-controller="Account" asp-action="Profile" style="color:#f6f6f6!important;">Hồ sơ</a>

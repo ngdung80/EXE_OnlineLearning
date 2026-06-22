@@ -34,6 +34,7 @@ public interface IStudentPackageService
     Task<int> InsertForGradeAsync(int studentId, int packageId, int gradeId, DateOnly startDate, DateOnly endDate, List<int> subjectIds);
     Task<List<StudentPackage>> GetByStudentIdAsync(int studentId);
     Task<bool> StudentHasAccessToSubjectAsync(int studentId, int subjectId);
+    Task<bool> HasHadTrialAsync(int studentId);
 }
 
 public class StudentPackageService : IStudentPackageService
@@ -76,4 +77,9 @@ public class StudentPackageService : IStudentPackageService
         => await _db.StudentPackages.AnyAsync(sp =>
             sp.StudentId == studentId && sp.SubjectId == subjectId &&
             sp.Status == "Active" && sp.EndDate >= DateOnly.FromDateTime(DateTime.Now));
+
+    public async Task<bool> HasHadTrialAsync(int studentId)
+        => await _db.StudentPackages.AnyAsync(sp =>
+            sp.StudentId == studentId &&
+            (sp.Package.Price == 0 || sp.Package.PackageName.Contains("Thử")));
 }

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using POT_System_ASPNET.Services;
 using POT_System_ASPNET.Data.Entities;
 using System.Security.Claims;
@@ -12,12 +13,14 @@ public class AccountController : Controller
     private readonly IUserService _userService;
     private readonly IEmailService _emailService;
     private readonly IWalletService _walletService;
+    private readonly POT_System_ASPNET.Data.AppDbContext _db;
 
-    public AccountController(IUserService userService, IEmailService emailService, IWalletService walletService)
+    public AccountController(IUserService userService, IEmailService emailService, IWalletService walletService, POT_System_ASPNET.Data.AppDbContext db)
     {
         _userService = userService;
         _emailService = emailService;
         _walletService = walletService;
+        _db = db;
     }
 
     // ── Login ────────────────────────────────────────────────────────────────
@@ -52,6 +55,33 @@ public class AccountController : Controller
         {
             var wallet = await _walletService.GetOrCreateAsync(user.UserId);
             HttpContext.Session.SetString("WalletBalance", wallet.Balance.ToString("F0"));
+        }
+        else if (user.Role == "Student")
+        {
+            var totalCorrect = await _db.TestAttempts
+                .Where(ta => ta.StudentId == user.UserId && ta.Score.HasValue)
+                .SumAsync(ta => ta.CorrectAnswers ?? 0);
+            int totalEarnedStars = totalCorrect * 10;
+            
+            int spentStars = 0;
+            if (!string.IsNullOrEmpty(user.Specialization))
+            {
+                var unlockedList = user.Specialization.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                foreach (var avId in unlockedList)
+                {
+                    spentStars += avId switch
+                    {
+                        "VIP_1" => 400,
+                        "VIP_2" => 800,
+                        "VIP_3" => 1200,
+                        "VIP_4" => 1600,
+                        "VIP_5" => 2000,
+                        _ => 0
+                    };
+                }
+            }
+            int availableStars = Math.Max(0, totalEarnedStars - spentStars);
+            HttpContext.Session.SetString("StudentStars", availableStars.ToString());
         }
 
         return RedirectToAction("Index", "Home");
@@ -389,6 +419,164 @@ public class AccountController : Controller
         await SignInUserAsync(user);
 
         return Json(new { success = true });
+    }
+
+    // ── Avatar Shop ─────────────────────────────────────────────────────────
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Student")]
+    [HttpGet]
+    public async Task<IActionResult> AvatarShop()
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var user = await _userService.GetByIdAsync(userId);
+        if (user == null) return NotFound();
+
+        // Calculate stars
+        var totalCorrect = await _db.TestAttempts
+            .Where(ta => ta.StudentId == userId && ta.Score.HasValue)
+            .SumAsync(ta => ta.CorrectAnswers ?? 0);
+        int totalEarnedStars = totalCorrect * 10;
+
+        int spentStars = 0;
+        var unlockedList = new List<string>();
+        if (!string.IsNullOrEmpty(user.Specialization))
+        {
+            unlockedList = user.Specialization.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
+            foreach (var avId in unlockedList)
+            {
+                spentStars += avId switch
+                {
+                    "VIP_1" => 400,
+                    "VIP_2" => 800,
+                    "VIP_3" => 1200,
+                    "VIP_4" => 1600,
+                    "VIP_5" => 2000,
+                    _ => 0
+                };
+            }
+        }
+
+        int availableStars = Math.Max(0, totalEarnedStars - spentStars);
+        HttpContext.Session.SetString("StudentStars", availableStars.ToString());
+
+        ViewBag.TotalEarnedStars = totalEarnedStars;
+        ViewBag.AvailableStars = availableStars;
+        ViewBag.UnlockedAvatars = unlockedList;
+        ViewBag.EquippedAvatar = user.Image;
+
+        return View(user);
+    }
+
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Student")]
+    [HttpPost]
+    public async Task<IActionResult> UnlockAvatar(string avatarId)
+    {
+        if (string.IsNullOrEmpty(avatarId)) return Json(new { success = false, message = "Hình nền không hợp lệ." });
+
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var user = await _userService.GetByIdAsync(userId);
+        if (user == null) return NotFound();
+
+        int cost = avatarId switch
+        {
+            "VIP_1" => 400,
+            "VIP_2" => 800,
+            "VIP_3" => 1200,
+            "VIP_4" => 1600,
+            "VIP_5" => 2000,
+            _ => -1
+        };
+
+        if (cost == -1) return Json(new { success = false, message = "Hình nền không tồn tại." });
+
+        var unlockedList = new List<string>();
+        if (!string.IsNullOrEmpty(user.Specialization))
+        {
+            unlockedList = user.Specialization.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
+        }
+
+        if (unlockedList.Contains(avatarId))
+        {
+            return Json(new { success = false, message = "Bạn đã mở khóa hình nền này rồi." });
+        }
+
+        // Calculate current stars
+        var totalCorrect = await _db.TestAttempts
+            .Where(ta => ta.StudentId == userId && ta.Score.HasValue)
+            .SumAsync(ta => ta.CorrectAnswers ?? 0);
+        int totalEarnedStars = totalCorrect * 10;
+
+        int spentStars = 0;
+        foreach (var avId in unlockedList)
+        {
+            spentStars += avId switch
+            {
+                "VIP_1" => 400,
+                "VIP_2" => 800,
+                "VIP_3" => 1200,
+                "VIP_4" => 1600,
+                "VIP_5" => 2000,
+                _ => 0
+            };
+        }
+
+        int availableStars = totalEarnedStars - spentStars;
+        if (availableStars < cost)
+        {
+            return Json(new { success = false, message = $"Bạn không đủ sao! Cần thêm {cost - availableStars} sao để mở khóa." });
+        }
+
+        unlockedList.Add(avatarId);
+        user.Specialization = string.Join(",", unlockedList);
+        await _userService.UpdateUserAsync(user);
+
+        // Update session
+        availableStars -= cost;
+        HttpContext.Session.SetString("StudentStars", availableStars.ToString());
+
+        return Json(new { success = true, message = "Mở khóa thành công!" });
+    }
+
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Student")]
+    [HttpPost]
+    public async Task<IActionResult> EquipAvatar(string avatarId)
+    {
+        if (string.IsNullOrEmpty(avatarId)) return Json(new { success = false, message = "Hình nền không hợp lệ." });
+
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var user = await _userService.GetByIdAsync(userId);
+        if (user == null) return NotFound();
+
+        var unlockedList = new List<string>();
+        if (!string.IsNullOrEmpty(user.Specialization))
+        {
+            unlockedList = user.Specialization.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList();
+        }
+
+        if (!unlockedList.Contains(avatarId) && avatarId.StartsWith("VIP_"))
+        {
+            return Json(new { success = false, message = "Bạn chưa mở khóa hình nền này." });
+        }
+
+        user.Image = avatarId;
+        await _userService.UpdateUserAsync(user);
+        await SignInUserAsync(user);
+
+        return Json(new { success = true, message = "Sử dụng hình nền thành công!" });
+    }
+
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Student")]
+    [HttpPost]
+    public async Task<IActionResult> UnequipAvatar()
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var user = await _userService.GetByIdAsync(userId);
+        if (user == null) return NotFound();
+
+        user.Image = null;
+        await _userService.UpdateUserAsync(user);
+        await SignInUserAsync(user);
+
+        return Json(new { success = true, message = "Đã gỡ bỏ hình nền VIP, chuyển về mặc định!" });
     }
 
     public IActionResult AccessDenied() => View();

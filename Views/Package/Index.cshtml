@@ -53,7 +53,7 @@
                                 <td style="font-weight:700;">@pkg.PackageName</td>
                                 <td style="color:#cbd5e1; max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">@pkg.Description</td>
                                 <td style="color:#34d399; font-weight:600;">@pkg.Price.ToString("N0")</td>
-                                <td>@pkg.Duration Tháng</td>
+                                <td>@(pkg.Duration >= 30 ? (pkg.Duration / 30) + " Tháng" : pkg.Duration + " Ngày")</td>
                                 <td>
                                     <span class="@(pkg.Status == "Active" ? "badge-active" : "badge-inactive")">
                                         @(pkg.Status == "Active" ? "Hoạt động" : (pkg.Status == "Inactive" ? "Không hoạt động" : pkg.Status))

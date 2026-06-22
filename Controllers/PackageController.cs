@@ -61,7 +61,18 @@ public class PackageController : Controller
         var package = await _packageService.GetByIdAsync(packageId);
         var wallet = await _walletService.GetByParentIdAsync(parentId);
 
-        if (wallet == null || wallet.Balance < package!.Price)
+        if (package == null) return NotFound();
+
+        if (package.Price == 0 || package.PackageName.Contains("Thử"))
+        {
+            if (await _studentPackageService.HasHadTrialAsync(studentId))
+            {
+                TempData["Error"] = "Mỗi học sinh chỉ được đăng ký học thử miễn phí 7 ngày một lần duy nhất!";
+                return RedirectToAction(nameof(Purchase), new { packageId, gradeId, studentId });
+            }
+        }
+
+        if (wallet == null || wallet.Balance < package.Price)
         {
             TempData["Error"] = "Insufficient wallet balance!";
             return RedirectToAction(nameof(Purchase), new { packageId, gradeId, studentId });
