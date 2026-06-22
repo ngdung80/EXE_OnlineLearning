@@ -31,7 +31,7 @@ public class LessonController : Controller
 
     public async Task<IActionResult> Index(string? name, int? gradeId, int? subjectId, int? chapterId, string? status, int page = 1)
     {
-        const int pageSize = 10;
+        int pageSize = User.IsInRole("Student") ? 5 : 10;
         var isAdminOrStaff = User.IsInRole("Admin") || User.IsInRole("Content Manager") || User.IsInRole("Content Approver");
 
         if (!isAdminOrStaff)
@@ -73,11 +73,12 @@ public class LessonController : Controller
 
         ViewBag.Filter = new { name, gradeId, subjectId, chapterId, status, page };
 
-        var lessons = await _lessonService.SearchAsync(name, gradeId, subjectId, chapterId, status, page, pageSize);
-        var total = await _lessonService.CountAsync(name, gradeId, subjectId, chapterId, status);
+        List<Lesson> lessons;
+        int total;
 
         if (User.IsInRole("Student"))
         {
+            var allLessons = await _lessonService.SearchAsync(name, gradeId, subjectId, chapterId, status, 1, 999999);
             var studentId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)!.Value);
             var studentPackages = await _studentPackageService.GetByStudentIdAsync(studentId);
             var activeSubjectIds = studentPackages
@@ -86,9 +87,15 @@ public class LessonController : Controller
                 .Where(id => id.HasValue)
                 .Select(id => id!.Value)
                 .ToList();
-            
-            lessons = lessons.Where(l => activeSubjectIds.Contains(l.Chapter.SubjectId)).ToList();
-            total = lessons.Count;
+
+            var filteredLessons = allLessons.Where(l => activeSubjectIds.Contains(l.Chapter.SubjectId)).ToList();
+            total = filteredLessons.Count;
+            lessons = filteredLessons.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+        }
+        else
+        {
+            lessons = await _lessonService.SearchAsync(name, gradeId, subjectId, chapterId, status, page, pageSize);
+            total = await _lessonService.CountAsync(name, gradeId, subjectId, chapterId, status);
         }
 
         ViewBag.TotalPages = (int)Math.Ceiling((double)total / pageSize);

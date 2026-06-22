@@ -11,17 +11,17 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chứng chỉ - @student?.FullName</title>
+    <title>Chứng chỉ - @(student?.FullName ?? student?.Username)</title>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=Great+Vibes&family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Pinyon+Script&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     
     <style>
         body {
             margin: 0;
             padding: 0;
-            background-color: #f3f4f6;
-            font-family: 'Montserrat', sans-serif;
+            background-color: #f0f2f5;
+            font-family: 'Cormorant Garamond', serif;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -31,16 +31,19 @@
 
         /* Certificate Container */
         .certificate-container {
-            width: 950px;
-            height: 670px;
-            padding: 40px;
+            width: 980px;
+            height: 690px;
+            padding: 50px 60px;
             position: relative;
-            background-color: #fdfcfa;
+            background-color: #fefcf9;
+            /* Premium subtle paper texture + security watermark */
             background-image: 
-                radial-gradient(circle at 0% 0%, rgba(218, 165, 32, 0.03) 0%, transparent 50%),
-                radial-gradient(circle at 100% 100%, rgba(99, 102, 241, 0.03) 0%, transparent 50%);
-            border: 20px solid #ffffff;
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.1);
+                radial-gradient(circle at 50% 50%, rgba(218, 165, 32, 0.02) 0%, transparent 80%),
+                linear-gradient(rgba(218, 165, 32, 0.01) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(218, 165, 32, 0.01) 1px, transparent 1px);
+            background-size: 100% 100%, 20px 20px, 20px 20px;
+            border: 24px solid #ffffff;
+            box-shadow: 0 30px 70px rgba(27, 38, 59, 0.12);
             border-radius: 4px;
             box-sizing: border-box;
             display: flex;
@@ -50,214 +53,309 @@
             overflow: hidden;
         }
 
-        /* Dual Borders */
+        /* Royal Borders */
         .certificate-border-outer {
             position: absolute;
-            top: 10px;
-            bottom: 10px;
-            left: 10px;
-            right: 10px;
-            border: 4px solid #1e1b4b;
+            top: 12px;
+            bottom: 12px;
+            left: 12px;
+            right: 12px;
+            border: 5px double #1a2e40;
             pointer-events: none;
         }
 
         .certificate-border-inner {
             position: absolute;
-            top: 18px;
-            bottom: 18px;
-            left: 18px;
-            right: 18px;
-            border: 2px solid #daa520;
+            top: 24px;
+            bottom: 24px;
+            left: 24px;
+            right: 24px;
+            border: 1px solid #c5a059;
             pointer-events: none;
         }
 
-        /* Corner Ornaments */
+        /* Ornate Corner Elements */
         .corner-ornament {
             position: absolute;
-            width: 40px;
-            height: 40px;
-            border: 2px solid #daa520;
+            width: 32px;
+            height: 32px;
+            border: 2px solid #c5a059;
             pointer-events: none;
+            z-index: 5;
         }
-        .corner-tl { top: 25px; left: 25px; border-right: none; border-bottom: none; }
-        .corner-tr { top: 25px; right: 25px; border-left: none; border-bottom: none; }
-        .corner-bl { bottom: 25px; left: 25px; border-right: none; border-top: none; }
-        .corner-br { bottom: 25px; right: 25px; border-left: none; border-top: none; }
+        .corner-tl { top: 32px; left: 32px; border-right: none; border-bottom: none; }
+        .corner-tr { top: 32px; right: 32px; border-left: none; border-bottom: none; }
+        .corner-bl { bottom: 32px; left: 32px; border-right: none; border-top: none; }
+        .corner-br { bottom: 32px; right: 32px; border-left: none; border-top: none; }
 
-        /* Header Logo & Title */
+        /* Corner Dots */
+        .corner-dot {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background-color: #1a2e40;
+            border-radius: 50%;
+            z-index: 5;
+        }
+        .dot-tl { top: 40px; left: 40px; }
+        .dot-tr { top: 40px; right: 40px; }
+        .dot-bl { bottom: 40px; left: 40px; }
+        .dot-br { bottom: 40px; right: 40px; }
+
+        /* Header block */
         .header {
             text-align: center;
-            margin-top: 10px;
+            margin-top: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
+
         .logo-img {
-            height: 65px;
-            margin-bottom: 5px;
+            height: 55px;
+            margin-bottom: 8px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));
         }
+
         .academy-name {
             font-family: 'Cinzel', serif;
-            font-size: 0.95rem;
-            color: #1e1b4b;
-            letter-spacing: 4px;
+            font-size: 0.85rem;
+            color: #1a2e40;
+            letter-spacing: 5px;
             font-weight: 700;
             margin: 0;
             text-transform: uppercase;
         }
 
-        /* Main Content */
+        /* Content Area */
         .content {
             text-align: center;
             width: 100%;
             z-index: 2;
+            padding: 0 40px;
+            box-sizing: border-box;
         }
-        
+
         .main-title {
             font-family: 'Cinzel', serif;
-            font-size: 2.3rem;
-            color: #1e1b4b;
-            font-weight: 800;
-            margin: 10px 0 5px 0;
-            letter-spacing: 2px;
-            background: linear-gradient(135deg, #1e1b4b 0%, #daa520 100%);
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 5px 0 10px 0;
+            letter-spacing: 4px;
+            color: #1a2e40;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .main-title::after {
+            content: '';
+            display: block;
+            width: 120px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #c5a059, transparent);
+            margin: 8px auto 0 auto;
+        }
+
+        .subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            font-size: 1.25rem;
+            color: #5c677d;
+            margin: 5px 0;
+        }
+
+        .student-name {
+            font-family: 'Pinyon Script', cursive;
+            font-size: 5rem;
+            color: #1a2e40;
+            margin: 10px 0;
+            font-weight: 400;
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.8);
+            background: linear-gradient(135deg, #1a2e40 0%, #3a506b 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .subtitle {
-            font-family: 'Playfair Display', serif;
-            font-style: italic;
-            font-size: 1.15rem;
-            color: #6b7280;
-            margin: 0;
-        }
-
-        .student-name {
-            font-family: 'Great Vibes', cursive;
-            font-size: 4.2rem;
-            color: #1e1b4b;
-            margin: 15px 0;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+        .description {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.35rem;
+            color: #2b2d42;
+            max-width: 780px;
+            margin: 15px auto 0 auto;
+            line-height: 1.6;
             font-weight: 500;
         }
 
-        .description {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.2rem;
-            color: #374151;
-            max-width: 700px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
-
-        .grade-highlight {
+        .highlight-text {
             font-family: 'Montserrat', sans-serif;
             font-weight: 700;
-            color: #4f46e5;
+            color: #1a2e40;
+            border-bottom: 1px double #c5a059;
+            padding-bottom: 2px;
         }
 
-        /* Footer & Signatures */
+        /* Footer Section */
         .footer-sec {
             display: flex;
             width: 100%;
             justify-content: space-between;
             align-items: flex-end;
-            padding: 0 50px 10px 50px;
+            padding: 0 40px 10px 40px;
             box-sizing: border-box;
         }
 
         .date-box {
             text-align: left;
-            font-size: 0.85rem;
-            color: #4b5563;
-            border-top: 1px solid #d1d5db;
-            padding-top: 8px;
             width: 200px;
+        }
+        
+        .meta-label {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 0.75rem;
+            letter-spacing: 1.5px;
+            color: #5c677d;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .meta-value {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.15rem;
+            color: #1a2e40;
+            font-weight: 700;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 8px;
         }
 
         .signature-box {
             text-align: center;
-            position: relative;
             width: 220px;
         }
-        
-        .signature-image {
-            height: 60px;
-            position: absolute;
-            bottom: 25px;
-            left: 50%;
-            transform: translateX(-50%);
-            opacity: 0.9;
+
+        .signature-text {
+            font-family: 'Pinyon Script', cursive;
+            font-size: 2.8rem;
+            color: #1a2e40;
+            line-height: 0.8;
+            margin-bottom: 5px;
+            transform: rotate(-3deg);
         }
 
-        .signature-title {
-            font-size: 0.85rem;
-            color: #4b5563;
-            border-top: 1px solid #d1d5db;
+        .signature-line {
+            border-top: 1px solid #e2e8f0;
             padding-top: 8px;
-            margin-top: 45px;
-            font-weight: 600;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 700;
+            font-size: 0.75rem;
+            letter-spacing: 1.5px;
+            color: #5c677d;
+            text-transform: uppercase;
         }
 
         /* Gold Seal Component */
         .seal-container {
-            width: 110px;
-            height: 110px;
+            width: 120px;
+            height: 120px;
             position: relative;
-            margin-bottom: -10px;
+            margin-bottom: -15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
+        /* Golden Starburst Badge */
         .seal-bg {
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, #f39c12, #d35400);
+            width: 90px;
+            height: 90px;
+            background: radial-gradient(circle, #fcd34d, #d97706, #b45309);
             border-radius: 50%;
-            box-shadow: 0 4px 15px rgba(211, 84, 0, 0.4), inset 0 0 10px rgba(255,255,255,0.3);
+            box-shadow: 
+                0 6px 20px rgba(180, 83, 9, 0.25), 
+                inset 0 0 15px rgba(255,255,255,0.4);
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 3px dashed #f1c40f;
             position: relative;
-            z-index: 2;
+            z-index: 10;
+            border: 2px solid #fef3c7;
+        }
+
+        /* Starburst teeth background */
+        .seal-bg::before {
+            content: "";
+            position: absolute;
+            width: 98px;
+            height: 98px;
+            background: repeating-conic-gradient(from 0deg, #d97706 0deg 5deg, #b45309 5deg 10deg);
+            border-radius: 50%;
+            z-index: -1;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .seal-inner-circle {
+            width: 76px;
+            height: 76px;
+            border: 1px double rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
         .seal-text {
             font-family: 'Cinzel', serif;
             color: #ffffff;
-            font-size: 0.55rem;
-            font-weight: 800;
+            font-size: 0.5rem;
+            font-weight: 700;
             text-align: center;
-            line-height: 1.2;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            line-height: 1.3;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.4);
         }
 
         .seal-star {
-            font-size: 1rem;
-            color: #f1c40f;
-            display: block;
-            margin-top: 2px;
+            font-size: 0.65rem;
+            color: #fef3c7;
+            margin-top: 1px;
         }
 
+        /* Ribbon tails */
         .ribbon-l, .ribbon-r {
             position: absolute;
-            width: 30px;
-            height: 70px;
-            background: #d35400;
+            width: 24px;
+            height: 75px;
+            background: linear-gradient(180deg, #dc2626, #991b1b);
             top: 70px;
-            z-index: 1;
-            clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
-            box-shadow: 0 5px 10px rgba(0,0,0,0.15);
+            z-index: 5;
+            clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 85%, 0 100%);
+            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.15));
         }
+        
         .ribbon-l {
-            left: 20px;
-            transform: rotate(20deg);
-            background: linear-gradient(135deg, #d35400, #c0392b);
+            left: 32px;
+            transform: rotate(18deg);
         }
+        
         .ribbon-r {
-            right: 20px;
-            transform: rotate(-20deg);
-            background: linear-gradient(135deg, #d35400, #e67e22);
+            right: 32px;
+            transform: rotate(-18deg);
         }
 
-        /* Control Buttons block */
+        /* Certificate ID Code */
+        .cert-id {
+            position: absolute;
+            top: 40px;
+            right: 45px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #5c677d;
+            letter-spacing: 0.5px;
+        }
+
+        /* Controls Block */
         .controls {
             margin-top: 25px;
             display: flex;
@@ -265,10 +363,11 @@
         }
         
         .btn {
-            padding: 12px 24px;
+            padding: 12px 26px;
             border-radius: 30px;
+            font-family: 'Montserrat', sans-serif;
             font-weight: 700;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             text-decoration: none;
             cursor: pointer;
             display: inline-flex;
@@ -298,7 +397,7 @@
             transform: translateY(-2px);
         }
 
-        /* Print Specific CSS */
+        /* Print Specific Styles */
         @@media print {
             body {
                 background-color: #ffffff;
@@ -312,9 +411,11 @@
                 box-shadow: none !important;
                 border: none !important;
                 margin: 0 !important;
-                width: 950px;
-                height: 670px;
+                width: 980px;
+                height: 690px;
                 page-break-inside: avoid;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
         }
     </style>
@@ -333,6 +434,18 @@
         <div class="corner-ornament corner-bl"></div>
         <div class="corner-ornament corner-br"></div>
 
+        <!-- Dots -->
+        <div class="corner-dot dot-tl"></div>
+        <div class="corner-dot dot-tr"></div>
+        <div class="corner-dot dot-bl"></div>
+        <div class="corner-dot dot-br"></div>
+
+        <!-- Watermark watermark pattern inside container -->
+        <div style="position:absolute; top:52%; left:50%; transform:translate(-50%, -50%); font-size:15rem; font-family:'Cinzel', serif; color:rgba(197, 160, 89, 0.03); font-weight:800; pointer-events:none; z-index:1; letter-spacing:15px;">PLO</div>
+
+        <!-- Certificate ID -->
+        <div class="cert-id">Mã số: PLO-@(student?.UserId.ToString("D4"))-@(chapter?.ChapterId.ToString("D4"))</div>
+
         <!-- Header -->
         <div class="header">
             <img src="/assets/images/logo.png" alt="PLO Logo" class="logo-img" />
@@ -344,19 +457,34 @@
             <h1 class="main-title">CHỨNG NHẬN HOÀN THÀNH</h1>
             <p class="subtitle">Chứng chỉ này được trân trọng trao tặng cho</p>
             
-            <div class="student-name">@student?.FullName</div>
+            <div class="student-name">@(student?.FullName ?? student?.Username)</div>
             
-            <p class="description">
-                Đã hoàn thành xuất sắc chương học <span class="grade-highlight">@chapter?.ChapterName</span> 
-                thuộc lộ trình đào tạo <span class="grade-highlight">Tiếng Anh @grade?.GradeName</span>.
+            <p class="description" style="margin-bottom: 8px;">
+                Đã hoàn thành chương học <span class="highlight-text">@chapter?.ChapterName</span> 
+                thuộc lộ trình đào tạo <span class="highlight-text">Tiếng Anh @grade?.GradeName</span>.
             </p>
+            <div style="font-family: 'Cinzel', serif; font-size: 1rem; color: #1a2e40; letter-spacing: 2px; font-weight: 700; text-transform: uppercase; margin-top: 12px; margin-bottom: 5px;">
+                Xếp loại: 
+                @if (ViewBag.Classification == "Xuất sắc")
+                {
+                    <span style="color: #d97706; border-bottom: 2px solid #d97706; padding: 0 8px;">Xuất sắc 🌟</span>
+                }
+                else if (ViewBag.Classification == "Giỏi")
+                {
+                    <span style="color: #10b981; border-bottom: 2px solid #10b981; padding: 0 8px;">Giỏi ✨</span>
+                }
+                else
+                {
+                    <span style="color: #3b82f6; border-bottom: 2px solid #3b82f6; padding: 0 8px;">Khá / Đạt</span>
+                }
+            </div>
         </div>
 
         <!-- Footer -->
         <div class="footer-sec">
             <div class="date-box">
-                <div><strong>NGÀY CẤP:</strong></div>
-                <div style="margin-top: 4px; font-weight: 600;">@completedDate.ToString("dd/MM/yyyy")</div>
+                <div class="meta-label">Ngày cấp</div>
+                <div class="meta-value">@completedDate.ToString("dd/MM/yyyy")</div>
             </div>
 
             <!-- Gold Seal in the middle of footer -->
@@ -364,19 +492,31 @@
                 <div class="ribbon-l"></div>
                 <div class="ribbon-r"></div>
                 <div class="seal-bg">
-                    <div class="seal-text">
-                        PLO SYSTEM<br>
-                        OFFICIAL<br>
-                        SEAL
-                        <span class="seal-star">★</span>
+                    <div class="seal-inner-circle">
+                        <div class="seal-text">
+                            @if (ViewBag.Classification == "Xuất sắc")
+                            {
+                                @:PLO SYSTEM<br><strong>XUẤT SẮC</strong><br>DISTINCTION
+                                <div class="seal-star">★★★</div>
+                            }
+                            else if (ViewBag.Classification == "Giỏi")
+                            {
+                                @:PLO SYSTEM<br><strong>LOẠI GIỎI</strong><br>MERIT
+                                <div class="seal-star">★★</div>
+                            }
+                            else
+                            {
+                                @:PLO SYSTEM<br><strong>LOẠI KHÁ</strong><br>PASS
+                                <div class="seal-star">★</div>
+                            }
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div class="signature-box">
-                <!-- Decorative signature font/stamp -->
-                <div style="font-family: 'Great Vibes', cursive; font-size: 2.2rem; color: #1e1b4b; margin-bottom: -5px; line-height: 1;">PLO Director</div>
-                <div class="signature-title">HỘI ĐỒNG TUYỂN SINH</div>
+                <div class="signature-text">PLO Director</div>
+                <div class="signature-line">Hội đồng đánh giá năng lực</div>
             </div>
         </div>
     </div>

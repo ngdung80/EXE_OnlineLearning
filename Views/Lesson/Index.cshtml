@@ -2,6 +2,27 @@
 @{
     ViewData["Title"] = "Bài học";
     var chapter = ViewBag.Chapter as POT_System_ASPNET.Data.Entities.Chapter;
+
+    string getPageUrl(int p) {
+        var query = new List<string>();
+        if (ViewBag.Filter != null) {
+            try {
+                var filter = ViewBag.Filter;
+                string? name = filter.name;
+                int? gradeId = filter.gradeId;
+                int? subjectId = filter.subjectId;
+                int? chapterId = filter.chapterId;
+                string? status = filter.status;
+                if (!string.IsNullOrEmpty(name)) query.Add($"name={Uri.EscapeDataString(name)}");
+                if (gradeId.HasValue) query.Add($"gradeId={gradeId}");
+                if (subjectId.HasValue) query.Add($"subjectId={subjectId}");
+                if (chapterId.HasValue) query.Add($"chapterId={chapterId}");
+                if (!string.IsNullOrEmpty(status)) query.Add($"status={Uri.EscapeDataString(status)}");
+            } catch {}
+        }
+        query.Add($"page={p}");
+        return "?" + string.Join("&", query);
+    }
 }
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -211,23 +232,23 @@
         }
 
         .kid-lessons-grid {
-            display: flex;
-            justify-content: center;
-            gap: 35px;
-            flex-wrap: wrap;
-            max-width: 1100px;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 30px;
+            max-width: 1050px;
             width: 100%;
             z-index: 10;
+            margin: 0 auto;
         }
 
         .kid-lesson-card {
+            grid-column: span 2;
             background: rgba(255, 255, 255, 0.88) !important;
             backdrop-filter: blur(20px) !important;
             -webkit-backdrop-filter: blur(20px) !important;
             border: 4px solid #fbcfe8 !important;
             border-radius: 35px !important;
-            padding: 35px 30px !important;
-            width: 280px;
+            padding: 24px 20px !important;
             box-shadow: 0 15px 35px rgba(236, 96, 144, 0.08) !important;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
             display: flex;
@@ -235,6 +256,7 @@
             justify-content: space-between;
             position: relative;
             overflow: hidden;
+            min-height: 290px;
         }
 
         .kid-lesson-card::before {
@@ -264,14 +286,22 @@
         }
 
         .kid-lesson-card:hover {
-            transform: translateY(-12px) scale(1.03) !important;
+            transform: translateY(-8px) scale(1.02) !important;
             box-shadow: 0 20px 45px rgba(168, 85, 247, 0.18), 0 0 0 8px rgba(244, 63, 94, 0.1) !important;
             border-color: #f472b6 !important;
         }
 
+        .kid-lesson-card:nth-child(4) {
+            grid-column: 2 / span 2;
+        }
+
+        .kid-lesson-card:nth-child(5) {
+            grid-column: 4 / span 2;
+        }
+
         .kid-lesson-icon {
-            font-size: 4rem;
-            margin-bottom: 15px;
+            font-size: 3rem;
+            margin-bottom: 10px;
             animation: floatLessonIcon 3s ease-in-out infinite alternate;
             display: inline-block;
         }
@@ -282,46 +312,105 @@
 
         @@keyframes floatLessonIcon {
             0% { transform: translateY(0) rotate(-4deg); }
-            100% { transform: translateY(-8px) rotate(4deg); }
+            100% { transform: translateY(-6px) rotate(4deg); }
         }
 
         .kid-lesson-name {
             font-family: 'Nunito', sans-serif !important;
             font-weight: 900 !important;
-            font-size: 1.5rem !important;
+            font-size: 1.3rem !important;
             color: #1e1b4b !important;
-            margin-bottom: 10px !important;
+            margin-bottom: 8px !important;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .kid-lesson-desc {
             font-family: 'Nunito', sans-serif !important;
             font-weight: 700 !important;
-            font-size: 1.05rem !important;
+            font-size: 0.95rem !important;
             color: #64748b !important;
-            margin-bottom: 25px !important;
+            margin-bottom: 15px !important;
             line-height: 1.5;
-            min-height: 65px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-height: 45px;
         }
 
         .btn-kid-lesson-action {
             display: inline-block;
-            padding: 12px 28px !important;
+            padding: 10px 24px !important;
             background: linear-gradient(135deg, #ec6090 0%, #e75485 100%) !important;
             color: #ffffff !important;
             border-radius: 99px !important;
             font-family: 'Nunito', sans-serif !important;
             font-weight: 900 !important;
-            font-size: 1.1rem !important;
+            font-size: 1rem !important;
             text-decoration: none !important;
-            box-shadow: 0 8px 20px rgba(236, 96, 144, 0.3) !important;
+            box-shadow: 0 6px 15px rgba(236, 96, 144, 0.25) !important;
             text-align: center;
             transition: all 0.3s !important;
         }
 
         .btn-kid-lesson-action:hover {
-            transform: scale(1.05) !important;
-            box-shadow: 0 12px 25px rgba(236, 96, 144, 0.45) !important;
+            transform: scale(1.03) !important;
+            box-shadow: 0 10px 20px rgba(236, 96, 144, 0.4) !important;
             color: #ffffff !important;
+        }
+
+        /* Cute Gamified Pagination for Kids */
+        .kid-pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-top: 50px;
+            z-index: 10;
+            font-family: 'Nunito', sans-serif !important;
+        }
+
+        .kid-page-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 22px;
+            background: #ffffff;
+            border: 3px solid #fbcfe8;
+            color: #ec6090;
+            border-radius: 99px;
+            font-weight: 900;
+            font-size: 1.05rem;
+            text-decoration: none !important;
+            box-shadow: 0 6px 15px rgba(236, 96, 144, 0.08);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+
+        .kid-page-btn:hover:not(.disabled):not(.active) {
+            transform: translateY(-3px) scale(1.05);
+            background: #fff1f5;
+            border-color: #ec6090;
+            box-shadow: 0 10px 20px rgba(236, 96, 144, 0.2);
+        }
+
+        .kid-page-btn.active {
+            background: linear-gradient(135deg, #ec6090, #a855f7);
+            color: #ffffff;
+            border-color: transparent;
+            box-shadow: 0 8px 25px rgba(236, 96, 144, 0.3);
+        }
+
+        .kid-page-btn.disabled {
+            background: #f3f4f6;
+            color: #cbd5e1;
+            border-color: #e5e7eb;
+            box-shadow: none;
+            cursor: not-allowed;
+            pointer-events: none;
         }
 
         /* Decorative Elements */
@@ -387,17 +476,36 @@
         }
 
         /* Responsive Media Queries */
-        @@media (max-width: 768px) {
+        @@media (max-width: 991px) {
+            .kid-lessons-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 20px;
+            }
+            .kid-lesson-card {
+                grid-column: span 2 !important;
+            }
+            .kid-lesson-card:nth-child(4), .kid-lesson-card:nth-child(5) {
+                grid-column: span 2 !important;
+            }
             .kid-lessons-title { font-size: 2.2rem !important; }
             .kid-lessons-sub { font-size: 1.25rem !important; }
-            .kid-lesson-card { width: 45%; }
         }
 
-        @@media (max-width: 480px) {
+        @@media (max-width: 576px) {
+            .kid-lessons-grid {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+            }
+            .kid-lesson-card {
+                width: 100% !important;
+                max-width: 320px;
+            }
             .kid-lessons-title { font-size: 1.85rem !important; }
-            .kid-lesson-card { width: 100%; }
         }
     </style>
+
 
     <div class="kid-lessons-container">
         <!-- Floating cloud & star decorations -->
@@ -408,7 +516,7 @@
         <div class="kid-bg-star s3">⭐</div>
         <div class="kid-bg-star s4">⭐</div>
         <div class="kid-bg-star s5">⭐</div>
-
+ 
         <div class="kid-breadcrumb">
             <a asp-controller="Grade" asp-action="Index">🎒 Khối lớp</a>
             <span>›</span>
@@ -418,12 +526,12 @@
             <span>›</span>
             <span>@chapter?.ChapterName</span>
         </div>
-
+ 
         <div class="kid-lessons-header">
             <h1 class="kid-lessons-title">Chọn Bài Học Của Bé</h1>
             <p class="kid-lessons-sub">Bé hãy chọn một bài học thật bổ ích nhé! 📝</p>
         </div>
-
+ 
         <div class="kid-lessons-grid">
             @if (Model != null && Model.Any())
             {
@@ -432,12 +540,14 @@
                 foreach (var l in Model.Where(x => x.Status == "Active"))
                 {
                     var fallbackIcon = icons[li++ % icons.Length];
+                    var rawDesc = l.ContentText ?? "Chưa có mô tả tóm tắt nội dung bài học.";
+                    var truncatedDesc = rawDesc.Length > 85 ? rawDesc.Substring(0, 82) + "..." : rawDesc;
 
                     <div class="kid-lesson-card">
                         <div>
                             <span class="kid-lesson-icon">@fallbackIcon</span>
                             <h2 class="kid-lesson-name">@l.LessonName</h2>
-                            <p class="kid-lesson-desc">@(l.ContentText ?? "Chưa có mô tả tóm tắt nội dung bài học.")</p>
+                            <p class="kid-lesson-desc" title="@rawDesc">@truncatedDesc</p>
                         </div>
                         <a asp-action="Detail" asp-route-id="@l.LessonId" class="btn-kid-lesson-action">🚀 Học Bài Ngay</a>
                     </div>
@@ -445,12 +555,47 @@
             }
             else
             {
-                <div style="background:rgba(255,255,255,0.85); padding:40px; border-radius:30px; border:3px solid #fbcfe8; text-align:center;">
+                <div style="grid-column: 1 / -1; background:rgba(255,255,255,0.85); padding:40px; border-radius:30px; border:3px solid #fbcfe8; text-align:center;">
                     <span style="font-size:4rem;">🤔</span>
                     <p style="font-family:'Nunito',sans-serif; font-size:1.2rem; font-weight:800; color:#4f46e5; margin-top:15px;">Chưa có bài học nào cho bé trong chương này.</p>
                 </div>
             }
         </div>
+
+        @if (ViewBag.TotalPages > 1)
+        {
+            <div class="kid-pagination">
+                @if (ViewBag.CurrentPage > 1)
+                {
+                    <a href="@getPageUrl(ViewBag.CurrentPage - 1)" class="kid-page-btn prev">👈 Trước</a>
+                }
+                else
+                {
+                    <span class="kid-page-btn prev disabled">👈 Trước</span>
+                }
+
+                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                {
+                    if (i == ViewBag.CurrentPage)
+                    {
+                        <span class="kid-page-btn active">@i</span>
+                    }
+                    else
+                    {
+                        <a href="@getPageUrl(i)" class="kid-page-btn">@i</a>
+                    }
+                }
+
+                @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                {
+                    <a href="@getPageUrl(ViewBag.CurrentPage + 1)" class="kid-page-btn next">Sau 👉</a>
+                }
+                else
+                {
+                    <span class="kid-page-btn next disabled">Sau 👉</span>
+                }
+            </div>
+        }
     </div>
 }
 else

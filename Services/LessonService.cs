@@ -51,7 +51,7 @@ public class LessonService : ILessonService
         if (subjectId.HasValue) query = query.Where(l => l.Chapter.SubjectId == subjectId);
         if (chapterId.HasValue) query = query.Where(l => l.ChapterId == chapterId);
         if (!string.IsNullOrEmpty(status)) query = query.Where(l => l.Status == status);
-        return await query.OrderByDescending(l => l.LessonId).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+        return await query.OrderBy(l => l.LessonId).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
     }
 
     public async Task<int> CountAsync(string? name, int? gradeId, int? subjectId, int? chapterId, string? status)

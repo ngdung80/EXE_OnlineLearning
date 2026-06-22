@@ -11,4 +11,5 @@ public class CertificateViewModel
     public int ChapterId { get; set; }
     public string ChapterName { get; set; } = null!;
     public DateTime CompletedDate { get; set; }
+    public string Classification { get; set; } = "Khá";
 }

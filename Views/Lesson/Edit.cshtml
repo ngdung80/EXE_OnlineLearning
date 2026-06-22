@@ -229,8 +229,8 @@
                         <!-- Vocabulary Editor Section -->
                         <div class="mb-4">
                             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                                <label class="form-label" style="font-weight:900; color:#ec6090; font-size:1.2rem; margin:0;">📚 Danh sách từ mới của bài học</label>
-                                <button type="button" class="btn-sm-action" onclick="addVocabularyRow()" style="padding:10px 20px; background:linear-gradient(135deg,#a855f7,#7c3aed); color:#fff !important; border:none; border-radius:20px; font-weight:800; cursor:pointer; box-shadow: 0 4px 10px rgba(168, 85, 247, 0.25);">+ Thêm từ mới</button>
+                                <label class="form-label" style="font-weight:900; color:#ec6090; font-size:1.2rem; margin:0;">📚 Danh sách từ/câu mới của bài học</label>
+                                <button type="button" class="btn-sm-action" onclick="addVocabularyRow()" style="padding:10px 20px; background:linear-gradient(135deg,#a855f7,#7c3aed); color:#fff !important; border:none; border-radius:20px; font-weight:800; cursor:pointer; box-shadow: 0 4px 10px rgba(168, 85, 247, 0.25);">+ Thêm từ/câu mới</button>
                             </div>
                             
                             <div id="vocab-container" style="display:flex; flex-direction:column; gap:12px;">
@@ -441,7 +441,7 @@
             container.innerHTML = '';
             
             if (vocabList.length === 0) {
-                container.innerHTML = `<div id="vocab-empty-msg" style="color:#4f46e5; font-size:0.95rem; padding:25px; text-align:center; background:rgba(236,96,144,0.03); border:2px dashed #fbcfe8; border-radius:20px; font-weight:800;">Chưa có từ mới nào. Hãy nhấn "+ Thêm từ mới" để bắt đầu!</div>`;
+                container.innerHTML = `<div id="vocab-empty-msg" style="color:#4f46e5; font-size:0.95rem; padding:25px; text-align:center; background:rgba(236,96,144,0.03); border:2px dashed #fbcfe8; border-radius:20px; font-weight:800;">Chưa có từ/câu mới nào. Hãy nhấn "+ Thêm từ/câu mới" để bắt đầu!</div>`;
                 return;
             }
             
@@ -452,7 +452,7 @@
                 row.innerHTML = `
                     <div style="width:100%; display:flex; gap:12px; flex-wrap:wrap;">
                         <div style="flex:1; min-width:140px;">
-                            <label style="font-size:0.85rem; color:#4f46e5; display:block; margin-bottom:6px; font-weight:800;">Từ mới *</label>
+                            <label style="font-size:0.85rem; color:#4f46e5; display:block; margin-bottom:6px; font-weight:800;">Từ/câu mới *</label>
                             <input type="text" class="form-control" value="${item.word || ''}" oninput="updateVocabValue(${index}, 'word', this.value); suggestEmojiFromWord(${index}, this.value);" placeholder="Ví dụ: Apple" required style="padding:10px 14px; font-size:0.9rem; font-weight:700;">
                         </div>
                         <div style="flex:1; min-width:140px;">

@@ -122,6 +122,222 @@
                 }
             </div>
         }
+        @if (User.IsInRole("Student"))
+        {
+            <!-- Student Selection Wizard -->
+            <div class="card p-4 border-0 mb-5 glass-card">
+                <div class="row g-4 justify-content-center">
+                    <div class="col-md-5">
+                        <label class="form-label" style="font-weight: 800; color: #7c3aed; font-size: 1.05rem;">1. Chọn Lớp Học (Gói 6 tháng đã mua)</label>
+                        <select id="studentGradeSelect" class="form-select form-control-custom" onchange="onStudentGradeChange()" style="padding: 12px 18px !important;">
+                            <option value="">-- Chọn Khối Lớp --</option>
+                            @if (ViewBag.StudentGrades != null)
+                            {
+                                foreach (var grade in ViewBag.StudentGrades)
+                                {
+                                    <option value="@grade.GradeId">@grade.GradeName</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label" style="font-weight: 800; color: #7c3aed; font-size: 1.05rem;">2. Chọn Chương Học (Unit)</label>
+                        <select id="studentChapterSelect" class="form-select form-control-custom" onchange="onStudentChapterChange()" style="padding: 12px 18px !important;" disabled>
+                            <option value="">-- Chọn Chương Học --</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Preview Area -->
+            <div id="certificatePreviewArea">
+                <div class="text-center py-5 glass-card" style="padding: 50px 20px !important;">
+                    <div style="font-size: 4.5rem; margin-bottom: 18px;">📜</div>
+                    <h3 style="font-weight: 900; color: #1e1b4b; font-size: 1.6rem;">Tra Cứu Chứng Chỉ</h3>
+                    <p style="color: #6b7280; max-width: 520px; margin: 10px auto 0; font-weight: 700; font-size: 1rem; line-height: 1.6;">
+                        Vui lòng chọn Khối lớp và Chương học (Unit) đã hoàn thành ở trên để xem chứng chỉ đạt được của bé.
+                    </p>
+                </div>
+            </div>
+
+            <script>
+                const studentChapters = @Html.Raw(ViewBag.StudentChaptersJson ?? "[]");
+                const studentId = @(ViewBag.StudentId ?? 0);
+
+                function onStudentGradeChange() {
+                    const gradeSelect = document.getElementById('studentGradeSelect');
+                    const chapterSelect = document.getElementById('studentChapterSelect');
+                    const selectedGradeId = gradeSelect.value;
+
+                    // Clear and disable chapter select
+                    chapterSelect.innerHTML = '<option value="">-- Chọn Chương Học --</option>';
+                    chapterSelect.disabled = true;
+
+                    // Clear preview card
+                    document.getElementById('certificatePreviewArea').innerHTML = `
+                        <div class="text-center py-5 glass-card" style="padding: 50px 20px !important;">
+                            <div style="font-size: 4.5rem; margin-bottom: 18px;">📜</div>
+                            <h3 style="font-weight: 900; color: #1e1b4b; font-size: 1.6rem;">Tra Cứu Chứng Chỉ</h3>
+                            <p style="color: #6b7280; max-width: 520px; margin: 10px auto 0; font-weight: 700; font-size: 1rem; line-height: 1.6;">
+                                Vui lòng chọn Khối lớp và Chương học (Unit) đã hoàn thành ở trên để xem chứng chỉ đạt được của bé.
+                            </p>
+                        </div>
+                    `;
+
+                    if (!selectedGradeId) return;
+
+                    // Filter chapters for this grade
+                    const filteredChapters = studentChapters.filter(c => c.GradeId == selectedGradeId);
+
+                    if (filteredChapters.length === 0) {
+                        chapterSelect.innerHTML = '<option value="">-- Không có chương học nào --</option>';
+                        return;
+                    }
+
+                    filteredChapters.forEach(c => {
+                        const opt = document.createElement('option');
+                        opt.value = c.ChapterId;
+                        opt.textContent = c.ChapterName;
+                        chapterSelect.appendChild(opt);
+                    });
+
+                    chapterSelect.disabled = false;
+                }
+
+                function onStudentChapterChange() {
+                    const gradeSelect = document.getElementById('studentGradeSelect');
+                    const chapterSelect = document.getElementById('studentChapterSelect');
+                    const selectedGradeId = gradeSelect.value;
+                    const selectedChapterId = chapterSelect.value;
+                    const previewArea = document.getElementById('certificatePreviewArea');
+
+                    if (!selectedGradeId || !selectedChapterId) {
+                        previewArea.innerHTML = `
+                            <div class="text-center py-5 glass-card" style="padding: 50px 20px !important;">
+                                <div style="font-size: 4.5rem; margin-bottom: 18px;">📜</div>
+                                <h3 style="font-weight: 900; color: #1e1b4b; font-size: 1.6rem;">Tra Cứu Chứng Chỉ</h3>
+                                <p style="color: #6b7280; max-width: 520px; margin: 10px auto 0; font-weight: 700; font-size: 1rem; line-height: 1.6;">
+                                    Vui lòng chọn Khối lớp và Chương học (Unit) đã hoàn thành ở trên để xem chứng chỉ đạt được của bé.
+                                </p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    const chapterInfo = studentChapters.find(c => c.ChapterId == selectedChapterId);
+                    if (!chapterInfo) return;
+
+                    if (chapterInfo.IsCompleted) {
+                        let classificationBadge = '';
+                        if (chapterInfo.Classification === 'Xuất sắc') {
+                            classificationBadge = '<span class="badge" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 6px 12px; border-radius: 8px; font-weight: 800; font-size: 0.85rem; margin-top: 10px; display: inline-block;">Xếp loại: Xuất sắc 🌟</span>';
+                        } else if (chapterInfo.Classification === 'Giỏi') {
+                            classificationBadge = '<span class="badge" style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 6px 12px; border-radius: 8px; font-weight: 800; font-size: 0.85rem; margin-top: 10px; display: inline-block;">Xếp loại: Giỏi ✨</span>';
+                        } else {
+                            classificationBadge = '<span class="badge" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; padding: 6px 12px; border-radius: 8px; font-weight: 800; font-size: 0.85rem; margin-top: 10px; display: inline-block;">Xếp loại: Khá / Đạt</span>';
+                        }
+
+                        // Render active certificate card
+                        previewArea.innerHTML = `
+                            <div class="card border-0 overflow-hidden glass-card mx-auto" style="max-width: 500px; animation: fadeInUp 0.5s ease-in-out; padding: 0 !important; box-shadow: 0 20px 45px rgba(236, 96, 144, 0.15);">
+                                <div class="p-5 text-center" style="background: linear-gradient(135deg, #fdf2f8 0%, #f5f3ff 100%); border-bottom: 2px dashed #fbcfe8;">
+                                    <div style="font-size: 5rem; margin-bottom: 15px; animation: bounce 2s infinite;">🎓</div>
+                                    <span class="badge" style="background-color: #ec6090; color: white; padding: 8px 16px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; letter-spacing: 0.5px;">
+                                        ĐỦ ĐIỀU KIỆN NHẬN CHỨNG CHỈ
+                                    </span>
+                                    <br/>
+                                    ${classificationBadge}
+                                </div>
+                                <div class="card-body p-5 text-center">
+                                    <h3 style="font-weight: 900; color: #1e1b4b; margin-bottom: 10px;">Chúc mừng em!</h3>
+                                    <p style="color: #7c3aed; font-weight: 800; font-size: 1.1rem; margin-bottom: 6px;">Em đã xuất sắc hoàn thành: ${chapterInfo.ChapterName}</p>
+                                    <div style="font-size: 0.95rem; color: #4b5563; font-weight: 700; margin-bottom: 30px;">
+                                        📅 Ngày hoàn thành: ${chapterInfo.CompletedDate}
+                                    </div>
+                                    <a href="/Certificate/Detail?studentId=${studentId}&gradeId=${selectedGradeId}&chapterId=${selectedChapterId}" class="btn btn-gradient-primary w-100 py-3" style="font-size: 1.1rem; border-radius: 30px !important;">
+                                        👀 Xem & Tải Chứng Chỉ Ngay
+                                    </a>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        // Render locked certificate card with progress
+                        const percentLessons = Math.min(100, Math.round((chapterInfo.CompletedLessons / (chapterInfo.TotalLessons || 1)) * 100));
+                        const practiceDone = chapterInfo.PracticeCount;
+                        const practicePercent = Math.min(100, Math.round((practiceDone / 2) * 100));
+
+                        previewArea.innerHTML = `
+                            <div class="card border-0 overflow-hidden glass-card mx-auto" style="max-width: 500px; animation: fadeInUp 0.5s ease-in-out; padding: 0 !important; opacity: 0.95;">
+                                <div class="p-5 text-center" style="background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); border-bottom: 2px dashed #d1d5db;">
+                                    <div style="font-size: 5rem; margin-bottom: 15px; filter: grayscale(1);">🔒</div>
+                                    <span class="badge" style="background-color: #6b7280; color: white; padding: 8px 16px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; letter-spacing: 0.5px;">
+                                        CHƯA HOÀN THÀNH CHƯƠNG HỌC
+                                    </span>
+                                </div>
+                                <div class="card-body p-5 text-center">
+                                    <h3 style="font-weight: 900; color: #374151; margin-bottom: 15px;">Tiếp tục cố gắng nhé!</h3>
+                                    <p style="color: #4b5563; font-weight: 700; font-size: 0.95rem; margin-bottom: 20px; line-height: 1.6;">
+                                        Để nhận chứng chỉ, em cần đạt các yêu cầu sau:
+                                    </p>
+                                    
+                                    <!-- Lesson progress -->
+                                    <div class="mb-3 text-start">
+                                        <div class="d-flex justify-content-between mb-1" style="font-weight: 800; color: #4b5563; font-size: 0.85rem;">
+                                            <span>📚 Hoàn thành các bài học:</span>
+                                            <span>${chapterInfo.CompletedLessons}/${chapterInfo.TotalLessons} Bài</span>
+                                        </div>
+                                        <div class="progress" style="height: 10px; border-radius: 6px; background-color: #e5e7eb; overflow: hidden;">
+                                            <div class="progress-bar" style="width: ${percentLessons}%; background: #a855f7;"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Practice progress -->
+                                    <div class="mb-4 text-start">
+                                        <div class="d-flex justify-content-between mb-1" style="font-weight: 800; color: #4b5563; font-size: 0.85rem;">
+                                            <span>🎯 Luyện tập (tối thiểu 2 bài):</span>
+                                            <span>${practiceDone}/2 Bài</span>
+                                        </div>
+                                        <div class="progress" style="height: 10px; border-radius: 6px; background-color: #e5e7eb; overflow: hidden;">
+                                            <div class="progress-bar" style="width: ${practicePercent}%; background: #ec6090;"></div>
+                                        </div>
+                                    </div>
+
+                                    <div style="background: #fffbeb; border: 1px solid #fef3c7; border-radius: 12px; padding: 12px; margin-bottom: 20px; font-size: 0.85rem; color: #b45309; font-weight: 700; text-align: left; line-height: 1.5;">
+                                        ⚠️ <strong>Lưu ý về bài kiểm tra:</strong> Tất cả các đề kiểm tra chính thức (Test) trong chương phải đạt từ <strong>60% trở lên</strong> mới được cấp chứng chỉ.
+                                    </div>
+
+                                    <button class="btn btn-secondary w-100 py-3" disabled style="font-size: 1rem; border-radius: 30px !important; background-color: #9ca3af !important; border: none; color: white !important; font-weight: 800; cursor: not-allowed;">
+                                        🔒 Chưa đủ điều kiện nhận chứng chỉ
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }
+            </script>
+            <style>
+                @@keyframes fadeInUp {
+                    from {
+                        opacity: 0;
+                        transform: translateY(20px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+                @@keyframes bounce {
+                    0%, 20%, 50%, 80%, 100% {
+                        transform: translateY(0);
+                    }
+                    40% {
+                        transform: translateY(-15px);
+                    }
+                    60% {
+                        transform: translateY(-7px);
+                    }
+                }
+            </style>
+        }
         else
         {
             <!-- Filter Card -->
@@ -182,7 +398,21 @@
                                     <div class="text-center mb-4">
                                         <h4 style="font-weight: 900; color: #1e1b4b; margin-bottom: 4px;">@item.StudentName</h4>
                                         <p style="color: #7c3aed; font-weight: 800; font-size: 0.95rem; margin-bottom: 6px;">Đã hoàn thành: @item.ChapterName</p>
-                                        <span class="badge bg-light text-primary" style="font-weight: 800; font-size: 0.8rem; border: 1px solid #e0e7ff; margin-bottom: 12px; display: inline-block; padding: 5px 10px; border-radius: 8px; color: #7c3aed !important;">@item.GradeName</span>
+                                        <div class="mb-2">
+                                            <span class="badge bg-light text-primary" style="font-weight: 800; font-size: 0.8rem; border: 1px solid #e0e7ff; display: inline-block; padding: 5px 10px; border-radius: 8px; color: #7c3aed !important; margin-right: 5px;">@item.GradeName</span>
+                                            @if (item.Classification == "Xuất sắc")
+                                            {
+                                                <span class="badge" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; font-weight: 800; padding: 5px 10px; border-radius: 8px; font-size: 0.8rem;">Xuất sắc 🌟</span>
+                                            }
+                                            else if (item.Classification == "Giỏi")
+                                            {
+                                                <span class="badge" style="background: linear-gradient(135deg, #10b981, #059669); color: white; font-weight: 800; padding: 5px 10px; border-radius: 8px; font-size: 0.8rem;">Giỏi ✨</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; font-weight: 800; padding: 5px 10px; border-radius: 8px; font-size: 0.8rem;">Khá</span>
+                                            }
+                                        </div>
                                         
                                         <div style="font-size: 0.85rem; color: #6b7280; font-weight: 700; margin-top: 5px;">
                                             📅 Ngày cấp: @item.CompletedDate.ToString("dd/MM/yyyy")
