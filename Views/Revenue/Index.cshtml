@@ -4,13 +4,13 @@
 
 <style>
     body {
-        background-color: #f0f4fa; /* Màu nền xanh nhạt giống ảnh */
+        background-color: #f0f4fa;
     }
     .revenue-container {
-        max-width: 900px;
+        max-width: 960px;
         margin: 0 auto;
         padding-top: 100px;
-        padding-bottom: 50px;
+        padding-bottom: 60px;
     }
     .page-title {
         color: #2c3e50;
@@ -18,13 +18,13 @@
         text-align: center;
         font-size: 26px;
         text-transform: uppercase;
-        margin-bottom: 15px;
+        margin-bottom: 10px;
     }
     .total-revenue {
         color: #3498db;
         text-align: center;
         font-size: 18px;
-        margin-bottom: 40px;
+        margin-bottom: 30px;
         font-weight: 500;
     }
     .filter-card {
@@ -34,12 +34,16 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        gap: 15px;
+        gap: 12px;
+        flex-wrap: wrap;
         box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        margin-bottom: 40px;
-        width: fit-content;
-        margin-left: auto;
-        margin-right: auto;
+        margin-bottom: 18px;
+    }
+    .export-bar {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-bottom: 18px;
     }
     .chart-card {
         background: white;
@@ -50,31 +54,99 @@
     .filter-label {
         font-weight: 600;
         color: #333;
-        font-size: 15px;
+        font-size: 14px;
     }
     .btn-filter {
         background-color: #3498db;
         color: white;
         border: none;
-        padding: 6px 24px;
-        border-radius: 6px;
+        padding: 7px 22px;
+        border-radius: 7px;
         font-weight: 600;
-        transition: background 0.3s;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background 0.25s, transform 0.15s;
     }
     .btn-filter:hover {
         background-color: #2980b9;
+        transform: translateY(-1px);
+    }
+    .btn-export-excel {
+        background: linear-gradient(135deg, #27ae60, #1e8449);
+        color: white !important;
+        border: none;
+        padding: 7px 18px;
+        border-radius: 7px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: opacity 0.2s, transform 0.15s;
+        text-decoration: none !important;
+    }
+    .btn-export-excel:hover {
+        opacity: 0.88;
+        transform: translateY(-1px);
+    }
+    .btn-export-pdf {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: white;
+        border: none;
+        padding: 7px 18px;
+        border-radius: 7px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: opacity 0.2s, transform 0.15s;
+    }
+    .btn-export-pdf:hover {
+        opacity: 0.88;
+        transform: translateY(-1px);
     }
     .form-select-custom {
-        padding: 6px 30px 6px 12px;
-        border-radius: 6px;
+        padding: 6px 12px;
+        border-radius: 7px;
         border: 1px solid #ccc;
         outline: none;
+        font-size: 14px;
     }
+    #pdfLoadingOverlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        color: white;
+        font-size: 17px;
+        gap: 14px;
+    }
+    #pdfLoadingOverlay.show { display: flex; }
+    .pdf-spinner {
+        width: 44px; height: 44px;
+        border: 5px solid rgba(255,255,255,0.25);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: pdfspin 0.85s linear infinite;
+    }
+    @@keyframes pdfspin { to { transform: rotate(360deg); } }
 </style>
+
+<div id="pdfLoadingOverlay">
+    <div class="pdf-spinner"></div>
+    <span>Đang tạo PDF...</span>
+</div>
 
 <div class="revenue-container">
     <h2 class="page-title">QUẢN LÝ THU NHẬP</h2>
-    <p class="total-revenue">Tổng doanh thu từ trước đến nay: @String.Format("{0:N1}", ViewBag.TotalRevenue) VNĐ</p>
+    <p class="total-revenue">Tổng doanh thu từ trước đến nay: @String.Format("{0:N0}", ViewBag.TotalRevenue) VNĐ</p>
 
     <div class="filter-card">
         <span class="filter-label">Năm:</span>
@@ -89,7 +161,7 @@
             }
         </select>
 
-        <span class="filter-label ms-3">Tháng:</span>
+        <span class="filter-label">Tháng:</span>
         <select id="monthSelect" class="form-select-custom">
             <option value="0">Tất cả tháng</option>
             @for (int m = 1; m <= 12; m++)
@@ -98,7 +170,7 @@
             }
         </select>
 
-        <span class="filter-label ms-3">Ngày:</span>
+        <span class="filter-label">Ngày:</span>
         <select id="daySelect" class="form-select-custom">
             <option value="0">Tất cả ngày</option>
             @for (int d = 1; d <= 31; d++)
@@ -106,67 +178,74 @@
                 <option value="@d">Ngày @d</option>
             }
         </select>
-        
-        <button id="btnFilter" class="btn-filter ms-3">🔎 Lọc</button>
+
+        <button id="btnFilter" class="btn-filter">🔎 Lọc</button>
+    </div>
+
+    <div class="export-bar">
+        <button id="btnExportPdf" class="btn-export-pdf" title="Tải về file PDF">
+            <svg width="15" height="15" fill="white" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM9.75 17H8.25v-5h1.5c1.05 0 1.7.6 1.7 1.75S10.8 17 9.75 17zm.45-3.25c0-.57-.28-.87-.7-.87h-.7v1.74h.7c.42 0 .7-.3.7-.87zm3.3 3.25H12v-5h1.5c1.35 0 2.2.87 2.2 2.5S14.85 17 13.5 17zm.46-2.5c0-1.05-.4-1.62-1.21-1.62H13v3.24h.25c.81 0 1.21-.57 1.21-1.62zm4.54.5h-1.75V16h1.5v.75H17v1.25h-.5v-5H18.5v.75z"/></svg>
+            Xuất PDF
+        </button>
+        <a id="btnExportExcel" href="#" class="btn-export-excel" title="Tải về file Excel">
+            <svg width="15" height="15" fill="white" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM10.5 17l-2-3-2 3H5l2.75-4L5 9h1.5l2 3 2-3H12l-2.75 4L12 17h-1.5z"/></svg>
+            Xuất Excel
+        </a>
     </div>
 
     <div class="chart-card">
-        <canvas id="revenueChart" width="800" height="400"></canvas>
+        <canvas id="revenueChart" width="860" height="400"></canvas>
     </div>
 </div>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <script>
         let revenueChartInstance = null;
 
         document.addEventListener('DOMContentLoaded', function () {
-            // Initial load
             loadChartData(new Date().getFullYear(), 0, 0);
 
-            // Listeners for dynamic days dropdown update
             document.getElementById('yearSelect').addEventListener('change', updateDaysDropdown);
             document.getElementById('monthSelect').addEventListener('change', updateDaysDropdown);
 
-            document.getElementById('btnFilter').addEventListener('click', function() {
+            document.getElementById('btnFilter').addEventListener('click', function () {
                 const year = document.getElementById('yearSelect').value;
                 const month = document.getElementById('monthSelect').value;
                 const day = document.getElementById('daySelect').value;
                 loadChartData(year, month, day);
             });
+
+            document.getElementById('btnExportExcel').addEventListener('click', function (e) {
+                e.preventDefault();
+                const year = document.getElementById('yearSelect').value;
+                const month = document.getElementById('monthSelect').value;
+                const day = document.getElementById('daySelect').value;
+                let url = `/Revenue/ExportExcel?year=${year}`;
+                if (parseInt(month) > 0) url += `&month=${month}`;
+                if (parseInt(day) > 0) url += `&day=${day}`;
+                window.location.href = url;
+            });
+
+            document.getElementById('btnExportPdf').addEventListener('click', exportPdf);
         });
 
         function updateDaysDropdown() {
             const year = parseInt(document.getElementById('yearSelect').value);
             const month = parseInt(document.getElementById('monthSelect').value);
             const daySelect = document.getElementById('daySelect');
-            const prevSelectedDay = daySelect.value;
-            
-            // Clear all options except "Tất cả ngày"
+            const prevDay = daySelect.value;
             daySelect.options.length = 1;
 
-            if (month > 0) {
-                const daysInMonth = new Date(year, month, 0).getDate();
-                for (let d = 1; d <= daysInMonth; d++) {
-                    const opt = document.createElement('option');
-                    opt.value = d;
-                    opt.textContent = `Ngày ${d}`;
-                    daySelect.appendChild(opt);
-                }
-                if (parseInt(prevSelectedDay) <= daysInMonth) {
-                    daySelect.value = prevSelectedDay;
-                } else {
-                    daySelect.value = "0";
-                }
-            } else {
-                for (let d = 1; d <= 31; d++) {
-                    const opt = document.createElement('option');
-                    opt.value = d;
-                    opt.textContent = `Ngày ${d}`;
-                    daySelect.appendChild(opt);
-                }
-                daySelect.value = "0";
+            const maxDays = month > 0 ? new Date(year, month, 0).getDate() : 31;
+            for (let d = 1; d <= maxDays; d++) {
+                const opt = document.createElement('option');
+                opt.value = d; opt.textContent = `Ngay ${d}`;
+                daySelect.appendChild(opt);
             }
+            daySelect.value = (parseInt(prevDay) <= maxDays && parseInt(prevDay) > 0) ? prevDay : '0';
         }
 
         function loadChartData(year, month, day) {
@@ -175,99 +254,57 @@
             if (day > 0) url += `&day=${day}`;
 
             fetch(url)
-                .then(response => response.json())
+                .then(r => r.json())
                 .then(data => {
                     const labels = data.map(item => item.label);
                     const revenueData = data.map(item => item.totalRevenue);
-
                     const ctx = document.getElementById('revenueChart').getContext('2d');
-                    
-                    if (revenueChartInstance) {
-                        revenueChartInstance.destroy();
-                    }
+                    if (revenueChartInstance) revenueChartInstance.destroy();
 
-                    // Dynamically set label text based on filters selected
-                    let datasetLabel = 'Doanh thu theo tháng (VNĐ)';
-                    let xAxisTitle = 'Tháng';
+                    let datasetLabel = 'Doanh thu theo thang (VND)';
+                    let xAxisTitle = 'Thang';
                     if (parseInt(month) > 0 && parseInt(day) > 0) {
-                        datasetLabel = 'Doanh thu theo giờ (VNĐ)';
-                        xAxisTitle = 'Giờ';
+                        datasetLabel = 'Doanh thu theo gio (VND)'; xAxisTitle = 'Gio';
                     } else if (parseInt(month) > 0) {
-                        datasetLabel = 'Doanh thu theo ngày (VNĐ)';
-                        xAxisTitle = 'Ngày';
+                        datasetLabel = 'Doanh thu theo ngay (VND)'; xAxisTitle = 'Ngay';
                     }
 
                     revenueChartInstance = new Chart(ctx, {
                         type: 'bar',
                         data: {
-                            labels: labels,
-                            datasets: [
-                                {
-                                    label: datasetLabel,
-                                    data: revenueData,
-                                    backgroundColor: 'rgba(52, 152, 219, 0.6)', // matching theme color (#3498db)
-                                    borderColor: 'rgba(52, 152, 219, 1)',
-                                    borderWidth: 1,
-                                    barPercentage: 0.6
-                                }
-                            ]
+                            labels,
+                            datasets: [{
+                                label: datasetLabel,
+                                data: revenueData,
+                                backgroundColor: 'rgba(52,152,219,0.6)',
+                                borderColor: 'rgba(52,152,219,1)',
+                                borderWidth: 1,
+                                barPercentage: 0.6
+                            }]
                         },
                         options: {
                             responsive: true,
                             scales: {
                                 y: {
                                     beginAtZero: true,
-                                    title: {
-                                        display: true,
-                                        text: 'Doanh thu (VNĐ)',
-                                        color: '#666',
-                                        font: {
-                                            size: 14
-                                        }
-                                    },
-                                    ticks: {
-                                        callback: function(value) {
-                                            return value.toLocaleString('vi-VN') + ' đ';
-                                        }
-                                    },
-                                    grid: {
-                                        color: '#eee'
-                                    }
+                                    title: { display: true, text: 'Doanh thu (VND)', color: '#666', font: { size: 14 } },
+                                    ticks: { callback: v => v.toLocaleString('vi-VN') + ' d' },
+                                    grid: { color: '#eee' }
                                 },
                                 x: {
-                                    title: {
-                                        display: true,
-                                        text: xAxisTitle,
-                                        color: '#666',
-                                        font: {
-                                            size: 14
-                                        }
-                                    },
-                                    grid: {
-                                        display: false
-                                    }
+                                    title: { display: true, text: xAxisTitle, color: '#666', font: { size: 14 } },
+                                    grid: { display: false }
                                 }
                             },
                             plugins: {
-                                legend: {
-                                    display: true,
-                                    position: 'top',
-                                    labels: {
-                                        boxWidth: 40,
-                                        boxHeight: 15
-                                    }
-                                },
+                                legend: { display: true, position: 'top', labels: { boxWidth: 40, boxHeight: 15 } },
                                 tooltip: {
                                     callbacks: {
-                                        label: function(context) {
-                                            let label = context.dataset.label || '';
-                                            if (label) {
-                                                label += ': ';
-                                            }
-                                            if (context.parsed.y !== null) {
-                                                label += context.parsed.y.toLocaleString('vi-VN') + ' đ';
-                                            }
-                                            return label;
+                                        label: ctx => {
+                                            let lbl = ctx.dataset.label || '';
+                                            if (lbl) lbl += ': ';
+                                            if (ctx.parsed.y !== null) lbl += ctx.parsed.y.toLocaleString('vi-VN') + ' d';
+                                            return lbl;
                                         }
                                     }
                                 }
@@ -275,7 +312,107 @@
                         }
                     });
                 })
-                .catch(error => console.error('Error fetching revenue data:', error));
+                .catch(err => console.error('Error fetching revenue data:', err));
+        }
+
+        function exportPdf() {
+            const year = document.getElementById('yearSelect').value;
+            const month = document.getElementById('monthSelect').value;
+            const day = document.getElementById('daySelect').value;
+            let url = `/Revenue/ExportPdfData?year=${year}`;
+            if (parseInt(month) > 0) url += `&month=${month}`;
+            if (parseInt(day) > 0) url += `&day=${day}`;
+
+            const overlay = document.getElementById('pdfLoadingOverlay');
+            overlay.classList.add('show');
+
+            fetch(url)
+                .then(r => r.json())
+                .then(data => {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                    const pageW = doc.internal.pageSize.getWidth();
+
+                    // Blue header banner
+                    doc.setFillColor(52, 152, 219);
+                    doc.rect(0, 0, pageW, 30, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(15);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('BAO CAO DOANH THU', pageW / 2, 13, { align: 'center' });
+                    doc.setFontSize(9.5);
+                    doc.setFont('helvetica', 'normal');
+                    doc.text('Ky bao cao: ' + (data.period || ''), pageW / 2, 22, { align: 'center' });
+
+                    // Summary
+                    const total = typeof data.total === 'number' ? data.total : 0;
+                    doc.setTextColor(44, 62, 80);
+                    doc.setFontSize(11);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('Tong doanh thu: ' + total.toLocaleString('vi-VN') + ' VND', 14, 40);
+                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(8.5);
+                    doc.setTextColor(110, 110, 110);
+                    const exportTime = new Date().toLocaleString('vi-VN');
+                    doc.text('Ngay xuat bao cao: ' + exportTime, 14, 46);
+
+                    // Table
+                    const rows = (data.rows || []).map((r, i) => [
+                        i + 1,
+                        r.date || '',
+                        r.type || '',
+                        (typeof r.amount === 'number' ? r.amount.toLocaleString('vi-VN') : '0') + ' d',
+                        r.status || ''
+                    ]);
+
+                    doc.autoTable({
+                        startY: 52,
+                        head: [['STT', 'Ngay / Gio', 'Loai giao dich', 'So tien (VND)', 'Trang thai']],
+                        body: rows.length > 0 ? rows : [['', 'Khong co du lieu trong ky bao cao nay', '', '', '']],
+                        foot: rows.length > 0
+                            ? [['', '', 'TONG CONG', total.toLocaleString('vi-VN') + ' d', '']]
+                            : [],
+                        headStyles: {
+                            fillColor: [52, 152, 219],
+                            textColor: 255,
+                            fontStyle: 'bold',
+                            fontSize: 9,
+                            halign: 'center',
+                            cellPadding: 3
+                        },
+                        bodyStyles: { fontSize: 8.5, textColor: [44, 62, 80], cellPadding: 2.5 },
+                        footStyles: {
+                            fillColor: [214, 234, 248],
+                            fontStyle: 'bold',
+                            fontSize: 9,
+                            textColor: [44, 62, 80]
+                        },
+                        columnStyles: {
+                            0: { halign: 'center', cellWidth: 10 },
+                            1: { cellWidth: 36 },
+                            2: { cellWidth: 42 },
+                            3: { halign: 'right', cellWidth: 38 },
+                            4: { halign: 'center', cellWidth: 28 }
+                        },
+                        alternateRowStyles: { fillColor: [235, 245, 251] },
+                        margin: { left: 14, right: 14 },
+                        didDrawPage: function (d) {
+                            doc.setFontSize(7.5);
+                            doc.setTextColor(160);
+                            const ph = doc.internal.pageSize.getHeight();
+                            doc.text('Trang ' + d.pageNumber, pageW / 2, ph - 6, { align: 'center' });
+                        }
+                    });
+
+                    const safePeriod = (data.period || '').replace(/\s*-\s*/g, '_').replace(/\s+/g, '');
+                    doc.save('BaoCaoDoanhThu_' + safePeriod + '.pdf');
+                    overlay.classList.remove('show');
+                })
+                .catch(err => {
+                    console.error('PDF export error:', err);
+                    overlay.classList.remove('show');
+                    alert('Loi khi tao PDF. Vui long thu lai.');
+                });
         }
     </script>
 }

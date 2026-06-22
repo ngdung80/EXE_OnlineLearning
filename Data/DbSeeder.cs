@@ -137,7 +137,110 @@ public static class DbSeeder
 
         await db.SaveChangesAsync();
 
+        // ── Seed 50 parent-student pairs ─────────────────────────────────────
+        var parentStudentPairs = new (string ParentEmail, string StudentEmail)[]
+        {
+            ("thanhhuyen89@gmail.com",  "quangminh08@gmail.com"),
+            ("minhduc90@gmail.com",     "baongoc11@gmail.com"),
+            ("thuylinh88@gmail.com",    "giabao09@gmail.com"),
+            ("quocviet91@gmail.com",    "khanhan12@gmail.com"),
+            ("kimngan87@gmail.com",     "nhatminh10@gmail.com"),
+            ("anhthu92@gmail.com",      "hoanglong08@gmail.com"),
+            ("thanhson89@gmail.com",    "linhchi11@gmail.com"),
+            ("ngocmai90@gmail.com",     "ducmanh09@gmail.com"),
+            ("phuongthao88@gmail.com",  "myduyen10@gmail.com"),
+            ("hoangnam91@gmail.com",    "minhkhoa12@gmail.com"),
+            ("thuha87@gmail.com",       "baotran08@gmail.com"),
+            ("quanghuy90@gmail.com",    "thuytien11@gmail.com"),
+            ("lananh89@gmail.com",      "tuankiet09@gmail.com"),
+            ("thanhtruc92@gmail.com",   "ngocbich10@gmail.com"),
+            ("minhchau88@gmail.com",    "anhkhoa12@gmail.com"),
+            ("quynhchi91@gmail.com",    "giahan08@gmail.com"),
+            ("hieupham87@gmail.com",    "khanhlinh10@gmail.com"),
+            ("thutrang90@gmail.com",    "minhquan11@gmail.com"),
+            ("ngocdiep89@gmail.com",    "phuonganh09@gmail.com"),
+            ("vananh92@gmail.com",      "trungkien12@gmail.com"),
+            ("kimdung88@gmail.com",     "thienan08@gmail.com"),
+            ("quocbao91@gmail.com",     "ngochan10@gmail.com"),
+            ("myanh87@gmail.com",       "hoangphuc11@gmail.com"),
+            ("thanhnam90@gmail.com",    "dieulinh09@gmail.com"),
+            ("huyenmy89@gmail.com",     "quoccuong12@gmail.com"),
+            ("ngocanh92@gmail.com",     "thanhbinh08@gmail.com"),
+            ("baochau88@gmail.com",     "quynhnga10@gmail.com"),
+            ("minhthu91@gmail.com",     "huyhoang11@gmail.com"),
+            ("thanhmai87@gmail.com",    "nhatlinh09@gmail.com"),
+            ("kimloan90@gmail.com",     "phucnguyen12@gmail.com"),
+            ("tuananh89@gmail.com",     "ngocmai08@gmail.com"),
+            ("mydung91@gmail.com",      "giakhanh10@gmail.com"),
+            ("thuvan88@gmail.com",      "minhnhat11@gmail.com"),
+            ("quangvinh90@gmail.com",   "thanhha09@gmail.com"),
+            ("ngocbich87@gmail.com",    "ducanh12@gmail.com"),
+            ("hoangyen92@gmail.com",    "khanhan08@gmail.com"),
+            ("thanhnga89@gmail.com",    "baokhanh10@gmail.com"),
+            ("trongnghia91@gmail.com",  "linhdan11@gmail.com"),
+            ("mylinh88@gmail.com",      "quochuy09@gmail.com"),
+            ("anhduong90@gmail.com",    "kimngan12@gmail.com"),
+            ("quoccuong87@gmail.com",   "ngoclinh08@gmail.com"),
+            ("thuyvan92@gmail.com",     "hoangkhoi10@gmail.com"),
+            ("ducmanh89@gmail.com",     "thuongvo11@gmail.com"),
+            ("kimanh91@gmail.com",      "minhphuc09@gmail.com"),
+            ("vietanh88@gmail.com",     "thuychi12@gmail.com"),
+            ("phuongmai90@gmail.com",   "giabinh08@gmail.com"),
+            ("thanhbinh87@gmail.com",   "nhuha10@gmail.com"),
+            ("lanphuong92@gmail.com",   "quanghiep11@gmail.com"),
+            ("ngocthao89@gmail.com",    "anhkiet09@gmail.com"),
+            ("mytrang91@gmail.com",     "baolam12@gmail.com"),
+        };
+
+        foreach (var (parentEmail, studentEmail) in parentStudentPairs)
+        {
+            // ── Parent ──────────────────────────────────────────────────────
+            var pUser = await db.Users.FirstOrDefaultAsync(u => u.Email == parentEmail);
+            if (pUser == null)
+            {
+                pUser = new User
+                {
+                    Username  = parentEmail,
+                    Password  = BCrypt.Net.BCrypt.HashPassword("Parent@123"),
+                    Email     = parentEmail,
+                    FullName  = parentEmail.Split('@')[0],
+                    Role      = "Parent",
+                    Status    = "active",
+                    Deleted   = false,
+                    Dob       = new DateOnly(1988, 1, 1)
+                };
+                db.Users.Add(pUser);
+                await db.SaveChangesAsync();   // need UserId for FK
+            }
+
+            // ── Student ─────────────────────────────────────────────────────
+            var sUser = await db.Users.FirstOrDefaultAsync(u => u.Email == studentEmail);
+            if (sUser == null)
+            {
+                sUser = new User
+                {
+                    Username  = studentEmail,
+                    Password  = BCrypt.Net.BCrypt.HashPassword("Student@123"),
+                    Email     = studentEmail,
+                    FullName  = studentEmail.Split('@')[0],
+                    Role      = "Student",
+                    Status    = "active",
+                    Deleted   = false,
+                    Dob       = new DateOnly(2016, 6, 1),
+                    ParentId  = pUser.UserId
+                };
+                db.Users.Add(sUser);
+            }
+            else if (sUser.ParentId != pUser.UserId)
+            {
+                sUser.ParentId = pUser.UserId;
+            }
+        }
+        await db.SaveChangesAsync();
+        // ── End 50 pairs ─────────────────────────────────────────────────────
+
         // Kiểm tra xem có cần dọn dẹp dữ liệu cũ (Lớp 10, 11, 12) và seed lại dữ liệu tiếng Anh hay không
+
         var needsReSeed = !await db.Grades.AnyAsync(g => g.GradeName == "Lớp 1") || 
                           await db.Grades.AnyAsync(g => g.GradeName == "Lớp 10" || g.GradeName == "Lớp 11" || g.GradeName == "Lớp 12") ||
                           !await db.Lessons.AnyAsync(l => l.LessonName == "Lesson 1: Chào hỏi & Tên");
