@@ -57,6 +57,9 @@
     <link rel="stylesheet" href="https://unpkg.com/swiper@7/swiper-bundle.min.css"/>
 
     <style>
+        html {
+            overflow-y: scroll !important;
+        }
         body, p, span, h1, h2, h3, h4, h5, h6, input, select, textarea, button, label, a {
             font-family: 'Inter', sans-serif !important;
         }
@@ -84,20 +87,21 @@
         .logo-text { font-family:'Inter',sans-serif !important; font-weight:900; font-size:26px; color:#e75485 !important; transition:color .3s; text-transform:uppercase; letter-spacing:1px; }
         .background-header .logo-text { color:#e75485 !important; }
         @@keyframes slideIn { from { opacity:0; transform:translateX(50px); } to { opacity:1; transform:translateX(0); } }
-        .admin-section, .user-section, .wallet-section, .form-section, .parent-section, .notif-section, .lesson-section, .detail-section, .mgmt-section, .ch-section, .ai-section, .chat-section, .profile-section, .edit-section, .pwd-section, .denied-section, .result-section, .list-section, .hist-section, .sub-section {
+        .admin-section, .user-section, .wallet-section, .form-section, .parent-section, .notif-section, .lesson-section, .detail-section, .mgmt-section, .ch-section, .ai-section, .chat-section, .profile-section, .edit-section, .pwd-section, .denied-section, .result-section, .list-section, .hist-section, .sub-section, .game-dashboard, .game-play-section {
             padding-top: 120px !important;
         }
 
         /* Spacing overrides for student theme to prevent header overflow */
         body.student-theme .main-nav .nav {
-            gap: 6px !important;
+            gap: 10px !important;
         }
         body.student-theme .main-nav .nav li a {
-            font-size: 13px !important;
+            font-size: 13.5px !important;
             padding: 8px 6px !important;
         }
         body.student-theme .main-nav .nav .profile-link a {
-            padding: 4px 10px !important;
+            padding: 6px 10px !important;
+            gap: 6px !important;
         }
         body.student-theme .header-area .main-nav #search input {
             width: 150px !important;
@@ -106,7 +110,14 @@
             width: 200px !important;
         }
         body.student-theme .logo-text {
-            font-size: 22px !important;
+            font-size: 20px !important;
+        }
+        body.student-theme .main-nav .logo img {
+            width: 40px !important;
+            height: 40px !important;
+        }
+        body.student-theme .main-nav .logo {
+            margin-right: 15px !important;
         }
 
         /* VIP Animated Avatars Design System */
@@ -875,6 +886,7 @@
                                 {
                                     <li><a asp-controller="AI" asp-action="Chat" class="@(isAIActive ? "active" : "")">Trợ lý AI</a></li>
                                     <li><a asp-controller="Test" asp-action="Practice" class="@(isPracticeActive ? "active" : "")">Luyện tập</a></li>
+                                    <li><a asp-controller="Game" asp-action="Index" class="@(activeCtrl == "Game" ? "active" : "")"><i class="fa fa-gamepad" style="margin-right: 5px;"></i> Trò chơi</a></li>
                                     <li><a asp-controller="Test" asp-action="History" class="@(isHistoryActive ? "active" : "")">Lịch sử làm bài</a></li>
                                     <li><a asp-controller="Account" asp-action="AvatarShop" class="@(activeCtrl == "Account" && activeAct == "AvatarShop" ? "active" : "")"><i class="fa fa-shopping-cart" style="margin-right: 5px;"></i> Cửa hàng sao</a></li>
                                 }

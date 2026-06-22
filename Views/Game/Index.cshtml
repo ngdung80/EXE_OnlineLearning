@@ -1,0 +1,569 @@
+@using POT_System_ASPNET.Data.Entities
+@{
+    ViewData["Title"] = "Đấu Trường Trò Chơi Từ Vựng";
+    var grades = ViewBag.Grades as List<Grade> ?? new List<Grade>();
+    var chapters = ViewBag.Chapters as List<Chapter> ?? new List<Chapter>();
+    var lessons = ViewBag.Lessons as List<Lesson> ?? new List<Lesson>();
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Pacifico&display=swap" rel="stylesheet">
+
+<style>
+    .game-dashboard {
+        padding: 50px 0;
+        background: linear-gradient(135deg, #fef08a 0%, #fbcfe8 50%, #c084fc 100%);
+        min-height: 95vh;
+        font-family: 'Nunito', sans-serif !important;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* Bubbly background items */
+    .bg-bubble {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.35);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 1;
+        animation: floatBubble 12s infinite ease-in-out;
+    }
+    @@keyframes floatBubble {
+        0%, 100% { transform: translateY(0) scale(1); }
+        50% { transform: translateY(-30px) scale(1.1); }
+    }
+
+    .container {
+        position: relative;
+        z-index: 2;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }
+
+    .header-box {
+        text-align: center;
+        margin-bottom: 45px;
+        background: rgba(255, 255, 255, 0.85);
+        border: 4px solid #ec6090;
+        border-radius: 30px;
+        padding: 30px;
+        box-shadow: 0 12px 30px rgba(236, 96, 144, 0.15);
+    }
+
+    .game-title {
+        font-family: 'Pacifico', cursive;
+        font-size: 3rem;
+        color: #ec6090;
+        text-shadow: 3px 3px 0px #ffffff, 6px 6px 0px rgba(236, 96, 144, 0.2);
+        margin-bottom: 10px;
+    }
+
+    .game-subtitle {
+        color: #6b21a8;
+        font-size: 1.25rem;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+    }
+
+    /* Step Styling */
+    .step-card {
+        background: white;
+        border: 4px solid #fbcfe8;
+        border-radius: 30px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 25px rgba(107, 33, 168, 0.08);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .step-card:hover {
+        border-color: #ec6090;
+        box-shadow: 0 15px 35px rgba(236, 96, 144, 0.12);
+    }
+
+    .step-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 25px;
+        border-bottom: 3px dashed #fbcfe8;
+        padding-bottom: 15px;
+    }
+
+    .step-num {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ec6090, #db2777);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 1.3rem;
+        color: white;
+        box-shadow: 0 5px 12px rgba(236, 96, 144, 0.3);
+    }
+
+    .step-title {
+        font-size: 1.5rem;
+        font-weight: 900;
+        color: #4c1d95;
+    }
+
+    /* Grids & Cards */
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+    }
+
+    .card-item {
+        background: #fdf2f8;
+        border: 3px solid #fbcfe8;
+        border-radius: 24px;
+        padding: 25px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        overflow: hidden;
+    }
+    .card-item:hover {
+        transform: translateY(-8px) scale(1.03);
+        border-color: #ec6090;
+        background: white;
+        box-shadow: 0 12px 24px rgba(236, 96, 144, 0.15);
+    }
+    .card-item.active {
+        border-color: #a855f7;
+        background: #faf5ff;
+        box-shadow: 0 12px 24px rgba(168, 85, 247, 0.2);
+    }
+    .card-item.active::after {
+        content: "✓";
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        color: #a855f7;
+        font-weight: 900;
+        font-size: 1.3rem;
+    }
+
+    .card-icon {
+        font-size: 2.8rem;
+        margin-bottom: 12px;
+        display: inline-block;
+    }
+
+    .card-name {
+        font-weight: 800;
+        font-size: 1.15rem;
+        color: #4c1d95;
+        display: block;
+    }
+
+    /* Unit List Items */
+    .list-container {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .list-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 25px;
+        background: #faf5ff;
+        border: 3px solid #e9d5ff;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .list-item:hover {
+        transform: scale(1.01);
+        border-color: #a855f7;
+        background: white;
+        box-shadow: 0 6px 15px rgba(168, 85, 247, 0.1);
+    }
+    .list-item.active {
+        border-color: #ec6090;
+        background: #fdf2f8;
+        box-shadow: 0 6px 15px rgba(236, 96, 144, 0.15);
+    }
+
+    .list-item-title {
+        font-weight: 800;
+        font-size: 1.2rem;
+        color: #581c87;
+    }
+    .list-item-meta {
+        font-size: 0.9rem;
+        color: #701a75;
+        font-weight: 700;
+        background: rgba(236, 96, 144, 0.1);
+        padding: 5px 12px;
+        border-radius: 12px;
+    }
+
+    /* Lesson Cards Grid */
+    .lesson-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    .lesson-card {
+        background: #fdf2f8;
+        border: 3px solid #fbcfe8;
+        border-radius: 24px;
+        padding: 22px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 140px;
+    }
+    .lesson-card:hover {
+        transform: translateY(-5px);
+        border-color: #ec6090;
+        background: white;
+        box-shadow: 0 10px 20px rgba(236, 96, 144, 0.12);
+    }
+    .lesson-card.active {
+        border-color: #a855f7;
+        background: #faf5ff;
+        box-shadow: 0 10px 20px rgba(168, 85, 247, 0.15);
+    }
+
+    .lesson-name {
+        font-size: 1.25rem;
+        font-weight: 900;
+        color: #4c1d95;
+        margin-bottom: 8px;
+    }
+    .lesson-meta {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #a21caf;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    /* 5 Games Grid Selection */
+    .game-selection-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 15px;
+    }
+
+    .game-card {
+        background: white;
+        border: 3px solid #e9d5ff;
+        border-radius: 24px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .game-card:hover {
+        transform: translateY(-8px) scale(1.04);
+        border-color: #a855f7;
+        box-shadow: 0 12px 25px rgba(168, 85, 247, 0.2);
+    }
+
+    .game-icon-bg {
+        width: 70px;
+        height: 70px;
+        border-radius: 20px;
+        margin: 0 auto 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.2rem;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+    .icon-memory { background: #fef3c7; color: #d97706; }
+    .icon-listen { background: #dbeafe; color: #2563eb; }
+    .icon-spell { background: #dcfce7; color: #16a34a; }
+    .icon-bubble { background: #fae8ff; color: #c084fc; }
+    .icon-connect { background: #fee2e2; color: #dc2626; }
+
+    .game-name {
+        font-weight: 900;
+        font-size: 1.1rem;
+        color: #1e1b4b;
+        margin-bottom: 5px;
+        display: block;
+    }
+    .game-desc {
+        font-size: 0.8rem;
+        color: #4f46e5;
+        font-weight: 600;
+        line-height: 1.3;
+    }
+
+    .btn-play-game {
+        margin-top: 15px;
+        width: 100%;
+        padding: 8px 12px;
+        border-radius: 15px;
+        border: none;
+        background: linear-gradient(135deg, #a855f7, #7c3aed);
+        color: white;
+        font-weight: 800;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-play-game:hover {
+        background: linear-gradient(135deg, #ec6090, #db2777);
+    }
+</style>
+
+<div class="game-dashboard">
+    <!-- Float background bubbles for playful kid atmosphere -->
+    <div class="bg-bubble" style="width: 120px; height: 120px; top: 10%; left: 5%;"></div>
+    <div class="bg-bubble" style="width: 80px; height: 80px; top: 40%; right: 4%;"></div>
+    <div class="bg-bubble" style="width: 150px; height: 150px; bottom: 5%; left: 8%;"></div>
+    <div class="bg-bubble" style="width: 90px; height: 90px; bottom: 25%; right: 10%;"></div>
+
+    <div class="container">
+        <div class="header-box animate__animated animate__fadeInDown">
+            <h1 class="game-title">🎮 Đấu Trường Từ Vựng</h1>
+            <p class="game-subtitle">Chọn bài học của con và thử tài với 5 trò chơi siêu vui nhộn nhé!</p>
+        </div>
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger mb-4" style="background: #fee2e2; border: 3px solid #fca5a5; color: #991b1b; border-radius: 20px; padding: 15px 25px; font-weight: 800; font-family: 'Nunito', sans-serif;">
+                <i class="fas fa-exclamation-circle"></i> @TempData["Error"]
+            </div>
+        }
+
+        <!-- STEP 1: SELECT GRADE -->
+        <div class="step-card animate__animated animate__fadeInUp" id="step-grade-container">
+            <div class="step-header">
+                <div class="step-num">1</div>
+                <h2 class="step-title">Chọn Khối Lớp của con</h2>
+            </div>
+            <div class="grid-container">
+                @foreach (var g in grades)
+                {
+                    var emoji = g.GradeName.Contains("1") ? "🎒" : 
+                                g.GradeName.Contains("2") ? "🎨" : 
+                                g.GradeName.Contains("3") ? "🚀" : 
+                                g.GradeName.Contains("4") ? "🦁" : "🌌";
+                    <div class="card-item" onclick="selectGrade(@g.GradeId, this)">
+                        <span class="card-icon">@emoji</span>
+                        <span class="card-name">@g.GradeName</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- STEP 2: SELECT UNIT/CHAPTER -->
+        <div class="step-card" id="step-chapter-container" style="display: none;">
+            <div class="step-header">
+                <div class="step-num">2</div>
+                <h2 class="step-title">Chọn Chương Học (Unit)</h2>
+            </div>
+            <div class="list-container" id="chapter-list"></div>
+        </div>
+
+        <!-- STEP 3: SELECT LESSON -->
+        <div class="step-card" id="step-lesson-container" style="display: none;">
+            <div class="step-header">
+                <div class="step-num">3</div>
+                <h2 class="step-title">Chọn Bài Học (Lesson)</h2>
+            </div>
+            <div class="lesson-grid" id="lesson-list"></div>
+        </div>
+
+        <!-- STEP 4: SELECT GAME -->
+        <div class="step-card" id="step-game-container" style="display: none;">
+            <div class="step-header">
+                <div class="step-num">4</div>
+                <h2 class="step-title">Chọn Trò Chơi con muốn chiến đấu!</h2>
+            </div>
+            <div class="game-selection-grid">
+                <!-- Game 1 -->
+                <div class="game-card" onclick="playGame('MemoryMatch')">
+                    <div class="game-icon-bg icon-memory">
+                        <i class="fas fa-clone"></i>
+                    </div>
+                    <span class="game-name">Lật Thẻ Trí Nhớ</span>
+                    <span class="game-desc">Tìm cặp từ Tiếng Anh và nghĩa Tiếng Việt trùng nhau</span>
+                    <button class="btn-play-game">Chơi Ngay ➔</button>
+                </div>
+
+                <!-- Game 2 -->
+                <div class="game-card" onclick="playGame('ListenChoose')">
+                    <div class="game-icon-bg icon-listen">
+                        <i class="fas fa-volume-up"></i>
+                    </div>
+                    <span class="game-name">Nghe Chọn Từ</span>
+                    <span class="game-desc">Nghe giọng phát âm và tìm bong bóng chứa từ vựng đúng</span>
+                    <button class="btn-play-game">Chơi Ngay ➔</button>
+                </div>
+
+                <!-- Game 3 -->
+                <div class="game-card" onclick="playGame('Spelling')">
+                    <div class="game-icon-bg icon-spell">
+                        <i class="fas fa-spell-check"></i>
+                    </div>
+                    <span class="game-name">Đại Sứ Đánh Vần</span>
+                    <span class="game-desc">Sắp xếp các chữ cái lộn xộn thành từ đúng</span>
+                    <button class="btn-play-game">Chơi Ngay ➔</button>
+                </div>
+
+                <!-- Game 4 -->
+                <div class="game-card" onclick="playGame('BubblePop')">
+                    <div class="game-icon-bg icon-bubble">
+                        <i class="fas fa-soap"></i>
+                    </div>
+                    <span class="game-name">Bắn Bong Bóng</span>
+                    <span class="game-desc">Bắn các bong bóng từ Tiếng Anh theo nghĩa Tiếng Việt</span>
+                    <button class="btn-play-game">Chơi Ngay ➔</button>
+                </div>
+
+                <!-- Game 5 -->
+                <div class="game-card" onclick="playGame('Connector')">
+                    <div class="game-icon-bg icon-connect">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    <span class="game-name">Nối Từ Thông Thái</span>
+                    <span class="game-desc">Vẽ đường nối từ Tiếng Anh sang nghĩa Tiếng Việt</span>
+                    <button class="btn-play-game">Chơi Ngay ➔</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Data structures loaded dynamically
+    const chapters = [
+        @foreach (var c in chapters)
+        {
+            @Html.Raw($"{{ id: {c.ChapterId}, name: '{c.ChapterName.Replace("'", "\\'")}', gradeId: {c.Subject.GradeId} }},")
+        }
+    ];
+
+    const lessons = [
+        @foreach (var l in lessons)
+        {
+            // Count number of words inside VocabularyJson
+            int wordCount = 0;
+            if (!string.IsNullOrEmpty(l.VocabularyJson))
+            {
+                try
+                {
+                    var parsed = Newtonsoft.Json.JsonConvert.DeserializeObject<System.Collections.Generic.List<object>>(l.VocabularyJson);
+                    wordCount = parsed?.Count ?? 0;
+                }
+                catch { }
+            }
+            @Html.Raw($"{{ id: {l.LessonId}, name: '{l.LessonName.Replace("'", "\\'")}', chapterId: {l.ChapterId}, words: {wordCount} }},")
+        }
+    ];
+
+    let selectedGradeId = null;
+    let selectedChapterId = null;
+    let selectedLessonId = null;
+
+    function selectGrade(gradeId, element) {
+        selectedGradeId = gradeId;
+        selectedChapterId = null;
+        selectedLessonId = null;
+
+        // Active State toggles
+        document.querySelectorAll('#step-grade-container .card-item').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+
+        // Filter chapters
+        const filteredChapters = chapters.filter(c => c.gradeId === gradeId);
+        const chapterList = document.getElementById('chapter-list');
+        chapterList.innerHTML = '';
+
+        if (filteredChapters.length > 0) {
+            filteredChapters.forEach(c => {
+                chapterList.innerHTML += `
+                    <div class="list-item" onclick="selectChapter(${c.id}, this)">
+                        <span class="list-item-title"><i class="fa-regular fa-folder-open" style="color: #a855f7; margin-right: 10px;"></i> ${c.name}</span>
+                        <span class="list-item-meta">Chọn chương này ➔</span>
+                    </div>
+                `;
+            });
+            document.getElementById('step-chapter-container').style.display = 'block';
+            document.getElementById('step-chapter-container').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            chapterList.innerHTML = '<div style="text-align:center; padding:20px; font-weight:800; color:#db2777;">Khối lớp này chưa có chương học nào được tạo.</div>';
+            document.getElementById('step-chapter-container').style.display = 'block';
+        }
+
+        // Hide subsequent steps
+        document.getElementById('step-lesson-container').style.display = 'none';
+        document.getElementById('step-game-container').style.display = 'none';
+    }
+
+    function selectChapter(chapterId, element) {
+        selectedChapterId = chapterId;
+        selectedLessonId = null;
+
+        // Active State toggles
+        document.querySelectorAll('#step-chapter-container .list-item').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+
+        // Filter lessons (only include lessons that have vocabulary words)
+        const filteredLessons = lessons.filter(l => l.chapterId === chapterId && l.words > 0);
+        const lessonList = document.getElementById('lesson-list');
+        lessonList.innerHTML = '';
+
+        if (filteredLessons.length > 0) {
+            filteredLessons.forEach(l => {
+                lessonList.innerHTML += `
+                    <div class="lesson-card" onclick="selectLesson(${l.id}, this)">
+                        <div>
+                            <h3 class="lesson-name">${l.name}</h3>
+                        </div>
+                        <div class="lesson-meta">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                            <span>${l.words} từ vựng</span>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('step-lesson-container').style.display = 'block';
+            document.getElementById('step-lesson-container').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            lessonList.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:20px; font-weight:800; color:#db2777;">Chương học này chưa có bài học nào chứa từ vựng chơi game. Con hãy chọn chương khác nhé!</div>';
+            document.getElementById('step-lesson-container').style.display = 'block';
+        }
+
+        // Hide subsequent steps
+        document.getElementById('step-game-container').style.display = 'none';
+    }
+
+    function selectLesson(lessonId, element) {
+        selectedLessonId = lessonId;
+
+        // Active State toggles
+        document.querySelectorAll('#step-lesson-container .lesson-card').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+
+        // Display game selection step
+        document.getElementById('step-game-container').style.display = 'block';
+        document.getElementById('step-game-container').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function playGame(gameType) {
+        if (!selectedLessonId) {
+            alert('Vui lòng chọn bài học trước khi bắt đầu chơi!');
+            return;
+        }
+        window.location.href = `/Game/Play?lessonId=${selectedLessonId}&gameType=${gameType}`;
+    }
+</script>
