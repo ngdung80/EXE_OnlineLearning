@@ -1,9 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>@ViewData["Title"] - PLO Learning</title>
+    <title>@(ViewData["Title"] != null ? ViewData["Title"] + " - PLO Learning" : "PLO Learning - Học Tiếng Anh Online Cho Trẻ Em")</title>
+
+    @* SEO Meta Tags *@
+    <meta name="description" content="@(ViewData["MetaDescription"] ?? "PLO Learning - Nền tảng học tiếng Anh online cá nhân hóa cho trẻ em lớp 1 và lớp 2. Lộ trình bám sát sách giáo khoa, báo cáo thông minh cho phụ huynh.")">
+    <meta name="keywords" content="PLO, PLO Learning, plo-learning, học tiếng Anh online, tiếng Anh cho trẻ em, tiếng Anh lớp 1, tiếng Anh lớp 2, học tiếng Anh trực tuyến, phonics, english for kids">
+    <meta name="author" content="PLO Learning">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="Vietnamese">
+    <link rel="canonical" href="https://plo-learning.com@(Context.Request.Path)">
+
+    @* Open Graph (Facebook, Zalo share) *@
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="PLO Learning">
+    <meta property="og:title" content="@(ViewData["Title"] != null ? ViewData["Title"] + " - PLO Learning" : "PLO Learning - Học Tiếng Anh Online Cho Trẻ Em")">
+    <meta property="og:description" content="@(ViewData["MetaDescription"] ?? "Nền tảng học tiếng Anh online cá nhân hóa cho trẻ em lớp 1 và lớp 2. Lộ trình bám sát SGK, báo cáo thông minh cho phụ huynh.")">
+    <meta property="og:url" content="https://plo-learning.com@(Context.Request.Path)">
+    <meta property="og:image" content="https://plo-learning.com/assets/images/og-banner.png">
+    <meta property="og:locale" content="vi_VN">
+
+    @* Twitter Card *@
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="PLO Learning - Học Tiếng Anh Online Cho Trẻ Em">
+    <meta name="twitter:description" content="Nền tảng học tiếng Anh online cá nhân hóa cho trẻ em lớp 1 và lớp 2.">
+    <meta name="twitter:image" content="https://plo-learning.com/assets/images/og-banner.png">
+
+    @* Structured Data JSON-LD *@
+    <script type="application/ld+json">
+    {
+      "@@context": "https://schema.org",
+      "@@type": "WebSite",
+      "name": "PLO Learning",
+      "alternateName": "PLO",
+      "url": "https://plo-learning.com",
+      "description": "Nền tảng học tiếng Anh online cá nhân hóa cho trẻ em lớp 1 và lớp 2",
+      "potentialAction": {
+        "@@type": "SearchAction",
+        "target": {
+          "@@type": "EntryPoint",
+          "urlTemplate": "https://plo-learning.com/Lesson?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link href="~/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="~/assets/css/fontawesome.css">
@@ -11,6 +55,7 @@
     <link rel="stylesheet" href="~/assets/css/owl.css">
     <link rel="stylesheet" href="~/assets/css/animate.css">
     <link rel="stylesheet" href="https://unpkg.com/swiper@7/swiper-bundle.min.css"/>
+
     <style>
         body, p, span, h1, h2, h3, h4, h5, h6, input, select, textarea, button, label, a {
             font-family: 'Inter', sans-serif !important;
