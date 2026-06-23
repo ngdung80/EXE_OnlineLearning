@@ -1845,17 +1845,17 @@ else
         <p class="section-sub text-center">Bắt đầu miễn phí 7 ngày — nâng cấp bất cứ lúc nào, không ràng buộc</p>
         <div class="row g-4 justify-content-center">
             <!-- Free Trial -->
-            <div class="col-md-3 col-sm-6">
+            <div class="col-lg-4 col-md-6">
                 <div class="pkg-card-hp">
                     <div class="pkg-tier">🎁 Dùng thử</div>
-                    <div class="pkg-title-hp">Free Trial</div>
+                    <div class="pkg-title-hp">Gói Học Thử Miễn Phí</div>
                     <div class="pkg-price-hp">0đ <small>/ 7 ngày</small></div>
-                    <div class="pkg-value">Trải nghiệm không rủi ro — không cần thẻ tín dụng</div>
+                    <div class="pkg-value">Dùng thử miễn phí đầy đủ tính năng trong 7 ngày học tập, không bao gồm chứng chỉ hoàn thành.</div>
                     <ul class="pkg-features-hp">
-                        <li><span class="feat-check">✓</span> 5 bài học mẫu đầy đủ</li>
+                        <li><span class="feat-check">✓</span> 5 bài học mẫu đầy đủ tính năng</li>
                         <li><span class="feat-check">✓</span> Báo cáo mẫu cho phụ huynh</li>
-                        <li><span class="feat-check">✓</span> Mascot & phần thưởng sao</li>
-                        <li><span class="feat-check">✓</span> Phù hợp trẻ lớp 1 & lớp 2</li>
+                        <li><span class="feat-check">✓</span> Mascot con ong & phần thưởng sao</li>
+                        <li><span class="feat-check">✓</span> Không cần thẻ tín dụng</li>
                     </ul>
                     @if (!User.Identity!.IsAuthenticated)
                     {
@@ -1868,17 +1868,16 @@ else
                 </div>
             </div>
             <!-- Basic -->
-            <div class="col-md-3 col-sm-6">
+            <div class="col-lg-4 col-md-6">
                 <div class="pkg-card-hp">
-                    <div class="pkg-tier">📚 Nền tảng</div>
-                    <div class="pkg-title-hp">Basic</div>
-                    <div class="pkg-price-hp">149.000đ <small>/ tháng</small></div>
-                    <div class="pkg-value">Bé học 10 phút/ngày với nền tảng từ vựng lớp 1-2 đầy đủ</div>
+                    <div class="pkg-tier">🌱 Nền tảng</div>
+                    <div class="pkg-title-hp">Gói Cơ Bản (1 Tháng)</div>
+                    <div class="pkg-price-hp">99.000đ <small>/ 1 tháng</small></div>
+                    <div class="pkg-value">Học tiếng Anh 10 phút mỗi ngày bám sát lộ trình sách giáo khoa trong 1 tháng (30 ngày), không bao gồm chứng chỉ.</div>
                     <ul class="pkg-features-hp">
-                        <li><span class="feat-check">✓</span> Toàn bộ bài học lớp 1 & lớp 2</li>
-                        <li><span class="feat-check">✓</span> Lộ trình theo trình độ bé</li>
-                        <li><span class="feat-check">✓</span> Báo cáo tiến bộ cơ bản</li>
-                        <li><span class="feat-check">✓</span> Ôn từ thông minh</li>
+                        <li><span class="feat-check">✓</span> Ứng dụng công nghệ AI tự động điều chỉnh lộ trình học phù hợp với sức học của bé.</li>
+                        <li><span class="feat-check">✓</span> Hệ thống tự động tạo đề luyện tập với AI và đưa ra gợi ý bài học tại nhà hàng tuần.</li>
+                        <li><span class="feat-check">✓</span> Gửi báo cáo chi tiết kết quả học tập tự động cho phụ huynh vào cuối tuần.</li>
                     </ul>
                     @if (!User.Identity!.IsAuthenticated)
                     {
@@ -1890,51 +1889,26 @@ else
                     }
                 </div>
             </div>
-            <!-- Standard (Featured) -->
-            <div class="col-md-3 col-sm-6">
+            <!-- Premium (Featured) -->
+            <div class="col-lg-4 col-md-6">
                 <div class="pkg-card-hp featured-hp">
                     <div class="featured-badge-hp">⭐ Phổ biến nhất</div>
-                    <div class="pkg-tier" style="color:#e75485;">🚀 Cá nhân hóa</div>
-                    <div class="pkg-title-hp">Standard</div>
-                    <div class="pkg-price-hp">249.000đ <small>/ tháng</small></div>
-                    <div class="pkg-value">AI điều chỉnh lộ trình + báo cáo tuần đầy đủ cho phụ huynh</div>
+                    <div class="pkg-tier" style="color:#e75485;">👑 Cao cấp</div>
+                    <div class="pkg-title-hp">Gói Cao Cấp (6 Tháng)</div>
+                    <div class="pkg-price-hp">499.000đ <small>/ 6 tháng</small></div>
+                    <div class="pkg-value">Trọn bộ lộ trình cá nhân hóa + Báo cáo thông minh cho phụ huynh + Cấp chứng chỉ hoàn thành sau khi hoàn thành khóa học trong 6 tháng (180 ngày).</div>
                     <ul class="pkg-features-hp">
-                        <li><span class="feat-check">✓</span> Tất cả tính năng Basic</li>
-                        <li><span class="feat-check">✓</span> AI cá nhân hóa bài học cho bé</li>
-                        <li><span class="feat-check">✓</span> Báo cáo tuần chi tiết cho phụ huynh</li>
-                        <li><span class="feat-check">✓</span> Gợi ý học ở nhà hàng tuần</li>
-                        <li><span class="feat-check">✓</span> Tạo đề luyện tập với AI</li>
+                        <li><span class="feat-check">✓</span> Gói dài hạn nhất, tối ưu trọn bộ lộ trình cá nhân hóa nâng cao trong vòng 6 tháng.</li>
+                        <li><span class="feat-check">✓</span> Hệ thống báo cáo thông minh, phân tích toàn diện mọi chỉ số học tập dành riêng cho phụ huynh.</li>
+                        <li><span class="feat-check">✓</span> Tự động cấp Chứng nhận hoàn thành khóa học sau khi bé hoàn thành lộ trình 6 tháng.</li>
                     </ul>
                     @if (!User.Identity!.IsAuthenticated)
                     {
-                        <a asp-controller="Account" asp-action="Register" class="btn-pkg" id="pkg-standard-btn">Bắt đầu ngay →</a>
+                        <a asp-controller="Account" asp-action="Register" class="btn-pkg" id="pkg-premium-btn">Bắt đầu ngay →</a>
                     }
                     else if (User.IsInRole("Parent"))
                     {
                         <a asp-controller="Package" asp-action="List" class="btn-pkg">Xem & mua →</a>
-                    }
-                </div>
-            </div>
-            <!-- Premium -->
-            <div class="col-md-3 col-sm-6">
-                <div class="pkg-card-hp">
-                    <div class="pkg-tier">👑 Toàn diện</div>
-                    <div class="pkg-title-hp">Premium</div>
-                    <div class="pkg-price-hp">399.000đ <small>/ tháng</small></div>
-                    <div class="pkg-value">Kèm giáo viên review bài & tư vấn lộ trình hàng tuần</div>
-                    <ul class="pkg-features-hp">
-                        <li><span class="feat-check">✓</span> Tất cả tính năng Standard</li>
-                        <li><span class="feat-check">✓</span> Giáo viên nhận xét bài/tuần</li>
-                        <li><span class="feat-check">✓</span> Tư vấn lộ trình riêng cho bé</li>
-                        <li><span class="feat-check">✓</span> Hỗ trợ phụ huynh ưu tiên 24/7</li>
-                    </ul>
-                    @if (!User.Identity!.IsAuthenticated)
-                    {
-                        <a asp-controller="Account" asp-action="Register" class="btn-pkg outline" id="pkg-premium-btn">Chọn gói này</a>
-                    }
-                    else if (User.IsInRole("Parent"))
-                    {
-                        <a asp-controller="Package" asp-action="List" class="btn-pkg outline">Xem & mua</a>
                     }
                 </div>
             </div>

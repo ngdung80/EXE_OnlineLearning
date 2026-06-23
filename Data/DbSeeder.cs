@@ -455,9 +455,9 @@ public static class DbSeeder
             }
         }
 
-        // Seed Packages (always checked and updated to match the 4 packages)
+        // Seed Packages (always checked and updated to match the 3 packages)
         var existingPkgs = await db.Packages.ToListAsync();
-        if (existingPkgs.Count != 4 || !existingPkgs.Any(p => p.PackageName.Contains("Standard")))
+        if (existingPkgs.Count != 3 || !existingPkgs.Any(p => p.PackageName.Contains("7 ngày")))
         {
             // Clear out conflicting data in correct FK order
             db.StudentPackages.RemoveRange(await db.StudentPackages.ToListAsync());
@@ -467,10 +467,9 @@ public static class DbSeeder
             await db.SaveChangesAsync();
 
             db.Packages.AddRange(
-                new Package { PackageName = "Gói Học Thử Miễn Phí (Free Trial)", Description = "Trải nghiệm không rủi ro — không cần thẻ tín dụng, học thử đầy đủ tính năng trong 7 ngày.", Price = 0, Duration = 7, Status = "Active" },
-                new Package { PackageName = "Gói Cơ Bản (Basic)", Description = "Bé học 10 phút/ngày với nền tảng từ vựng lớp 1-2 đầy đủ trong 30 ngày.", Price = 149000, Duration = 30, Status = "Active" },
-                new Package { PackageName = "Gói Cá Nhân Hóa (Standard)", Description = "AI điều chỉnh lộ trình học + báo cáo tuần đầy đủ cho phụ huynh trong 30 ngày.", Price = 249000, Duration = 30, Status = "Active" },
-                new Package { PackageName = "Gói Toàn Diện (Premium)", Description = "Kèm giáo viên review bài & tư vấn lộ trình học hàng tuần cho bé trong 30 ngày.", Price = 399000, Duration = 30, Status = "Active" }
+                new Package { PackageName = "Gói Học Thử Miễn Phí (7 ngày)", Description = "Dùng thử miễn phí đầy đủ tính năng trong 7 ngày học tập, không bao gồm chứng chỉ hoàn thành.", Price = 0, Duration = 7, Status = "Active" },
+                new Package { PackageName = "Gói Cơ Bản (1 Tháng)", Description = "Học tiếng Anh 10 phút mỗi ngày bám sát lộ trình sách giáo khoa trong 1 tháng (30 ngày), không bao gồm chứng chỉ.", Price = 99000, Duration = 30, Status = "Active" },
+                new Package { PackageName = "Gói Cao Cấp (6 Tháng)", Description = "Trọn bộ lộ trình cá nhân hóa + Báo cáo thông minh cho phụ huynh + Cấp chứng chỉ hoàn thành sau khi hoàn thành khóa học trong 6 tháng (180 ngày).", Price = 499000, Duration = 180, Status = "Active" }
             );
             await db.SaveChangesAsync();
         }
