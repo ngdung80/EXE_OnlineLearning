@@ -20,10 +20,27 @@ namespace POT_System_ASPNET.Controllers
             _db = db;
         }
 
+        // ── Helper: kiểm tra học sinh có gói học còn hiệu lực không ─────────
+        private async Task<bool> HasActivePackageAsync(int studentId)
+        {
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            return await _db.StudentPackages
+                .AnyAsync(sp => sp.StudentId == studentId
+                             && sp.Status == "Active"
+                             && sp.EndDate >= today);
+        }
+
         // GET: Game
         public async Task<IActionResult> Index()
         {
             var studentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            // Kiểm tra gói học
+            if (!await HasActivePackageAsync(studentId))
+            {
+                TempData["Error"] = "Bạn cần mua khóa học để truy cập tính năng Trò chơi. Hãy chọn gói học phù hợp nhé! 🎮";
+                return RedirectToAction("Index", "Package");
+            }
 
             // Fetch Grades, Chapters, and Lessons to filter on client-side
             var grades = await _db.Grades.Where(g => g.Status == "Active").ToListAsync();
@@ -40,6 +57,15 @@ namespace POT_System_ASPNET.Controllers
         // GET: Game/Play
         public async Task<IActionResult> Play(int lessonId, string gameType)
         {
+            var studentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+            // Kiểm tra gói học
+            if (!await HasActivePackageAsync(studentId))
+            {
+                TempData["Error"] = "Bạn cần mua khóa học để chơi game. Hãy chọn gói học phù hợp nhé! 🎮";
+                return RedirectToAction("Index", "Package");
+            }
+
             var lesson = await _db.Lessons.Include(l => l.Chapter).FirstOrDefaultAsync(l => l.LessonId == lessonId);
             if (lesson == null) return NotFound();
 
@@ -53,6 +79,7 @@ namespace POT_System_ASPNET.Controllers
             ViewBag.LessonId = lessonId;
             return View(lesson);
         }
+
 
         // POST: Game/SubmitReward
         [HttpPost]
