@@ -130,36 +130,39 @@
                     string[] features = new string[0];
                     bool featured = false;
 
-                    if (pkg.PackageName.Contains("Cơ Bản") || pkg.Duration == 1 || pkg.Duration == 30)
+                    if (pkg.PackageName.Contains("Cơ Bản") || pkg.PackageName.Contains("Basic") || pkg.Price == 149000)
                     {
-                        tierName = "⭐ Gói Cơ Bản";
-                        tagline = "Lộ trình học chính thức 1 tháng";
+                        tierName = "🌱 NỀN TẢNG";
+                        tagline = "Bé học 10 phút/ngày với nền tảng từ vựng lớp 1-2 đầy đủ";
                         features = new[] {
-                            "Ứng dụng công nghệ AI tự động điều chỉnh lộ trình học phù hợp với sức học của bé.",
-                            "Hệ thống tự động tạo đề luyện tập với AI và đưa ra gợi ý bài học tại nhà hàng tuần.",
-                            "Gửi báo cáo chi tiết kết quả học tập tự động cho phụ huynh vào cuối tuần."
+                            "Toàn bộ bài học lớp 1 & lớp 2",
+                            "Lộ trình theo trình độ bé",
+                            "Báo cáo tiến bộ cơ bản",
+                            "Ôn từ thông minh"
                         };
                     }
-                    else if (pkg.PackageName.Contains("Tiêu Chuẩn") || pkg.Duration == 3 || pkg.Duration == 90)
+                    else if (pkg.PackageName.Contains("Cá Nhân Hóa") || pkg.PackageName.Contains("Standard") || pkg.Price == 249000)
                     {
-                        tierName = "🚀 Gói Tiêu Chuẩn";
-                        tagline = "Lộ trình học chính thức 3 tháng";
+                        tierName = "📌 CÁ NHÂN HÓA";
+                        tagline = "AI điều chỉnh lộ trình + báo cáo tuần đầy đủ cho phụ huynh";
                         features = new[] {
-                            "Bao gồm đầy đủ các tính năng tự động của gói Cơ Bản.",
-                            "Nâng cấp hệ thống tự động phân tích kỹ năng nâng cao chuyên sâu cho bé.",
-                            "Tự động cập nhật và tư vấn lộ trình học cá nhân hóa theo tiến độ.",
-                            "Được ưu tiên hỗ trợ kỹ thuật và vận hành từ hệ thống 24/7."
+                            "Tất cả tính năng Basic",
+                            "AI cá nhân hóa bài học cho bé",
+                            "Báo cáo tuần chi tiết cho phụ huynh",
+                            "Gợi ý học ở nhà hàng tuần",
+                            "Tạo đề luyện tập với AI"
                         };
-                        featured = true; // Đặt gói Tiêu Chuẩn làm gói phổ biến nhất giống như ảnh
+                        featured = true;
                     }
-                    else if (pkg.PackageName.Contains("Cao Cấp") || pkg.Duration == 6 || pkg.Duration == 180)
+                    else if (pkg.PackageName.Contains("Toàn Diện") || pkg.PackageName.Contains("Premium") || pkg.Price == 399000)
                     {
-                        tierName = "👑 Gói Cao Cấp";
-                        tagline = "Lộ trình học chính thức 6 tháng";
+                        tierName = "👑 TOÀN DIỆN";
+                        tagline = "Kèm giáo viên review bài & tư vấn lộ trình hàng tuần";
                         features = new[] {
-                            "Gói dài hạn nhất, tối ưu trọn bộ lộ trình cá nhân hóa nâng cao trong vòng 6 tháng.",
-                            "Hệ thống báo cáo thông minh, phân tích toàn diện mọi chỉ số học tập dành riêng cho phụ huynh.",
-                            "Tự động cấp Chứng nhận hoàn thành khóa học sau khi bé hoàn thành lộ trình 6 tháng."
+                            "Tất cả tính năng Standard",
+                            "Giáo viên nhận xét bài/tuần",
+                            "Tư vấn lộ trình riêng cho bé",
+                            "Hỗ trợ phụ huynh ưu tiên 24/7"
                         };
                     }
                     else
