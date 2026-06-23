@@ -1,28 +1,123 @@
 @{
     ViewData["Title"] = "Truy cập bị từ chối";
 }
+
 <style>
-    .denied-section { padding:80px 0; background:linear-gradient(135deg,#0f172a,#1e293b); min-height:80vh; display:flex; align-items:center; }
-    .denied-card { background:rgba(239,68,68,.08); border:1px solid rgba(239,68,68,.3); border-radius:24px; padding:50px 40px; text-align:center; color:#fff; max-width:500px; margin:0 auto; }
-    .denied-icon { font-size:4rem; margin-bottom:20px; }
-    .denied-card h1 { color:#f87171; font-size:1.8rem; font-weight:800; margin-bottom:10px; }
-    .denied-card p { color:#94a3b8; margin-bottom:30px; line-height:1.6; }
-    .btn-home { display:inline-block; padding:12px 28px; background:linear-gradient(135deg,#ec6090,#e75485); color:#fff; border-radius:25px; text-decoration:none; font-weight:700; transition:all .3s; margin:0 8px; }
-    .btn-home:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(236,96,144,.4); color:#fff; }
-    .btn-back { display:inline-block; padding:12px 28px; background:transparent; border:2px solid #ec6090; color:#ec6090; border-radius:25px; text-decoration:none; font-weight:700; transition:all .2s; margin:0 8px; }
-    .btn-back:hover { background:rgba(236,96,144,.1); color:#ec6090; }
+    .denied-section {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #fff0f6 0%, #fce4ec 50%, #f3e5f5 100%);
+        padding: 60px 20px;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .denied-card {
+        background: #ffffff;
+        border-radius: 28px;
+        padding: 56px 48px;
+        text-align: center;
+        max-width: 480px;
+        width: 100%;
+        box-shadow: 0 20px 60px rgba(215, 51, 132, 0.12), 0 4px 16px rgba(0,0,0,0.06);
+        animation: fadeUp 0.5s ease;
+    }
+
+    @@keyframes fadeUp {
+        from { opacity: 0; transform: translateY(24px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .denied-icon-wrap {
+        width: 88px;
+        height: 88px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #fce4ec, #f8bbd0);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 24px;
+        font-size: 2.8rem;
+        box-shadow: 0 8px 24px rgba(215, 51, 132, 0.18);
+    }
+
+    .denied-card h1 {
+        color: #2a0040;
+        font-size: 1.7rem;
+        font-weight: 800;
+        margin-bottom: 12px;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .denied-card p {
+        color: #6b7280;
+        font-size: 15px;
+        line-height: 1.7;
+        margin-bottom: 32px;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .denied-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-home {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 12px 28px;
+        background: linear-gradient(135deg, #ec6090, #e75485);
+        color: #fff !important;
+        border-radius: 50px;
+        text-decoration: none !important;
+        font-weight: 700;
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.25s;
+        box-shadow: 0 4px 14px rgba(231, 84, 133, 0.35);
+    }
+
+    .btn-home:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 22px rgba(231, 84, 133, 0.45);
+        color: #fff !important;
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 12px 28px;
+        background: transparent;
+        border: 2px solid #e75485;
+        color: #e75485 !important;
+        border-radius: 50px;
+        text-decoration: none !important;
+        font-weight: 700;
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.25s;
+    }
+
+    .btn-back:hover {
+        background: rgba(231, 84, 133, 0.08);
+        transform: translateY(-2px);
+        color: #e75485 !important;
+    }
 </style>
 
 <section class="denied-section">
-    <div class="container">
-        <div class="denied-card">
-            <div class="denied-icon">🔒</div>
-            <h1>Truy cập bị từ chối</h1>
-            <p>Bạn không có quyền truy cập trang này. Vui lòng liên hệ với quản trị viên nếu bạn nghĩ đây là sự nhầm lẫn.</p>
-            <div>
-                <a asp-controller="Home" asp-action="Index" class="btn-home">🏠 Về trang chủ</a>
-                <a href="javascript:history.back()" class="btn-back">← Quay lại</a>
-            </div>
+    <div class="denied-card">
+        <div class="denied-icon-wrap">🔒</div>
+        <h1>Truy cập bị từ chối</h1>
+        <p>Bạn không có quyền truy cập trang này.<br>Vui lòng liên hệ với quản trị viên nếu bạn nghĩ đây là sự nhầm lẫn.</p>
+        <div class="denied-actions">
+            <a asp-controller="Home" asp-action="Index" class="btn-home">🏠 Về trang chủ</a>
+            <a href="javascript:history.back()" class="btn-back">← Quay lại</a>
         </div>
     </div>
 </section>
