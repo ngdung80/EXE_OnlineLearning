@@ -981,17 +981,31 @@ else
         }
 
         // Direct Video Progress tracking
+        let directMaxTimeWatched = 0;
         function checkDirectVideoProgress(video) {
-            if (hasWatchedHalf) return;
-            if (video.duration > 0 && video.currentTime >= video.duration / 2) {
-                hasWatchedHalf = true;
-                enableAIQuizButton();
+            const currentTime = video.currentTime;
+            
+            // Prevent seeking forward (more than 2 seconds ahead of max watched time)
+            if (currentTime > directMaxTimeWatched + 2.0) {
+                video.currentTime = directMaxTimeWatched;
+            } else {
+                if (currentTime > directMaxTimeWatched) {
+                    directMaxTimeWatched = currentTime;
+                }
+            }
+
+            if (video.duration > 0 && directMaxTimeWatched >= video.duration / 2) {
+                if (!hasWatchedHalf) {
+                    hasWatchedHalf = true;
+                    enableAIQuizButton();
+                }
             }
         }
 
         // YouTube Player API progress tracking
         var player;
         var progressInterval;
+        let ytMaxTimeWatched = 0;
         
         function onYouTubeIframeAPIReady() {
             if (document.getElementById('yt-player')) {
@@ -1005,21 +1019,33 @@ else
 
         function onPlayerStateChange(event) {
             if (event.data == YT.PlayerState.PLAYING) {
-                progressInterval = setInterval(checkYTProgress, 1000);
+                checkYTProgress();
+                progressInterval = setInterval(checkYTProgress, 500); // Check every 500ms
             } else {
                 clearInterval(progressInterval);
             }
         }
 
         function checkYTProgress() {
-            if (!player || hasWatchedHalf) return;
+            if (!player) return;
             try {
                 const duration = player.getDuration();
                 const currentTime = player.getCurrentTime();
-                if (duration > 0 && currentTime >= duration / 2) {
-                    hasWatchedHalf = true;
-                    clearInterval(progressInterval);
-                    enableAIQuizButton();
+
+                // Prevent seeking forward (more than 2 seconds ahead of max watched time)
+                if (currentTime > ytMaxTimeWatched + 2.0) {
+                    player.seekTo(ytMaxTimeWatched, true);
+                } else {
+                    if (currentTime > ytMaxTimeWatched) {
+                        ytMaxTimeWatched = currentTime;
+                    }
+                }
+
+                if (duration > 0 && ytMaxTimeWatched >= duration / 2) {
+                    if (!hasWatchedHalf) {
+                        hasWatchedHalf = true;
+                        enableAIQuizButton();
+                    }
                 }
             } catch (e) {
                 console.error("Error checking YouTube progress:", e);
@@ -1278,6 +1304,14 @@ else
         const videoElement = directVideo || previewVideo;
         const loadingElement = directLoading || previewLoading;
         
+        if (directVideo) {
+            directVideo.addEventListener('seeking', () => {
+                if (directVideo.currentTime > directMaxTimeWatched + 1.0) {
+                    directVideo.currentTime = directMaxTimeWatched;
+                }
+            });
+        }
+
         if (videoElement && '@Model.FileUrl') {
             const videoUrl = '@Model.FileUrl';
             

@@ -303,7 +303,14 @@ else
                     }
                     else
                     {
-                        <tr><td colspan="6"><div class="empty-state"><div style="font-size:2.5rem;">📝</div><p>Chưa thực hiện bài kiểm tra nào.</p><a asp-action="List" style="color:#ec6090;">Làm bài ngay →</a></div></td></tr>
+                        @if (ViewBag.HasActivePackage == true)
+                        {
+                            <tr><td colspan="6"><div class="empty-state"><div style="font-size:2.5rem;">📝</div><p>Chưa thực hiện bài kiểm tra nào.</p><a asp-action="List" style="color:#ec6090;">Làm bài ngay →</a></div></td></tr>
+                        }
+                        else
+                        {
+                            <tr><td colspan="6"><div class="empty-state"><div style="font-size:2.5rem;">🔒</div><p>Chưa thực hiện bài kiểm tra nào.</p><span style="color:#ec6090; font-weight:800; font-size:1.1rem; display:block; margin-top:10px;">Con (hoặc Phụ huynh) cần mua khóa học để bắt đầu làm bài nhé!</span></div></td></tr>
+                        }
                     }
                 </tbody>
             </table>

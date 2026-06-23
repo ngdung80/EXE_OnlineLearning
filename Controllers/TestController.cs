@@ -59,6 +59,14 @@ public class TestController : Controller
     [Authorize(Roles = "Student")]
     public async Task<IActionResult> List(int? subjectId, string? type, int page = 1)
     {
+        var studentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var hasActivePackage = await _db.StudentPackages.AnyAsync(sp => sp.StudentId == studentId && sp.Status == "Active" && sp.EndDate >= DateOnly.FromDateTime(DateTime.Now));
+        if (!hasActivePackage)
+        {
+            TempData["Error"] = "Con (hoặc Phụ huynh) cần mua khóa học để mở khóa đề kiểm tra và luyện tập nhé!";
+            return RedirectToAction("Index", "Home");
+        }
+
         const int pageSize = 10;
         ViewBag.Subjects = await _subjectService.GetAllAsync();
         var tests = await _testService.SearchAsync(null, subjectId, type, "Active", page, pageSize);
@@ -74,6 +82,14 @@ public class TestController : Controller
         var test = await _testService.GetByIdAsync(id);
         if (test == null) return NotFound();
         var studentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+        var hasActivePackage = await _db.StudentPackages.AnyAsync(sp => sp.StudentId == studentId && sp.Status == "Active" && sp.EndDate >= DateOnly.FromDateTime(DateTime.Now));
+        if (!hasActivePackage)
+        {
+            TempData["Error"] = "Con (hoặc Phụ huynh) cần mua khóa học để mở khóa làm bài nhé!";
+            return RedirectToAction("Index", "Home");
+        }
+
         var attemptId = await _testAttemptService.StartAttemptAsync(id, studentId);
         return View(new TakeTestViewModel { Test = test, AttemptId = attemptId });
     }
@@ -125,6 +141,13 @@ public class TestController : Controller
     {
         var studentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
         var attempts = await _testAttemptService.GetByStudentIdAsync(studentId);
+
+        var hasActivePackage = await _db.StudentPackages.AnyAsync(sp => 
+            sp.StudentId == studentId && 
+            sp.Status == "Active" && 
+            sp.EndDate >= DateOnly.FromDateTime(DateTime.Now));
+            
+        ViewBag.HasActivePackage = hasActivePackage;
         return View(attempts);
     }
 
@@ -133,6 +156,12 @@ public class TestController : Controller
     public async Task<IActionResult> Practice()
     {
         var studentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var hasActivePackage = await _db.StudentPackages.AnyAsync(sp => sp.StudentId == studentId && sp.Status == "Active" && sp.EndDate >= DateOnly.FromDateTime(DateTime.Now));
+        if (!hasActivePackage)
+        {
+            TempData["Error"] = "Con (hoặc Phụ huynh) cần mua khóa học để mở khóa luyện tập nhé!";
+            return RedirectToAction("Index", "Home");
+        }
 
         var grades = await _db.Grades.Where(g => g.Status == "Active").ToListAsync();
         var subjects = await _db.Subjects.Where(s => s.Status == "Active").ToListAsync();
@@ -158,6 +187,12 @@ public class TestController : Controller
     public async Task<IActionResult> StartPractice(int lessonId)
     {
         var studentId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        var hasActivePackage = await _db.StudentPackages.AnyAsync(sp => sp.StudentId == studentId && sp.Status == "Active" && sp.EndDate >= DateOnly.FromDateTime(DateTime.Now));
+        if (!hasActivePackage)
+        {
+            TempData["Error"] = "Con (hoặc Phụ huynh) cần mua khóa học để mở khóa luyện tập nhé!";
+            return RedirectToAction("Index", "Home");
+        }
 
         // Verify that lesson is completed
         var isCompleted = await _db.StudentLessonProgresses.AnyAsync(p => p.StudentId == studentId && p.LessonId == lessonId);
