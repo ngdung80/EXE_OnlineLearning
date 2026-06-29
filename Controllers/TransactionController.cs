@@ -30,23 +30,67 @@ public class TransactionController : Controller
         _subjectService = subjectService;
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? parentName, string? status, string? startDate, string? endDate)
     {
-        // Get all course purchases
-        var purchases = await _context.Transactions
+        // Query course purchases
+        var purchasesQuery = _context.Transactions
             .Include(t => t.User)
             .Include(t => t.Package)
-            .OrderByDescending(t => t.TransactionDate)
-            .ToListAsync();
+            .AsQueryable();
 
-        // Get all top-up/wallet transactions
-        var walletTx = await _context.WalletTransactions
+        // Query top-up/wallet transactions
+        var walletTxQuery = _context.WalletTransactions
             .Where(wt => wt.TransactionType == "TopUp")
             .Include(wt => wt.Wallet)
             .ThenInclude(w => w.Parent)
+            .AsQueryable();
+
+        // Apply filters
+        if (!string.IsNullOrEmpty(parentName))
+        {
+            var lowerName = parentName.ToLower();
+            purchasesQuery = purchasesQuery.Where(t => 
+                (t.User != null && t.User.Username != null && t.User.Username.ToLower().Contains(lowerName)) || 
+                (t.User != null && t.User.FullName != null && t.User.FullName.ToLower().Contains(lowerName))
+            );
+            walletTxQuery = walletTxQuery.Where(wt => 
+                (wt.Wallet != null && wt.Wallet.Parent != null && wt.Wallet.Parent.Username != null && wt.Wallet.Parent.Username.ToLower().Contains(lowerName)) || 
+                (wt.Wallet != null && wt.Wallet.Parent != null && wt.Wallet.Parent.FullName != null && wt.Wallet.Parent.FullName.ToLower().Contains(lowerName))
+            );
+        }
+
+        if (!string.IsNullOrEmpty(status))
+        {
+            purchasesQuery = purchasesQuery.Where(t => t.Status == status);
+            walletTxQuery = walletTxQuery.Where(wt => wt.Status == status);
+        }
+
+        if (DateTime.TryParse(startDate, out var parsedStartDate))
+        {
+            purchasesQuery = purchasesQuery.Where(t => t.TransactionDate >= parsedStartDate);
+            walletTxQuery = walletTxQuery.Where(wt => wt.CreatedAt >= parsedStartDate);
+        }
+
+        if (DateTime.TryParse(endDate, out var parsedEndDate))
+        {
+            var endLimit = parsedEndDate.Date.AddDays(1).AddTicks(-1);
+            purchasesQuery = purchasesQuery.Where(t => t.TransactionDate <= endLimit);
+            walletTxQuery = walletTxQuery.Where(wt => wt.CreatedAt <= endLimit);
+        }
+
+        var purchases = await purchasesQuery
+            .OrderByDescending(t => t.TransactionDate)
+            .ToListAsync();
+
+        var walletTx = await walletTxQuery
             .OrderByDescending(wt => wt.CreatedAt)
             .ToListAsync();
 
+        // Keep values in ViewBag to re-populate form
+        ViewBag.ParentName = parentName;
+        ViewBag.Status = status;
+        ViewBag.StartDate = startDate;
+        ViewBag.EndDate = endDate;
         ViewBag.WalletTransactions = walletTx;
 
         return View(purchases);

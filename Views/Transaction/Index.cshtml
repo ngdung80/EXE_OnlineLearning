@@ -13,6 +13,73 @@
         </div>
     </div>
 
+    <!-- Filter Form -->
+    <div class="card shadow-sm border-0 mb-4" style="border-radius: 15px; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); border: 1px solid #fce7f3 !important;">
+        <div class="card-body p-4">
+            <form method="get" asp-action="Index" class="row g-3 align-items-end">
+                <input type="hidden" name="tab" id="activeTabHiddenInput" value="@(Context.Request.Query["tab"].ToString() == "wallet" ? "wallet" : "packages")" />
+                
+                <div class="col-md-3">
+                    <label for="parentName" class="form-label fw-bold text-muted" style="font-size: 0.85rem;">Tìm phụ huynh</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0" style="border-radius: 10px 0 0 10px; border-color: #dee2e6;"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" name="parentName" id="parentName" class="form-control border-start-0" placeholder="Tên hoặc Username..." value="@ViewBag.ParentName" style="border-radius: 0 10px 10px 0; border-color: #dee2e6;" />
+                    </div>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="status" class="form-label fw-bold text-muted" style="font-size: 0.85rem;">Trạng thái</label>
+                    <select name="status" id="status" class="form-select" style="border-radius: 10px; border-color: #dee2e6;">
+                        <option value="">-- Tất cả trạng thái --</option>
+                        @if (ViewBag.Status == "Completed")
+                        {
+                            <option value="Completed" selected>Thành công / Đã nạp</option>
+                        }
+                        else
+                        {
+                            <option value="Completed">Thành công / Đã nạp</option>
+                        }
+                        @if (ViewBag.Status == "Pending")
+                        {
+                            <option value="Pending" selected>Chờ xử lý / Chờ duyệt</option>
+                        }
+                        else
+                        {
+                            <option value="Pending">Chờ xử lý / Chờ duyệt</option>
+                        }
+                        @if (ViewBag.Status == "Cancelled")
+                        {
+                            <option value="Cancelled" selected>Đã hủy / Từ chối</option>
+                        }
+                        else
+                        {
+                            <option value="Cancelled">Đã hủy / Từ chối</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label for="startDate" class="form-label fw-bold text-muted" style="font-size: 0.85rem;">Từ ngày</label>
+                    <input type="date" name="startDate" id="startDate" class="form-control" value="@ViewBag.StartDate" style="border-radius: 10px; border-color: #dee2e6;" />
+                </div>
+
+                <div class="col-md-2">
+                    <label for="endDate" class="form-label fw-bold text-muted" style="font-size: 0.85rem;">Đến ngày</label>
+                    <input type="date" name="endDate" id="endDate" class="form-control" value="@ViewBag.EndDate" style="border-radius: 10px; border-color: #dee2e6;" />
+                </div>
+
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary w-100 fw-bold" style="border-radius: 10px; background: linear-gradient(135deg, #e75485, #ec6090); border: none;">
+                        <i class="fas fa-filter me-1"></i> Lọc
+                    </button>
+                    <a asp-action="Index" asp-route-tab="@(Context.Request.Query["tab"].ToString() == "wallet" ? "wallet" : "packages")" class="btn btn-outline-secondary w-100 fw-bold" style="border-radius: 10px;">
+                        Xóa Lọc
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
     @if (TempData["Success"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 10px;">
@@ -232,5 +299,25 @@
                 tab.show();
             }
         }
+
+        // Keep track of active tab in filter form hidden input
+        var activeTabInput = document.getElementById('activeTabHiddenInput');
+        var tabEls = document.querySelectorAll('button[data-bs-toggle="tab"]');
+        tabEls.forEach(function(tabEl) {
+            tabEl.addEventListener('shown.bs.tab', function (event) {
+                var targetId = event.target.getAttribute('id');
+                if (targetId === 'wallet-tab') {
+                    if (activeTabInput) activeTabInput.value = 'wallet';
+                    // Update clear button url too
+                    var clearBtn = document.querySelector('a.btn-outline-secondary');
+                    if (clearBtn) clearBtn.setAttribute('href', '/Transaction?tab=wallet');
+                } else {
+                    if (activeTabInput) activeTabInput.value = 'packages';
+                    // Update clear button url too
+                    var clearBtn = document.querySelector('a.btn-outline-secondary');
+                    if (clearBtn) clearBtn.setAttribute('href', '/Transaction?tab=packages');
+                }
+            });
+        });
     });
 </script>
