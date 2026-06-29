@@ -14,6 +14,7 @@ RUN dotnet publish "POT_System_ASPNET.csproj" -c Release -o /app/publish /p:UseA
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
+ENV TZ=Asia/Ho_Chi_Minh
 
 # Expose port 8080 (default in .NET 8 ASP.NET images)
 EXPOSE 8080
