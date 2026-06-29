@@ -284,6 +284,36 @@
                         },
                         options: {
                             responsive: true,
+                            onClick: (event, elements) => {
+                                if (elements && elements.length > 0) {
+                                    const element = elements[0];
+                                    const index = element.index;
+                                    
+                                    const year = document.getElementById('yearSelect').value;
+                                    const monthSelect = document.getElementById('monthSelect');
+                                    const daySelect = document.getElementById('daySelect');
+                                    
+                                    if (monthSelect.value === '0') {
+                                        const clickedMonth = index + 1;
+                                        monthSelect.value = clickedMonth;
+                                        updateDaysDropdown();
+                                        daySelect.value = '0';
+                                        loadChartData(year, clickedMonth, 0);
+                                    } else if (daySelect.value === '0') {
+                                        const clickedDay = index + 1;
+                                        daySelect.value = clickedDay;
+                                        loadChartData(year, monthSelect.value, clickedDay);
+                                    }
+                                }
+                            },
+                            onHover: (event, elements) => {
+                                if (event && event.native && event.native.target) {
+                                    const monthSelect = document.getElementById('monthSelect');
+                                    const daySelect = document.getElementById('daySelect');
+                                    const isClickable = (monthSelect.value === '0' || daySelect.value === '0');
+                                    event.native.target.style.cursor = (isClickable && elements && elements.length > 0) ? 'pointer' : 'default';
+                                }
+                            },
                             scales: {
                                 y: {
                                     beginAtZero: true,
@@ -326,6 +356,14 @@
             const overlay = document.getElementById('pdfLoadingOverlay');
             overlay.classList.add('show');
 
+            function removeAccents(str) {
+                if (!str) return '';
+                return str
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .replace(/[đĐ]/g, m => m === 'đ' ? 'd' : 'D');
+            }
+
             fetch(url)
                 .then(r => r.json())
                 .then(data => {
@@ -342,35 +380,39 @@
                     doc.text('BAO CAO DOANH THU', pageW / 2, 13, { align: 'center' });
                     doc.setFontSize(9.5);
                     doc.setFont('helvetica', 'normal');
-                    doc.text('Ky bao cao: ' + (data.period || ''), pageW / 2, 22, { align: 'center' });
+                    doc.text(removeAccents('Ky bao cao: ' + (data.period || '')), pageW / 2, 22, { align: 'center' });
 
                     // Summary
                     const total = typeof data.total === 'number' ? data.total : 0;
                     doc.setTextColor(44, 62, 80);
                     doc.setFontSize(11);
                     doc.setFont('helvetica', 'bold');
-                    doc.text('Tong doanh thu: ' + total.toLocaleString('vi-VN') + ' VND', 14, 40);
+                    doc.text(removeAccents('Tong doanh thu: ' + total.toLocaleString('vi-VN') + ' VND'), 14, 40);
                     doc.setFont('helvetica', 'normal');
                     doc.setFontSize(8.5);
                     doc.setTextColor(110, 110, 110);
                     const exportTime = new Date().toLocaleString('vi-VN');
-                    doc.text('Ngay xuat bao cao: ' + exportTime, 14, 46);
+                    doc.text(removeAccents('Ngay xuat bao cao: ' + exportTime), 14, 46);
 
                     // Table
                     const rows = (data.rows || []).map((r, i) => [
                         i + 1,
                         r.date || '',
-                        r.type || '',
+                        removeAccents(r.type || ''),
                         (typeof r.amount === 'number' ? r.amount.toLocaleString('vi-VN') : '0') + ' d',
-                        r.status || ''
+                        removeAccents(r.status || '')
                     ]);
 
                     doc.autoTable({
                         startY: 52,
                         head: [['STT', 'Ngay / Gio', 'Loai giao dich', 'So tien (VND)', 'Trang thai']],
-                        body: rows.length > 0 ? rows : [['', 'Khong co du lieu trong ky bao cao nay', '', '', '']],
+                        body: rows.length > 0 ? rows : [[
+                            '',
+                            removeAccents('Khong co du lieu trong ky bao cao nay'),
+                            '', '', ''
+                        ]],
                         foot: rows.length > 0
-                            ? [['', '', 'TONG CONG', total.toLocaleString('vi-VN') + ' d', '']]
+                            ? [['', '', removeAccents('TONG CONG'), total.toLocaleString('vi-VN') + ' d', '']]
                             : [],
                         headStyles: {
                             fillColor: [52, 152, 219],
@@ -400,12 +442,12 @@
                             doc.setFontSize(7.5);
                             doc.setTextColor(160);
                             const ph = doc.internal.pageSize.getHeight();
-                            doc.text('Trang ' + d.pageNumber, pageW / 2, ph - 6, { align: 'center' });
+                            doc.text(removeAccents('Trang ' + d.pageNumber), pageW / 2, ph - 6, { align: 'center' });
                         }
                     });
 
                     const safePeriod = (data.period || '').replace(/\s*-\s*/g, '_').replace(/\s+/g, '');
-                    doc.save('BaoCaoDoanhThu_' + safePeriod + '.pdf');
+                    doc.save('BaoCaoDoanhThu_' + removeAccents(safePeriod) + '.pdf');
                     overlay.classList.remove('show');
                 })
                 .catch(err => {
