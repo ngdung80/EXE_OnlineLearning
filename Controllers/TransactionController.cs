@@ -41,6 +41,7 @@ public class TransactionController : Controller
 
         // Get all top-up/wallet transactions
         var walletTx = await _context.WalletTransactions
+            .Where(wt => wt.TransactionType == "TopUp")
             .Include(wt => wt.Wallet)
             .ThenInclude(w => w.Parent)
             .OrderByDescending(wt => wt.CreatedAt)
