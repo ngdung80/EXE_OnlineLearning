@@ -2,11 +2,11 @@ version: '3.8'
 
 services:
   web:
-    image: shms-web:latest
+    image: pot-system-web:latest
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: shms_app
+    container_name: pot_system_app
     restart: always
     ports:
       - "5001:8080" # Ánh xạ cổng 5001 trên VPS để không đụng độ với dự án tiếng Anh (5000)
