@@ -18,15 +18,11 @@ public class RevenueController : Controller
 
     public async Task<IActionResult> Index()
     {
-        var totalTopUp = await _context.WalletTransactions
-            .Where(wt => wt.TransactionType == "TopUp" && wt.Status == "Completed")
-            .SumAsync(wt => wt.Amount);
-
         var totalPurchase = await _context.Transactions
             .Where(t => t.Status == "Completed")
             .SumAsync(t => t.Amount);
 
-        ViewBag.TotalRevenue = totalTopUp + totalPurchase;
+        ViewBag.TotalRevenue = totalPurchase;
 
         return View();
     }
@@ -35,32 +31,22 @@ public class RevenueController : Controller
     public async Task<IActionResult> GetRevenueData(int? year, int? month, int? day)
     {
         var targetYear = year ?? DateTime.Now.Year;
-        
-        // Query WalletTransactions (TopUp)
-        var topupsQuery = _context.WalletTransactions
-            .Where(wt => wt.TransactionType == "TopUp" && wt.Status == "Completed" && wt.CreatedAt.HasValue);
 
         // Query Transactions (Gói học)
         var purchasesQuery = _context.Transactions
-            .Where(t => t.Status == "Completed" && t.TransactionDate.HasValue);
-
-        // Filter queries by year
-        topupsQuery = topupsQuery.Where(wt => wt.CreatedAt!.Value.Year == targetYear);
-        purchasesQuery = purchasesQuery.Where(t => t.TransactionDate!.Value.Year == targetYear);
+            .Where(t => t.Status == "Completed" && t.TransactionDate.HasValue)
+            .Where(t => t.TransactionDate!.Value.Year == targetYear);
 
         if (month.HasValue && month.Value > 0)
         {
-            topupsQuery = topupsQuery.Where(wt => wt.CreatedAt!.Value.Month == month.Value);
             purchasesQuery = purchasesQuery.Where(t => t.TransactionDate!.Value.Month == month.Value);
         }
 
         if (day.HasValue && day.Value > 0)
         {
-            topupsQuery = topupsQuery.Where(wt => wt.CreatedAt!.Value.Day == day.Value);
             purchasesQuery = purchasesQuery.Where(t => t.TransactionDate!.Value.Day == day.Value);
         }
 
-        var topupsList = await topupsQuery.ToListAsync();
         var purchasesList = await purchasesQuery.ToListAsync();
 
         var combined = new List<object>();
@@ -68,22 +54,17 @@ public class RevenueController : Controller
         // Scenario 1: Year, Month, and Day are all selected (Show hourly breakdown)
         if (month.HasValue && month.Value > 0 && day.HasValue && day.Value > 0)
         {
-            var hourlyTopups = topupsList
-                .GroupBy(wt => wt.CreatedAt!.Value.Hour)
-                .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
-
             var hourlyPurchases = purchasesList
                 .GroupBy(t => t.TransactionDate!.Value.Hour)
                 .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
 
             for (int h = 0; h < 24; h++)
             {
-                var topUpAmount = hourlyTopups.ContainsKey(h) ? hourlyTopups[h] : 0;
                 var purchaseAmount = hourlyPurchases.ContainsKey(h) ? hourlyPurchases[h] : 0;
                 combined.Add(new
                 {
                     Label = $"{h:D2}:00",
-                    TotalRevenue = topUpAmount + purchaseAmount
+                    TotalRevenue = purchaseAmount
                 });
             }
         }
@@ -92,32 +73,23 @@ public class RevenueController : Controller
         {
             int daysInMonth = DateTime.DaysInMonth(targetYear, month.Value);
 
-            var dailyTopups = topupsList
-                .GroupBy(wt => wt.CreatedAt!.Value.Day)
-                .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
-
             var dailyPurchases = purchasesList
                 .GroupBy(t => t.TransactionDate!.Value.Day)
                 .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
 
             for (int d = 1; d <= daysInMonth; d++)
             {
-                var topUpAmount = dailyTopups.ContainsKey(d) ? dailyTopups[d] : 0;
                 var purchaseAmount = dailyPurchases.ContainsKey(d) ? dailyPurchases[d] : 0;
                 combined.Add(new
                 {
                     Label = $"Ngày {d}",
-                    TotalRevenue = topUpAmount + purchaseAmount
+                    TotalRevenue = purchaseAmount
                 });
             }
         }
         // Scenario 3: Only Year is selected, Month and Day are "Tất cả" (Show monthly breakdown)
         else
         {
-            var monthlyTopups = topupsList
-                .GroupBy(wt => wt.CreatedAt!.Value.Month)
-                .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
-
             var monthlyPurchases = purchasesList
                 .GroupBy(t => t.TransactionDate!.Value.Month)
                 .ToDictionary(g => g.Key, g => g.Sum(x => x.Amount));
@@ -126,12 +98,11 @@ public class RevenueController : Controller
 
             for (int m = 1; m <= 12; m++)
             {
-                var topUpAmount = monthlyTopups.ContainsKey(m) ? monthlyTopups[m] : 0;
                 var purchaseAmount = monthlyPurchases.ContainsKey(m) ? monthlyPurchases[m] : 0;
                 combined.Add(new
                 {
                     Label = months[m - 1],
-                    TotalRevenue = topUpAmount + purchaseAmount
+                    TotalRevenue = purchaseAmount
                 });
             }
         }
@@ -144,39 +115,25 @@ public class RevenueController : Controller
     {
         var targetYear = year ?? DateTime.Now.Year;
 
-        var topupsQuery = _context.WalletTransactions
-            .Where(wt => wt.TransactionType == "TopUp" && wt.Status == "Completed" && wt.CreatedAt.HasValue)
-            .Where(wt => wt.CreatedAt!.Value.Year == targetYear);
-
         var purchasesQuery = _context.Transactions
+            .Include(t => t.Package)
             .Where(t => t.Status == "Completed" && t.TransactionDate.HasValue)
             .Where(t => t.TransactionDate!.Value.Year == targetYear);
 
         if (month.HasValue && month.Value > 0)
         {
-            topupsQuery = topupsQuery.Where(wt => wt.CreatedAt!.Value.Month == month.Value);
             purchasesQuery = purchasesQuery.Where(t => t.TransactionDate!.Value.Month == month.Value);
         }
         if (day.HasValue && day.Value > 0)
         {
-            topupsQuery = topupsQuery.Where(wt => wt.CreatedAt!.Value.Day == day.Value);
             purchasesQuery = purchasesQuery.Where(t => t.TransactionDate!.Value.Day == day.Value);
         }
-
-        var topups = await topupsQuery
-            .Select(wt => new
-            {
-                Date = wt.CreatedAt!.Value,
-                Type = "Nạp ví (TopUp)",
-                wt.Amount,
-                wt.Status
-            }).ToListAsync();
 
         var purchases = await purchasesQuery
             .Select(t => new
             {
                 Date = t.TransactionDate!.Value,
-                Type = "Mua gói học",
+                Type = "Mua gói " + t.Package.PackageName,
                 t.Amount,
                 t.Status
             }).ToListAsync();
@@ -219,8 +176,7 @@ public class RevenueController : Controller
         int row = headerRow + 1;
         int stt = 1;
 
-        var allRows = topups.Select(x => new { x.Date, x.Type, x.Amount, x.Status })
-            .Concat(purchases.Select(x => new { x.Date, x.Type, x.Amount, x.Status }))
+        var allRows = purchases.Select(x => new { x.Date, x.Type, x.Amount, x.Status })
             .OrderBy(x => x.Date)
             .ToList();
 
@@ -275,37 +231,24 @@ public class RevenueController : Controller
         // Returns detailed transaction rows for client-side PDF rendering via jsPDF
         var targetYear = year ?? DateTime.Now.Year;
 
-        var topupsQuery = _context.WalletTransactions
-            .Where(wt => wt.TransactionType == "TopUp" && wt.Status == "Completed" && wt.CreatedAt.HasValue)
-            .Where(wt => wt.CreatedAt!.Value.Year == targetYear);
-
         var purchasesQuery = _context.Transactions
+            .Include(t => t.Package)
             .Where(t => t.Status == "Completed" && t.TransactionDate.HasValue)
             .Where(t => t.TransactionDate!.Value.Year == targetYear);
 
         if (month.HasValue && month.Value > 0)
         {
-            topupsQuery = topupsQuery.Where(wt => wt.CreatedAt!.Value.Month == month.Value);
             purchasesQuery = purchasesQuery.Where(t => t.TransactionDate!.Value.Month == month.Value);
         }
         if (day.HasValue && day.Value > 0)
         {
-            topupsQuery = topupsQuery.Where(wt => wt.CreatedAt!.Value.Day == day.Value);
             purchasesQuery = purchasesQuery.Where(t => t.TransactionDate!.Value.Day == day.Value);
         }
-
-        var topups = await topupsQuery.Select(wt => new
-        {
-            date = wt.CreatedAt!.Value.ToString("dd/MM/yyyy HH:mm"),
-            type = "Nạp ví",
-            amount = wt.Amount,
-            status = wt.Status
-        }).ToListAsync();
 
         var purchases = await purchasesQuery.Select(t => new
         {
             date = t.TransactionDate!.Value.ToString("dd/MM/yyyy HH:mm"),
-            type = "Mua gói học",
+            type = "Mua gói " + t.Package.PackageName,
             amount = t.Amount,
             status = t.Status
         }).ToListAsync();
@@ -314,10 +257,6 @@ public class RevenueController : Controller
         if (month.HasValue && month.Value > 0) period += $" - Tháng {month.Value}";
         if (day.HasValue && day.Value > 0) period += $" - Ngày {day.Value}";
 
-        var allRows = topups.Cast<object>()
-            .Concat(purchases.Cast<object>())
-            .ToList();
-
-        return Json(new { period, rows = allRows, total = topups.Sum(x => x.amount) + purchases.Sum(x => x.amount) });
+        return Json(new { period, rows = purchases, total = purchases.Sum(x => x.amount) });
     }
 }
