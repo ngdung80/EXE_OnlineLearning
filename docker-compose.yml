@@ -9,7 +9,7 @@ services:
     container_name: pot_system_app
     restart: always
     ports:
-      - "5001:8080" # Ánh xạ cổng 5001 trên VPS để không đụng độ với dự án tiếng Anh (5000)
+      - "5002:8080" # Ánh xạ cổng 5002 trên VPS để tránh trùng với shms_app (5001) và dự án tiếng Anh (5000)
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - TZ=Asia/Ho_Chi_Minh
